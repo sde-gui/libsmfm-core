@@ -763,6 +763,16 @@ static void update_permissions(FmFilePropData* data)
         gtk_combo_box_set_active(data->flags_set_file, sel);
     }
     data->flags_set_sel = sel;
+
+    /* on local filesystems, only root or owner can change permissions. */
+    if( data->all_native && geteuid() != 0 && geteuid() != uid)
+    {
+        gtk_widget_set_sensitive(GTK_WIDGET(data->read_perm), FALSE);
+        gtk_widget_set_sensitive(GTK_WIDGET(data->write_perm), FALSE);
+        gtk_widget_set_sensitive(GTK_WIDGET(data->exec_perm), FALSE);
+        gtk_widget_set_sensitive(GTK_WIDGET(data->flags_set_file), FALSE);
+        gtk_widget_set_sensitive(GTK_WIDGET(data->flags_set_dir), FALSE);
+    }
 }
 
 static void update_ui(FmFilePropData* data)
