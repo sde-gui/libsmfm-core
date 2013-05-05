@@ -1237,8 +1237,8 @@ static void on_file_menu(GtkAction* act, FmFolderView* fv)
     FmFileInfoList* files;
     GtkWindow *win;
     FmFileMenu* menu;
-    FmFolderViewUpdatePopup update_popup;
-    FmLaunchFolderFunc open_folders;
+    FmFolderViewUpdatePopup update_popup = NULL;
+    FmLaunchFolderFunc open_folders = NULL;
 
     if(iface->count_selected_files(fv) > 0)
     {
@@ -1248,7 +1248,8 @@ static void on_file_menu(GtkAction* act, FmFolderView* fv)
         files = iface->dup_selected_files(fv);
         win = GTK_WINDOW(gtk_menu_get_attach_widget(popup));
         menu = fm_file_menu_new_for_files(win, files, fm_folder_view_get_cwd(fv), TRUE);
-        iface->get_custom_menu_callbacks(fv, &update_popup, &open_folders);
+        if (iface->get_custom_menu_callbacks)
+            iface->get_custom_menu_callbacks(fv, &update_popup, &open_folders);
         fm_file_menu_set_folder_func(menu, open_folders, win);
 
         /* TODO: add info message on selection if enabled in config */
@@ -1524,8 +1525,8 @@ void fm_folder_view_item_clicked(FmFolderView* fv, GtkTreePath* path,
     const char* target;
     GtkMenu *popup;
     GtkWindow *win;
-    FmFolderViewUpdatePopup update_popup;
-    FmLaunchFolderFunc open_folders;
+    FmFolderViewUpdatePopup update_popup = NULL;
+    FmLaunchFolderFunc open_folders = NULL;
     GtkTreeIter it;
 
     g_return_if_fail(FM_IS_FOLDER_VIEW(fv));
@@ -1544,9 +1545,9 @@ void fm_folder_view_item_clicked(FmFolderView* fv, GtkTreePath* path,
         goto send_signal;
     win = GTK_WINDOW(gtk_menu_get_attach_widget(popup));
     /* handle left and rigth clicks */
-    iface->get_custom_menu_callbacks(fv, &update_popup, &open_folders);
-    /* if open_folders is NULL then it's old API call so don't handle */
-    if(open_folders) switch(type)
+    if (iface->get_custom_menu_callbacks)
+        iface->get_custom_menu_callbacks(fv, &update_popup, &open_folders);
+    switch(type)
     {
     case FM_FV_ACTIVATED: /* file activated */
         target = fm_file_info_get_target(fi);
