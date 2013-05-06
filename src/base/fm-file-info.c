@@ -35,6 +35,7 @@
 
 #include <menu-cache.h>
 #include "fm-file-info.h"
+#include "fm-file-info-deferred-load-worker.h"
 #include <glib.h>
 #include <glib/gi18n-lib.h>
 #include <grp.h> /* Query group name */
@@ -235,6 +236,8 @@ gboolean fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GEr
 
         if (!fm_config->deferred_mime_type_loading)
             fi->mime_type = fm_mime_type_from_native_file(path, fm_file_info_get_disp_name(fi), &st);
+        else
+            fm_file_info_deferred_load_add(fi);
 
         fi->accessible = (g_access(path, R_OK) == 0);
 
@@ -631,6 +634,12 @@ void fm_file_info_unref(FmFileInfo* fi)
     }
 }
 
+/* To use from fm-file-info-deferred-load.c */
+gboolean fm_file_info_only_one_ref(FmFileInfo* fi)
+{
+    return g_atomic_int_get(&fi->n_ref) == 1;
+}
+
 /**
  * fm_file_info_update:
  * @fi:  A FmFileInfo struct
@@ -703,6 +712,13 @@ FmIcon* fm_file_info_get_icon(FmFileInfo* fi)
         deferred_icon_load(fi);
     return fi->icon;
 }
+
+/* To use from fm-file-info-deferred-load-worker.c */
+gboolean fm_file_info_icon_loaded(FmFileInfo* fi)
+{
+    return !!fi->icon;
+}
+
 
 /**
  * fm_file_info_get_path:

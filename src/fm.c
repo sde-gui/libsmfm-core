@@ -45,6 +45,8 @@
 #include "vfs/fm-vfs-menu.h"
 #include "vfs/fm-vfs-search.h"
 
+#include "fm-file-info-deferred-load-worker.h"
+
 GQuark fm_qdata_id = 0;
 
 /**
@@ -127,6 +129,7 @@ void fm_finalize(void)
     _fm_thumbnailer_finalize(); /* need to be before fm_mime_type_finalize() */
     _fm_archiver_finalize();
     _fm_folder_finalize();
+    fm_file_info_deferred_load_stop();
     _fm_file_info_finalize();
     _fm_mime_type_finalize();
     _fm_monitor_finalize();

@@ -44,6 +44,7 @@
 #include <gdk/gdkkeysyms.h>
 
 #include "fm-config.h"
+#include "fm-file-info-deferred-load-worker.h"
 
 /*
 #include <exo/exo-config.h>
@@ -647,6 +648,8 @@ struct _ExoIconViewPrivate
 
   /* ExoIconViewFlags */
   guint flags;
+
+  gboolean new_model_set;
 };
 
 
@@ -4077,6 +4080,12 @@ exo_icon_view_paint_item (ExoIconView     *icon_view,
                                 flags);
 
     }
+
+    if (G_UNLIKELY (icon_view->priv->new_model_set))
+    {
+        icon_view->priv->new_model_set = FALSE;
+        fm_file_info_deferred_load_start();
+    }
 }
 
 
@@ -5816,6 +5825,8 @@ exo_icon_view_set_model (ExoIconView  *icon_view,
   /* connect to the new model */
   if (G_LIKELY (model != NULL))
     {
+      icon_view->priv->new_model_set = TRUE;
+
       /* take a reference on the model */
       g_object_ref (G_OBJECT (model));
 
