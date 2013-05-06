@@ -226,6 +226,9 @@ void fm_config_load_from_key_file(FmConfig* cfg, GKeyFile* kf)
     fm_key_file_get_bool(kf, "places", "places_applications", &cfg->places_applications);
     fm_key_file_get_bool(kf, "places", "places_network", &cfg->places_network);
     fm_key_file_get_bool(kf, "places", "places_unmounted", &cfg->places_unmounted);
+
+    fm_key_file_get_bool(kf, "hacks", "deferred_mime_type_loading", &cfg->deferred_mime_type_loading);
+    fm_key_file_get_bool(kf, "hacks", "exo_icon_view_pixbuf_hack", &cfg->exo_icon_view_pixbuf_hack);
 }
 
 /**
@@ -349,6 +352,11 @@ void fm_config_save(FmConfig* cfg, const char* name)
             fprintf(f, "places_applications=%d\n", cfg->places_applications);
             //fprintf(f, "places_network=%d\n", cfg->places_network);
             //fprintf(f, "places_unmounted=%d\n", cfg->places_unmounted);
+
+            fputs("\n[hacks]\n", f);
+            fprintf(f, "deferred_mime_type_loading=%d\n", cfg->deferred_mime_type_loading);
+            fprintf(f, "exo_icon_view_pixbuf_hack=%d\n", cfg->exo_icon_view_pixbuf_hack);
+
             fclose(f);
         }
     }

@@ -145,7 +145,31 @@ static void deferred_icon_load(FmFileInfo* fi)
 
     fi->deferred_icon_load = TRUE;
 
-    fi->icon = fm_icon_ref(fm_mime_type_get_icon(fm_file_info_get_mime_type(fi)));
+    const char * path = fi->native_path;
+
+    /* set "locked" icon on unaccesible folder */
+    if(!fi->accessible && S_ISDIR(fi->mode))
+        fi->icon = fm_icon_ref(icon_locked_folder);
+    else if(strcmp(path, fm_get_home_dir()) == 0)
+        fi->icon = fm_icon_from_name("user-home");
+    else if(strcmp(path, g_get_user_special_dir(G_USER_DIRECTORY_DESKTOP)) == 0)
+        fi->icon = fm_icon_from_name("user-desktop");
+    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS)) == 0)
+        fi->icon = fm_icon_from_name("folder-documents");
+    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD)) == 0)
+        fi->icon = fm_icon_from_name("folder-download");
+    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_MUSIC)) == 0)
+        fi->icon = fm_icon_from_name("folder-music");
+    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_PICTURES)) == 0)
+        fi->icon = fm_icon_from_name("folder-pictures");
+    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_PUBLIC_SHARE)) == 0)
+        fi->icon = fm_icon_from_name("folder-publicshare");
+    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_TEMPLATES)) == 0)
+        fi->icon = fm_icon_from_name("folder-templates");
+    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_VIDEOS)) == 0)
+        fi->icon = fm_icon_from_name("folder-videos");
+    else
+        fi->icon = fm_icon_ref(fm_mime_type_get_icon(fm_file_info_get_mime_type(fi)));
 
     G_UNLOCK(deferred_icon_load);
 }
@@ -250,31 +274,7 @@ gboolean fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GEr
                 fi->icon = fm_icon_ref(fm_mime_type_get_icon(fm_file_info_get_mime_type(fi)));*/
             g_key_file_free(kf);
         }
-        /* set "locked" icon on unaccesible folder */
-        else if(!fi->accessible && S_ISDIR(st.st_mode))
-            fi->icon = fm_icon_ref(icon_locked_folder);
-        else if(strcmp(path, fm_get_home_dir()) == 0)
-            fi->icon = fm_icon_from_name("user-home");
-        else if(strcmp(path, g_get_user_special_dir(G_USER_DIRECTORY_DESKTOP)) == 0)
-            fi->icon = fm_icon_from_name("user-desktop");
-        else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS)) == 0)
-            fi->icon = fm_icon_from_name("folder-documents");
-        else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD)) == 0)
-            fi->icon = fm_icon_from_name("folder-download");
-        else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_MUSIC)) == 0)
-            fi->icon = fm_icon_from_name("folder-music");
-        else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_PICTURES)) == 0)
-            fi->icon = fm_icon_from_name("folder-pictures");
-        else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_PUBLIC_SHARE)) == 0)
-            fi->icon = fm_icon_from_name("folder-publicshare");
-        else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_TEMPLATES)) == 0)
-            fi->icon = fm_icon_from_name("folder-templates");
-        else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_VIDEOS)) == 0)
-            fi->icon = fm_icon_from_name("folder-videos");
-/*
-        if(!fi->icon)
-            fi->icon = fm_icon_ref(fm_mime_type_get_icon(fm_file_info_get_mime_type(fi)));
-*/
+
         /* By default we use the real file base name for display.
          * if the base name is not in UTF-8 encoding, we
          * need to convert it to UTF-8 for display and save its
