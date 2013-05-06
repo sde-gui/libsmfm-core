@@ -158,6 +158,9 @@ struct _FmConfig
     gboolean only_user_templates;
     gboolean template_run_app;
     gboolean template_type_once;
+
+    gboolean deferred_mime_type_loading;
+
     /*< private >*/
     gpointer _reserved1; /* reserved space for updates until next ABI */
     gpointer _reserved2;
@@ -166,7 +169,6 @@ struct _FmConfig
     gpointer _reserved5;
     gpointer _reserved6;
     gpointer _reserved7;
-    gpointer _reserved8;
 };
 
 /**

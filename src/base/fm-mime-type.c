@@ -352,7 +352,7 @@ void fm_mime_type_unref(gpointer mime_type_)
  */
 FmIcon* fm_mime_type_get_icon(FmMimeType* mime_type)
 {
-    return mime_type->icon;
+    return mime_type ? mime_type->icon :  NULL;
 }
 
 /**
@@ -368,7 +368,7 @@ FmIcon* fm_mime_type_get_icon(FmMimeType* mime_type)
  */
 const char* fm_mime_type_get_type(FmMimeType* mime_type)
 {
-    return mime_type->type;
+    return mime_type ? mime_type->type : NULL;
 }
 
 /**
@@ -385,7 +385,7 @@ const char* fm_mime_type_get_type(FmMimeType* mime_type)
 const GList* fm_mime_type_get_thumbnailers(FmMimeType* mime_type)
 {
     /* FIXME: need this be thread-safe? */
-    return mime_type->thumbnailers;
+    return mime_type ? mime_type->thumbnailers : NULL;
 }
 
 /**

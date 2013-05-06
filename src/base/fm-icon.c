@@ -126,7 +126,8 @@ FmIcon* fm_icon_from_name(const char* name)
 FmIcon* fm_icon_ref(FmIcon* icon)
 {
     G_LOCK(hash);
-    ++icon->n_ref;
+    if (icon)
+        ++icon->n_ref;
     G_UNLOCK(hash);
     return icon;
 }
@@ -145,6 +146,8 @@ FmIcon* fm_icon_ref(FmIcon* icon)
  * has a ref so we never can free it here */
 void fm_icon_unref(FmIcon* icon)
 {
+    if (!icon)
+        return;
     G_LOCK(hash);
     --icon->n_ref;
     if(G_UNLIKELY(0 == icon->n_ref))

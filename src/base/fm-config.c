@@ -137,6 +137,8 @@ static void fm_config_init(FmConfig *self)
     self->places_applications = FM_CONFIG_DEFAULT_PLACES_APPLICATIONS;
     self->places_network = FM_CONFIG_DEFAULT_PLACES_NETWORK;
     self->places_unmounted = FM_CONFIG_DEFAULT_PLACES_UNMOUNTED;
+
+    self->deferred_mime_type_loading = TRUE;
 }
 
 /**

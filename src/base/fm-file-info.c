@@ -54,6 +54,9 @@
 
 static FmIcon* icon_locked_folder = NULL;
 
+G_LOCK_DEFINE_STATIC(deferred_icon_load);
+G_LOCK_DEFINE_STATIC(deferred_mime_type_load);
+
 struct _FmFileInfo
 {
     FmPath* path; /* path of the file */
@@ -91,6 +94,12 @@ struct _FmFileInfo
     gboolean hidden : 1; /* TRUE if file is hidden */
     gboolean backup : 1; /* TRUE if file is backup */
 
+    gboolean from_native_file : 1;
+    gboolean deferred_icon_load : 1;
+    gboolean deferred_mime_type_load : 1;
+
+    char * native_path;
+
     /*<private>*/
     int n_ref;
 };
@@ -124,6 +133,45 @@ FmFileInfo* fm_file_info_new ()
     return fi;
 }
 
+static void deferred_icon_load(FmFileInfo* fi)
+{
+    G_LOCK(deferred_icon_load);
+
+    if (fi->icon || fi->deferred_icon_load || !fi->from_native_file)
+    {
+        G_UNLOCK(deferred_icon_load);
+        return;
+    }
+
+    fi->deferred_icon_load = TRUE;
+
+    fi->icon = fm_icon_ref(fm_mime_type_get_icon(fm_file_info_get_mime_type(fi)));
+
+    G_UNLOCK(deferred_icon_load);
+}
+
+static void deferred_mime_type_load(FmFileInfo* fi)
+{
+    G_LOCK(deferred_mime_type_load);
+
+    if (fi->mime_type || fi->deferred_mime_type_load || !fi->from_native_file)
+    {
+        G_UNLOCK(deferred_mime_type_load);
+        return;
+    }
+
+    fi->deferred_mime_type_load = TRUE;
+
+    //g_print("deferred_mime_type_load2: %s\n", fi->native_path);
+
+    fi->mime_type = fm_mime_type_from_native_file(fi->native_path, fm_file_info_get_disp_name(fi), NULL);
+
+    /*if (!fi->mime_type)
+        g_print("fi->mime_type == NULL\n");*/
+
+    G_UNLOCK(deferred_mime_type_load);
+}
+
 /**
  * fm_file_info_set_from_native_file:
  * @fi:  A FmFileInfo struct
@@ -142,6 +190,9 @@ gboolean fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GEr
 
     if(lstat(path, &st) == 0)
     {
+        fi->from_native_file = TRUE;
+        fi->native_path = g_strdup(path);
+
         fi->disp_name = NULL;
         fi->mode = st.st_mode;
         fi->mtime = st.st_mtime;
@@ -158,7 +209,8 @@ gboolean fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GEr
             fi->target = g_file_read_link(path, NULL);
         }
 
-        fi->mime_type = fm_mime_type_from_native_file(path, fm_file_info_get_disp_name(fi), &st);
+        if (!fm_config->deferred_mime_type_loading)
+            fi->mime_type = fm_mime_type_from_native_file(path, fm_file_info_get_disp_name(fi), &st);
 
         fi->accessible = (g_access(path, R_OK) == 0);
 
@@ -194,8 +246,8 @@ gboolean fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GEr
             }
             if(icon)
                 fi->icon = icon;
-            else
-                fi->icon = fm_icon_ref(fm_mime_type_get_icon(fi->mime_type));
+            /*else
+                fi->icon = fm_icon_ref(fm_mime_type_get_icon(fm_file_info_get_mime_type(fi)));*/
             g_key_file_free(kf);
         }
         /* set "locked" icon on unaccesible folder */
@@ -219,9 +271,10 @@ gboolean fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GEr
             fi->icon = fm_icon_from_name("folder-templates");
         else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_VIDEOS)) == 0)
             fi->icon = fm_icon_from_name("folder-videos");
+/*
         if(!fi->icon)
-            fi->icon = fm_icon_ref(fm_mime_type_get_icon(fi->mime_type));
-
+            fi->icon = fm_icon_ref(fm_mime_type_get_icon(fm_file_info_get_mime_type(fi)));
+*/
         /* By default we use the real file base name for display.
          * if the base name is not in UTF-8 encoding, we
          * need to convert it to UTF-8 for display and save its
@@ -532,6 +585,16 @@ static void fm_file_info_clear(FmFileInfo* fi)
         fm_icon_unref(fi->icon);
         fi->icon = NULL;
     }
+
+    if(G_LIKELY(fi->native_path))
+    {
+        g_free(fi->native_path);
+        fi->native_path = NULL;
+    }
+
+    fi->from_native_file = FALSE;
+    fi->deferred_icon_load = FALSE;
+    fi->deferred_mime_type_load = FALSE;
 }
 
 /**
@@ -616,6 +679,11 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
         fi->collate_key_case = g_strdup(src->collate_key_case);
     fi->disp_size = g_strdup(src->disp_size);
     fi->disp_mtime = g_strdup(src->disp_mtime);
+
+    fi->from_native_file = src->from_native_file;
+    fi->deferred_icon_load = src->deferred_icon_load;
+    fi->deferred_mime_type_load = src->deferred_mime_type_load;
+    fi->native_path = g_strdup(src->native_path);
 }
 
 /**
@@ -631,6 +699,8 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
  */
 FmIcon* fm_file_info_get_icon(FmFileInfo* fi)
 {
+    if (G_UNLIKELY(!fi->icon))
+        deferred_icon_load(fi);
     return fi->icon;
 }
 
@@ -776,6 +846,8 @@ goffset fm_file_info_get_blocks(FmFileInfo* fi)
  */
 FmMimeType* fm_file_info_get_mime_type(FmFileInfo* fi)
 {
+    if (G_UNLIKELY(!fi->mime_type))
+        deferred_mime_type_load(fi);
     return fi->mime_type;
 }
 
@@ -817,8 +889,8 @@ gboolean fm_file_info_is_native(FmFileInfo* fi)
 gboolean fm_file_info_is_dir(FmFileInfo* fi)
 {
     return (S_ISDIR(fi->mode) ||
-        (S_ISLNK(fi->mode) && fi->mime_type &&
-         (0 == strcmp(fm_mime_type_get_type(fi->mime_type), "inode/directory"))));
+        (S_ISLNK(fi->mode) && fm_file_info_get_mime_type(fi) &&
+         (0 == strcmp(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), "inode/directory"))));
          /* FIXME: replace strcmp for speedup */
 }
 
@@ -853,12 +925,12 @@ gboolean fm_file_info_is_symlink(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_shortcut(FmFileInfo* fi)
 {
-    return fi->mime_type == _fm_mime_type_get_inode_x_shortcut();
+    return fm_file_info_get_mime_type(fi) == _fm_mime_type_get_inode_x_shortcut();
 }
 
 gboolean fm_file_info_is_mountable(FmFileInfo* fi)
 {
-    return fi->mime_type == _fm_mime_type_get_inode_x_mountable();
+    return fm_file_info_get_mime_type(fi) == _fm_mime_type_get_inode_x_mountable();
 }
 
 /**
@@ -870,7 +942,7 @@ gboolean fm_file_info_is_mountable(FmFileInfo* fi)
 gboolean fm_file_info_is_image(FmFileInfo* fi)
 {
     /* FIXME: We had better use functions of xdg_mime to check this */
-    if (!strncmp("image/", fm_mime_type_get_type(fi->mime_type), 6))
+    if (!strncmp("image/", fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), 6))
         return TRUE;
     return FALSE;
 }
@@ -883,7 +955,7 @@ gboolean fm_file_info_is_image(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_text(FmFileInfo* fi)
 {
-    if(g_content_type_is_a(fm_mime_type_get_type(fi->mime_type), "text/plain"))
+    if(g_content_type_is_a(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), "text/plain"))
         return TRUE;
     return FALSE;
 }
@@ -896,7 +968,13 @@ gboolean fm_file_info_is_text(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_desktop_entry(FmFileInfo* fi)
 {
-    return fi->mime_type == _fm_mime_type_get_application_x_desktop();
+    if (fi->from_native_file)
+    {
+        const char * path = fi->target ? fi->target : fi->native_path;
+        if (!g_str_has_suffix(path, ".desktop"))
+            return FALSE;
+    }
+    return fm_file_info_get_mime_type(fi) == _fm_mime_type_get_application_x_desktop();
 }
 
 /**
@@ -908,7 +986,7 @@ gboolean fm_file_info_is_desktop_entry(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_unknown_type(FmFileInfo* fi)
 {
-    return g_content_type_is_unknown(fm_mime_type_get_type(fi->mime_type));
+    return g_content_type_is_unknown(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)));
 }
 
 /**
@@ -929,7 +1007,7 @@ gboolean fm_file_info_is_unknown_type(FmFileInfo* fi)
 /* full path of the file is required by this function */
 gboolean fm_file_info_is_executable_type(FmFileInfo* fi)
 {
-    if(strncmp(fm_mime_type_get_type(fi->mime_type), "text/", 5) == 0)
+    if(strncmp(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), "text/", 5) == 0)
     { /* g_content_type_can_be_executable reports text files as executables too */
         /* We don't execute remote files nor files in trash */
         if(fm_path_is_native(fi->path) && (fi->mode & (S_IXOTH|S_IXGRP|S_IXUSR)))
@@ -948,7 +1026,7 @@ gboolean fm_file_info_is_executable_type(FmFileInfo* fi)
         }
         return FALSE;
     }
-    return g_content_type_can_be_executable(fm_mime_type_get_type(fi->mime_type));
+    return g_content_type_can_be_executable(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)));
 }
 
 /**
@@ -1110,7 +1188,7 @@ const char* fm_file_info_get_target(FmFileInfo* fi)
 const char* fm_file_info_get_desc(FmFileInfo* fi)
 {
     /* FIXME: how to handle descriptions for virtual files without mime-tyoes? */
-    return fi->mime_type ? fm_mime_type_get_desc(fi->mime_type) : NULL;
+    return fm_file_info_get_mime_type(fi) ? fm_mime_type_get_desc(fm_file_info_get_mime_type(fi)) : NULL;
 }
 
 /**
@@ -1255,7 +1333,7 @@ gboolean fm_file_info_list_is_same_type(FmFileInfoList* list)
         for(;l;l=l->next)
         {
             FmFileInfo* fi2 = (FmFileInfo*)l->data;
-            if(fi->mime_type != fi2->mime_type)
+            if(fm_file_info_get_mime_type(fi) != fm_file_info_get_mime_type(fi2))
                 return FALSE;
         }
     }
