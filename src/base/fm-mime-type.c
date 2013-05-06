@@ -306,7 +306,8 @@ FmMimeType* _fm_mime_type_get_application_x_desktop()
  */
 FmMimeType* fm_mime_type_ref(FmMimeType* mime_type)
 {
-    g_atomic_int_inc(&mime_type->n_ref);
+    if (mime_type)
+        g_atomic_int_inc(&mime_type->n_ref);
     return mime_type;
 }
 
@@ -320,6 +321,9 @@ FmMimeType* fm_mime_type_ref(FmMimeType* mime_type)
  */
 void fm_mime_type_unref(gpointer mime_type_)
 {
+    if (!mime_type_)
+        return;
+
     FmMimeType* mime_type = (FmMimeType*)mime_type_;
     if (g_atomic_int_dec_and_test(&mime_type->n_ref))
     {
