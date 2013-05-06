@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "fm-config.h"
 #include "fm-file-info-deferred-load-worker.h"
 
 gboolean fm_file_info_only_one_ref(FmFileInfo* fi);

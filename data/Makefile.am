@@ -2,34 +2,34 @@ NULL=
 
 SUBDIRS=ui
 
-man_MANS = libfm-pref-apps.1
+man_MANS = libsmfm-pref-apps.1
 
 mimedir = $(datadir)/mime/packages
-mime_DATA = libfm.xml
+mime_DATA = libsmfm.xml
 
-libfmconfdir = $(sysconfdir)/xdg/libfm
-libfmconf_DATA = \
-	libfm.conf \
+libsmfmconfdir = $(sysconfdir)/xdg/libsmfm
+libsmfmconf_DATA = \
+	libsmfm.conf \
 	pref-apps.conf \
 	$(NULL)
 
 desktopdir=$(datadir)/applications
 desktop_in_files= \
-	libfm-pref-apps.desktop.in \
+	libsmfm-pref-apps.desktop.in \
 	$(NULL)
 desktop_DATA = $(desktop_in_files:.desktop.in=.desktop)
 @INTLTOOL_DESKTOP_RULE@
 
-libfmdatafilesdir = $(datadir)/libfm
-libfmdatafiles_DATA = \
+libsmfmdatafilesdir = $(datadir)/libsmfm
+libsmfmdatafiles_DATA = \
 	archivers.list \
 	terminals.list \
 	$(NULL)
 
 EXTRA_DIST= \
-	$(libfmconf_DATA) \
+	$(libsmfmconf_DATA) \
 	$(mime_DATA) \
-	$(libfmdatafiles_DATA) \
+	$(libsmfmdatafiles_DATA) \
 	$(desktop_in_files) \
 	$(desktop_DATA) \
 	$(NULL)

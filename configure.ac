@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([libfm], [1.2.0-alpha1], [http://pcmanfm.sourceforge.net/])
+AC_INIT([libsmfm], [1.2.0-alpha1], [http://])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_MACRO_DIR(m4)
 AC_CONFIG_HEADERS([config.h])
@@ -27,7 +27,7 @@ AC_ARG_ENABLE(actions,
 )
 if test x"$enable_actions" = xyes; then
     dnl no vala compiler required when sources are from dist tarball
-    if test -f src/actions/libfmactions_la_vala.stamp; then
+    if test -f src/actions/libsmfmctions_la_vala.stamp; then
         AM_PROG_VALAC
     else
         AM_PROG_VALAC([0.13.0])
@@ -35,14 +35,14 @@ if test x"$enable_actions" = xyes; then
             AC_ERROR([No Vala compiler found but it is required.])
         fi
     fi
-    LIBFMACTIONS='$(srcdir)/actions/libfmactions.la'
+    LIBSMFMACTIONS='$(srcdir)/actions/libsmfmactions.la'
     ACTIONS_SUBDIR='actions'
     AC_DEFINE(HAVE_ACTIONS, 1, [Define to 1 to enable custom actions])
 else
-    LIBFMACTIONS=
+    LIBSMFMACTIONS=
     ACTIONS_SUBDIR=
 fi
-AC_SUBST(LIBFMACTIONS)
+AC_SUBST(LIBSMFMACTIONS)
 AC_SUBST(ACTIONS_SUBDIR)
 
 # Checks for libraries.
@@ -75,9 +75,9 @@ IT_PROG_INTLTOOL([0.40.0])
 dnl libgtk version
 AC_ARG_WITH(gtk,
     [AC_HELP_STRING([--with-gtk=VER],
-        [choose Gtk+ version for libfm-gtk build (default=2)])
+        [choose Gtk+ version for libsmfm-gtk build (default=2)])
 AC_HELP_STRING([--without-gtk],
-        [disable libfm-gtk build])],
+        [disable libsmfm-gtk build])],
     [ac_with_gtk="${withval}"],
     [ac_with_gtk=2]
 )
@@ -98,35 +98,35 @@ if test x"$ac_with_gtk" != xno; then
   case "$ac_with_gtk" in
     3|3.*)
       pkg_modules="$gio_modules gtk+-3.0 cairo >= 1.8.0"
-      LIBFM_GTK_LTLIBRARIES=libfm-gtk3.la
+      LIBSMFM_GTK_LTLIBRARIES=libsmfm-gtk3.la
       ac_with_gtk="3.0"
       ;;
     *)
       pkg_modules="$gio_modules gtk+-2.0 >= 2.18.0 cairo >= 1.8.0"
-      LIBFM_GTK_LTLIBRARIES=libfm-gtk.la
+      LIBSMFM_GTK_LTLIBRARIES=libsmfm-gtk.la
       ac_with_gtk="2.0"
       ;;
   esac
   PKG_CHECK_MODULES(GTK, [$pkg_modules])
-  LIBFM_PREF_APPS="libfm-pref-apps"
+  LIBSMFM_PREF_APPS="libsmfm-pref-apps"
 else
   GTK_CFLAGS=
   GTK_LIBS=
-  LIBFM_GTK_LTLIBRARIES=
+  LIBSMFM_GTK_LTLIBRARIES=
   ac_with_gtk="none"
-  LIBFM_PREF_APPS=
+  LIBSMFM_PREF_APPS=
 fi
 AC_SUBST(GTK_CFLAGS)
 AC_SUBST(GTK_LIBS)
-AC_SUBST(LIBFM_GTK_LTLIBRARIES)
-AC_SUBST(LIBFM_PREF_APPS)
+AC_SUBST(LIBSMFM_GTK_LTLIBRARIES)
+AC_SUBST(LIBSMFM_PREF_APPS)
 
 dnl pango_modules="pango >= 1.16.0"
 dnl PKG_CHECK_MODULES(PANGO, [$pango_modules])
 dnl AC_SUBST(PANGO_CFLAGS)
 dnl AC_SUBST(PANGO_LIBS)
 
-dnl gmodule may be used for libfm-chooser-hack.la
+dnl gmodule may be used for libsmfm-chooser-hack.la
 #gmodule_modules="gmodule-2.0"
 #PKG_CHECK_MODULES(GMODULE, [$gmodule_modules])
 #AC_SUBST(GMODULE_CFLAGS)
@@ -159,7 +159,7 @@ fi
 
 AC_ARG_ENABLE(udisks,
     [AC_HELP_STRING([--enable-udisks],
-        [build libfm with udisks support (Linux only) @<:@default=yes@:>@])],
+        [build libsmfm with udisks support (Linux only) @<:@default=yes@:>@])],
     [enable_udisks="${enableval}"],
     [enable_udisks=no]
 )
@@ -202,7 +202,7 @@ GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
 
 AC_ARG_ENABLE(demo,
     [AC_HELP_STRING([--enable-demo],
-        [build libfm-demo file manager @<:@default=no@:>@])],
+        [build libsmfm-demo file manager @<:@default=no@:>@])],
     [enable_demo="${enableval}"],
     [enable_demo=no]
 )
@@ -213,7 +213,7 @@ giomodulesdir=$libdir/gio/modules
 AC_SUBST(giomodulesdir)
 
 
-GETTEXT_PACKAGE=libfm
+GETTEXT_PACKAGE=libsmfm
 AC_SUBST(GETTEXT_PACKAGE)
 
 # Generate po/LINGUAS on the fly rather than relying on translators
@@ -240,7 +240,7 @@ AC_SUBST(FMINCLUDEADD)
 
 AC_ARG_ENABLE(debug,
     [AC_HELP_STRING([--enable-debug],
-        [build libfm with debug support @<:@default=no@:>@])],
+        [build libsmfm with debug support @<:@default=no@:>@])],
     [enable_debug="${enableval}"],
     [enable_debug=no]
 )
@@ -281,16 +281,16 @@ AC_CONFIG_FILES([
     src/tests/Makefile
     src/fm.h
     data/Makefile
-    data/libfm-pref-apps.1
+    data/libsmfm-pref-apps.1
     data/ui/Makefile
     po/Makefile.in
     docs/Makefile
     docs/reference/Makefile
     docs/reference/libfm/Makefile
     docs/reference/libfm/version.xml
-    libfm.pc
-    libfm-gtk.pc
-    libfm-gtk3.pc
+    libsmfm.pc
+    libsmfm-gtk.pc
+    libsmfm-gtk3.pc
 ])
 
 AC_OUTPUT
@@ -303,7 +303,7 @@ echo "sysconfdir:                                             $sysconfdir"
 echo "Enable compiler flags and other support for debugging:  $enable_debug"
 echo "Build udisks support (Linux only, experimental):        $enable_udisks"
 echo "Build with libexif for faster thumbnail loading:        $enable_exif"
-echo "Build demo program src/demo/libfm-demo:                 $enable_demo"
+echo "Build demo program src/demo/libsmfm-demo:               $enable_demo"
 echo "Build with custom actions support (requires Vala):      $enable_actions"
 echo "Large file support:                                     $largefile"
 if test x"$have_scheme_handler" = x"no"; then
@@ -311,7 +311,7 @@ echo "GIO module for preferred apps (for glib < 2.28 only):   $giomodulesdir"
 else
 echo "GIO module for preferred apps (for glib < 2.28 only):   not required"
 fi
-echo "Build libfm-gtk for Gtk+ version:                       $ac_with_gtk"
+echo "Build libsmfm-gtk for Gtk+ version:                     $ac_with_gtk"
 echo "Build API doc with gtk-doc (recommended for make dist): $enable_gtk_doc"
 echo
 echo

@@ -254,7 +254,7 @@ void fm_config_load_from_file(FmConfig* cfg, const char* name)
     GKeyFile* kf = g_key_file_new();
 
     if(G_LIKELY(!name))
-        name = "libfm/libfm.conf";
+        name = "libsmfm/libsmfm.conf";
     else
     {
         if(G_UNLIKELY(g_path_is_absolute(name)))
@@ -300,7 +300,7 @@ void fm_config_save(FmConfig* cfg, const char* name)
     char* dir_path;
     FILE* f;
     if(!name)
-        name = path = g_build_filename(g_get_user_config_dir(), "libfm/libfm.conf", NULL);
+        name = path = g_build_filename(g_get_user_config_dir(), "libsmfm/libsmfm.conf", NULL);
     else if(!g_path_is_absolute(name))
         name = path = g_build_filename(g_get_user_config_dir(), name, NULL);
 

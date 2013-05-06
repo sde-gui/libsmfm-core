@@ -6,15 +6,15 @@ AM_CPPFLAGS = \
 	-I$(srcdir)/../base \
 	-I$(srcdir)/../actions \
 	-I$(srcdir)/../job \
-	-DPACKAGE_DATA_DIR=\""$(datadir)/libfm"\" \
-	-DPACKAGE_LIB_DIR=\""$(libdir)/libfm"\" \
+	-DPACKAGE_DATA_DIR=\""$(datadir)/libsmfm"\" \
+	-DPACKAGE_LIB_DIR=\""$(libdir)/libsmfm"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	-Wno-unused-but-set-variable -Wno-unused-variable \
 	$(NULL)
 
-noinst_LTLIBRARIES = libfmactions.la
+noinst_LTLIBRARIES = libsmfmactions.la
 
-libfmactions_la_SOURCES = \
+libsmfmactions_la_SOURCES = \
 	action.vala \
 	condition.vala \
 	profile.vala \
@@ -22,7 +22,7 @@ libfmactions_la_SOURCES = \
 	utils.vala \
 	$(NULL)
 
-libfmactions_la_CFLAGS = \
+libsmfmactions_la_CFLAGS = \
 	$(GIO_CFLAGS) \
 	-Werror-implicit-function-declaration \
 	$(NULL)
@@ -32,22 +32,22 @@ AM_VALAFLAGS = \
 	--vapidir=$(srcdir)/../vapi \
 	--pkg gio-2.0 \
     --pkg posix \
-    --pkg libfm \
+    --pkg libsmfm \
     --vapi $(srcdir)/../vapi/fm-actions.vapi \
     --header fm-actions.h \
 	$(NULL)
 
-libfmactionsincludedir = $(includedir)/@PACKAGE@-@FMLIBVER@
-libfmactionsinclude_HEADERS = \
+libsmfmactionsincludedir = $(includedir)/@PACKAGE@-@FMLIBVER@
+libsmfmactionsinclude_HEADERS = \
 	fm-actions.h \
 	$(NULL)
 
-libfmactions_la_LDFLAGS = \
+libsmfmactions_la_LDFLAGS = \
 	$(NULL)
 
-libfmactions_la_LIBADD = \
+libsmfmactions_la_LIBADD = \
 	$(GIO_LIBS) \
 	$(INTLLIBS) \
 	$(NULL)
 
-fm-actions.h: libfmactions_la_vala.stamp
+fm-actions.h: libsmfmactions_la_vala.stamp

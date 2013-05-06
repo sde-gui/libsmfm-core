@@ -19,6 +19,6 @@ noinst_PROGRAMS = $(TEST_PROGS)
 TEST_PROGS += fm-path
 fm_path_SOURCES = test-fm-path.c
 fm_path_LDADD= \
-	../libfm.la \
+	../libsmfm.la \
 	$(GIO_LIBS) \
 	$(NULL)

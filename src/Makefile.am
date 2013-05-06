@@ -17,9 +17,9 @@ AM_CPPFLAGS = \
 	-I$(srcdir)/job \
 	-I$(srcdir)/gtk \
 	-I$(srcdir)/demo \
-	-DPACKAGE_DATA_DIR=\""$(datadir)/libfm"\" \
-	-DPACKAGE_UI_DIR=\""$(datadir)/libfm/ui"\" \
-	-DPACKAGE_LIB_DIR=\""$(libdir)/libfm"\" \
+	-DPACKAGE_DATA_DIR=\""$(datadir)/libsmfm"\" \
+	-DPACKAGE_UI_DIR=\""$(datadir)/libsmfm/ui"\" \
+	-DPACKAGE_LIB_DIR=\""$(libdir)/libsmfm"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	$(NULL)
 
@@ -94,7 +94,7 @@ job_SOURCES = \
 	job/fm-file-ops-job-change-attr.c \
 	$(NULL)
 
-libfm_SOURCES = \
+libsmfm_SOURCES = \
 	fm.c \
 	$(glib_compat_SOURCES) \
 	$(base_SOURCES) \
@@ -115,7 +115,7 @@ exo_SOURCES = \
 	gtk/exo/exo-string.h \
 	$(NULL)
 
-libfm_gtk_SOURCES = \
+libsmfm_gtk_SOURCES = \
 	fm-gtk.c \
 	$(gtk_compat_SOURCES) \
 	$(exo_SOURCES) \
@@ -150,8 +150,8 @@ libfm_gtk_SOURCES = \
 	gtk/fm-gtk-marshal.c \
 	$(NULL)
 
-libfmincludedir = $(includedir)/@PACKAGE@-@FMLIBVER@
-libfminclude_HEADERS = \
+libsmfmincludedir = $(includedir)/@PACKAGE@-@FMLIBVER@
+libsmfminclude_HEADERS = \
 	fm.h \
 	base/fm-config.h \
 	base/fm-list.h \
@@ -185,8 +185,8 @@ libfminclude_HEADERS = \
 	job/fm-file-ops-job-change-attr.h \
 	$(NULL)
 
-libfmgtkincludedir = $(includedir)/@PACKAGE@-@FMLIBVER@
-libfmgtkinclude_HEADERS = \
+libsmfmgtkincludedir = $(includedir)/@PACKAGE@-@FMLIBVER@
+libsmfmgtkinclude_HEADERS = \
 	fm-gtk.h \
 	gtk/fm-folder-view.h \
 	gtk/fm-standard-view.h \
@@ -220,18 +220,18 @@ libfmgtkinclude_HEADERS = \
 	$(NULL)
 
 pkginclude_HEADERS = \
-	$(LIBFM_INCLUDES) \
-	$(LIBFM_GTK_INCLUDES) \
+	$(LIBSMFM_INCLUDES) \
+	$(LIBSMFM_GTK_INCLUDES) \
 	$(NULL)
 
-EXTRA_LTLIBRARIES = libfm-gtk.la libfm-gtk3.la
+EXTRA_LTLIBRARIES = libsmfm-gtk.la libsmfm-gtk3.la
 
-lib_LTLIBRARIES = libfm.la @LIBFM_GTK_LTLIBRARIES@
-libfm_la_SOURCES = \
-	$(libfm_SOURCES) \
+lib_LTLIBRARIES = libsmfm.la @LIBSMFM_GTK_LTLIBRARIES@
+libsmfm_la_SOURCES = \
+	$(libsmfm_SOURCES) \
 	$(NULL)
 
-libfm_la_CFLAGS = \
+libsmfm_la_CFLAGS = \
 	$(GIO_CFLAGS) \
 	$(MENU_CACHE_CFLAGS) \
 	$(DBUS_CFLAGS) \
@@ -239,123 +239,123 @@ libfm_la_CFLAGS = \
 	-Werror-implicit-function-declaration \
 	$(NULL)
 
-libfm_la_LIBADD = \
+libsmfm_la_LIBADD = \
 	$(GIO_LIBS) \
 	$(MENU_CACHE_LIBS) \
 	$(DBUS_LIBS) \
 	$(EXIF_LIBS) \
 	$(INTLLIBS) \
-	$(LIBFMACTIONS) \
+	$(LIBSMFMACTIONS) \
 	$(NULL)
 
-libfm_la_DEPENDENCIES_EXTRA = \
-	$(LIBFMACTIONS) \
+libsmfm_la_DEPENDENCIES_EXTRA = \
+	$(LIBSMFMACTIONS) \
 	$(NULL)
 
-libfm_la_LDFLAGS = \
+libsmfm_la_LDFLAGS = \
 	-no-undefined \
 	-export-symbols-regex ^fm \
 	-version-info $(ABI_VERSION) \
 	$(NULL)
 
-libfm_gtk_la_SOURCES = \
-	$(libfm_gtk_SOURCES) \
+libsmfm_gtk_la_SOURCES = \
+	$(libsmfm_gtk_SOURCES) \
 	$(NULL)
-libfm_gtk3_la_SOURCES = $(libfm_gtk_la_SOURCES)
+libsmfm_gtk3_la_SOURCES = $(libsmfm_gtk_la_SOURCES)
 
-libfm_gtk_la_CFLAGS = \
+libsmfm_gtk_la_CFLAGS = \
 	$(GTK_CFLAGS) \
 	$(MENU_CACHE_CFLAGS) \
 	-I$(srcdir) \
 	-I$(srcdir)/base \
 	-I$(srcdir)/job \
 	-Werror-implicit-function-declaration
-libfm_gtk3_la_CFLAGS = $(libfm_gtk_la_CFLAGS)
+libsmfm_gtk3_la_CFLAGS = $(libsmfm_gtk_la_CFLAGS)
 
-libfm_gtk_la_LIBADD = \
+libsmfm_gtk_la_LIBADD = \
 	$(GTK_LIBS) \
 	$(MENU_CACHE_LIBS) \
 	$(INTLLIBS) \
-	libfm.la \
+	libsmfm.la \
 	$(NULL)
-libfm_gtk3_la_LIBADD = $(libfm_gtk_la_LIBADD)
+libsmfm_gtk3_la_LIBADD = $(libsmfm_gtk_la_LIBADD)
 
-libfm_gtk_la_LDFLAGS = \
+libsmfm_gtk_la_LDFLAGS = \
 	-no-undefined \
 	-export-symbols-regex ^fm \
 	-version-info $(ABI_VERSION) \
 	-rpath $(libdir) \
 	$(NULL)
-libfm_gtk3_la_LDFLAGS = $(libfm_gtk_la_LDFLAGS)
+libsmfm_gtk3_la_LDFLAGS = $(libsmfm_gtk_la_LDFLAGS)
 
-EXTRA_PROGRAMS = libfm-pref-apps
+EXTRA_PROGRAMS = libsmfm-pref-apps
 
-bin_PROGRAMS = @LIBFM_PREF_APPS@
+bin_PROGRAMS = @LIBSMFM_PREF_APPS@
 
-libfm_pref_apps_SOURCES = \
+libsmfm_pref_apps_SOURCES = \
 	$(gtk_compat_SOURCES) \
 	tools/libfm-pref-apps.c \
 	$(NULL)
 
-libfm_pref_apps_DEPENDENCIES = \
-	libfm.la \
-	@LIBFM_GTK_LTLIBRARIES@ \
+libsmfm_pref_apps_DEPENDENCIES = \
+	libsmfm.la \
+	@LIBSMFM_GTK_LTLIBRARIES@ \
 	$(NULL)
 
-libfm_pref_apps_CFLAGS = \
+libsmfm_pref_apps_CFLAGS = \
 	$(GTK_CFLAGS) \
 	$(MENU_CACHE_CFLAGS) \
 	-Werror-implicit-function-declaration \
 	$(NULL)
 
-libfm_pref_apps_LDADD = \
+libsmfm_pref_apps_LDADD = \
 	$(GTK_LIBS) \
 	$(MENU_CACHE_LIBS) \
 	$(INTLLIBS) \
-	libfm.la \
-	@LIBFM_GTK_LTLIBRARIES@ \
+	libsmfm.la \
+	@LIBSMFM_GTK_LTLIBRARIES@ \
 	$(NULL)
 
 
 if ENABLE_DEMO
-bin_PROGRAMS += libfm-demo libfm-file-search-cli-demo
-libfm_demo_SOURCES = \
+bin_PROGRAMS += libsmfm-demo libsmfm-file-search-cli-demo
+libsmfm_demo_SOURCES = \
 	$(gtk_compat_SOURCES) \
-	demo/libfm-demo.c \
+	demo/libsmfm-demo.c \
 	demo/main-win.c demo/main-win.h \
 	$(NULL)
 
-libfm_demo_DEPENDENCIES = \
-	libfm.la \
-	@LIBFM_GTK_LTLIBRARIES@ \
+libsmfm_demo_DEPENDENCIES = \
+	libsmfm.la \
+	@LIBSMFM_GTK_LTLIBRARIES@ \
 	$(NULL)
 
-libfm_demo_CFLAGS = \
+libsmfm_demo_CFLAGS = \
 	$(GTK_CFLAGS) \
 	-Werror-implicit-function-declaration \
 	$(NULL)
 
-libfm_demo_LDADD = \
+libsmfm_demo_LDADD = \
 	$(GTK_LIBS) \
 	$(INTLLIBS) \
-	libfm.la \
-	@LIBFM_GTK_LTLIBRARIES@ \
+	libsmfm.la \
+	@LIBSMFM_GTK_LTLIBRARIES@ \
 	$(NULL)
 
-libfm_file_search_cli_demo_SOURCES = \
+libsmfm_file_search_cli_demo_SOURCES = \
 	demo/libfm-file-search-cli-demo.c \
 	$(NULL)
 
-libfm_file_search_cli_demo_CFLAGS = \
+libsmfm_file_search_cli_demo_CFLAGS = \
 	$(GTK_CFLAGS) \
 	-Werror-implicit-function-declaration \
 	$(NULL)
 
-libfm_file_search_cli_demo_LDADD = \
+libsmfm_file_search_cli_demo_LDADD = \
 	$(GTK_LIBS) \
 	$(INTLLIBS) \
-	libfm.la \
-	libfm-gtk.la \
+	libsmfm.la \
+	libsmfm-gtk.la \
 	$(NULL)
 endif
 
@@ -365,23 +365,23 @@ endif
 # Glib >= 2.27 uses x-scheme-handler.
 if !HAVE_SCHEME_HANDLER
 
-giomodules_LTLIBRARIES = libgiofm.la
+giomodules_LTLIBRARIES = libgiosmfm.la
 
-libgiofm_la_SOURCES= \
+libgiosmfm_la_SOURCES= \
 	$(glib_compat_SOURCES) \
 	gio/module.c \
 	gio/fm-app-lookup.c \
 	gio/fm-app-lookup.h \
 	$(NULL)
 
-libgiofm_la_CFLAGS = \
+libgiosmfm_la_CFLAGS = \
 	$(GIO_CFLAGS) \
 	-DGIO_MODULE_DIR=\"$(giomodulesdir)\"	\
 	-DGVFS_LOCALEDIR=\""$(localedir)"\"	\
 	-DG_DISABLE_DEPRECATED \
 	$(NULL)
 
-libgiofm_la_LDFLAGS = 	\
+libgiosmfm_la_LDFLAGS = 	\
 	-export_dynamic \
 	-avoid-version \
 	-module \
@@ -389,7 +389,7 @@ libgiofm_la_LDFLAGS = 	\
 	-export-symbols-regex '^g_io_module_(load|unload|query)'
 	$(NULL)
 
-libgiofm_la_LIBADD = \
+libgiosmfm_la_LIBADD = \
 	$(GIO_LIBS) \
 	$(INTLLIBS) \
 	$(NULL)
@@ -473,4 +473,4 @@ uninstall-local:
 		echo rm -f "$(DESTDIR)$(includedir)/@PACKAGE@"; \
 		rm -f "$(DESTDIR)$(includedir)/@PACKAGE@"; \
 	fi
-	-rmdir "$(DESTDIR)$(libfmincludedir)"
+	-rmdir "$(DESTDIR)$(libsmfmincludedir)"

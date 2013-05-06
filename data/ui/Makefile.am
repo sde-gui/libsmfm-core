@@ -1,7 +1,7 @@
 NULL=
 
 # GtkBuilder UI definition files
-uidir=$(datadir)/libfm/ui
+uidir=$(datadir)/libsmfm/ui
 ui_in_files= \
 	file-prop.glade \
 	progress.glade \

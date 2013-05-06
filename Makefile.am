@@ -21,9 +21,9 @@ DIST_SUBDIRS = src po data
 SUBDIRS = $(DIST_SUBDIRS) $(SUBDIRS_DOCS)
 
 EXTRA_DIST += \
-	libfm.pc.in \
-	libfm-gtk.pc.in \
-	libfm-gtk3.pc.in \
+	libsmfm.pc.in \
+	libsmfm-gtk.pc.in \
+	libsmfm-gtk3.pc.in \
 	po/libfm.pot \
 	$(NULL)
 
@@ -35,9 +35,9 @@ endif
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = \
-	libfm.pc \
-	libfm-gtk.pc \
-	libfm-gtk3.pc \
+	libsmfm.pc \
+	libsmfm-gtk.pc \
+	libsmfm-gtk3.pc \
 	$(NULL)
 
 DISTCHECK_CONFIGURE_FLAGS=--enable-gtk-doc
