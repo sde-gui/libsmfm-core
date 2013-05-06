@@ -43,6 +43,8 @@
 
 #include <gdk/gdkkeysyms.h>
 
+#include "fm-config.h"
+
 /*
 #include <exo/exo-config.h>
 #include <exo/exo-enum-types.h>
@@ -336,7 +338,8 @@ static void                 exo_icon_view_get_cell_area                  (ExoIco
 static ExoIconViewCellInfo *exo_icon_view_get_cell_info                  (ExoIconView            *icon_view,
                                                                           GtkCellRenderer        *renderer);
 static void                 exo_icon_view_set_cell_data                  (const ExoIconView      *icon_view,
-                                                                          ExoIconViewItem        *item);
+                                                                          ExoIconViewItem        *item,
+                                                                          gboolean painting);
 static void                 exo_icon_view_cell_layout_pack_start         (GtkCellLayout          *layout,
                                                                           GtkCellRenderer        *renderer,
                                                                           gboolean                expand);
@@ -2240,7 +2243,7 @@ exo_icon_view_item_activate_cell (ExoIconView         *icon_view,
   gboolean            visible;
   gchar              *path_string;
 
-  exo_icon_view_set_cell_data (icon_view, item);
+  exo_icon_view_set_cell_data (icon_view, item, FALSE);
 
   g_object_get (G_OBJECT (info->cell), "visible", &visible, "mode", &mode, NULL);
 
@@ -2327,7 +2330,7 @@ exo_icon_view_start_editing (ExoIconView         *icon_view,
   gchar              *path_string;
 
   /* setup cell data for the given item */
-  exo_icon_view_set_cell_data (icon_view, item);
+  exo_icon_view_set_cell_data (icon_view, item, FALSE);
 
   /* check if the cell is visible and editable (given the updated cell data) */
   g_object_get (info->cell, "visible", &visible, "mode", &mode, NULL);
@@ -3790,7 +3793,7 @@ exo_icon_view_calculate_item_size (ExoIconView     *icon_view,
       item->before = item->after + item->n_cells;
     }
 
-  exo_icon_view_set_cell_data (icon_view, item);
+  exo_icon_view_set_cell_data (icon_view, item, FALSE);
 
   item->area.width = 0;
   item->area.height = 0;
@@ -3964,7 +3967,7 @@ exo_icon_view_paint_item (ExoIconView     *icon_view,
   if (G_UNLIKELY (icon_view->priv->model == NULL))
     return;
 
-  exo_icon_view_set_cell_data (icon_view, item);
+  exo_icon_view_set_cell_data (icon_view, item, TRUE);
 
   //rtl = gtk_widget_get_direction (GTK_WIDGET (icon_view)) == GTK_TEXT_DIR_RTL;
 
@@ -4202,7 +4205,7 @@ exo_icon_view_get_item_at_coords (const ExoIconView    *icon_view,
         {
           if (only_in_cell || cell_at_pos)
             {
-              exo_icon_view_set_cell_data (icon_view, item);
+              exo_icon_view_set_cell_data (icon_view, item, FALSE);
               for (lp = priv->cell_list; lp != NULL; lp = lp->next)
                 {
                   /* check if the cell is visible */
@@ -4586,7 +4589,7 @@ find_cell (ExoIconView     *icon_view,
   if (icon_view->priv->orientation != orientation)
     return cell;
 
-  exo_icon_view_set_cell_data (icon_view, item);
+  exo_icon_view_set_cell_data (icon_view, item, FALSE);
 
   focusable = g_new0 (gint, icon_view->priv->n_cells);
   n_focusable = 0;
@@ -5110,7 +5113,8 @@ exo_icon_view_get_cell_info (ExoIconView     *icon_view,
 
 static void
 exo_icon_view_set_cell_data (const ExoIconView *icon_view,
-                             ExoIconViewItem   *item)
+                             ExoIconViewItem   *item,
+                             gboolean painting)
 {
   ExoIconViewCellInfo *info;
   GtkTreePath         *path;
@@ -5136,6 +5140,8 @@ exo_icon_view_set_cell_data (const ExoIconView *icon_view,
 
       for (slp = info->attributes; slp != NULL && slp->next != NULL; slp = slp->next->next)
         {
+          if (fm_config->exo_icon_view_pixbuf_hack && !painting && strcmp(slp->data, "pixbuf") == 0)
+            continue;
           gtk_tree_model_get_value (icon_view->priv->model, &iter, GPOINTER_TO_INT (slp->next->data), &value);
           g_object_set_property (G_OBJECT (info->cell), slp->data, &value);
           g_value_unset (&value);
@@ -10227,7 +10233,7 @@ exo_icon_view_accessible_ref_child (AtkObject *accessible,
           a11y_item->widget = widget;
           a11y_item->text_buffer = gtk_text_buffer_new (NULL);
 
-	  exo_icon_view_set_cell_data (icon_view, item);
+          exo_icon_view_set_cell_data (icon_view, item, FALSE);
           text = get_text (icon_view, item);
           if (text)
             {
@@ -10388,7 +10394,7 @@ exo_icon_view_accessible_model_row_changed (GtkTreeModel *tree_model,
 
       if (!name || strcmp (name, "") == 0)
         {
-          exo_icon_view_set_cell_data (icon_view, item);
+          exo_icon_view_set_cell_data (icon_view, item, FALSE);
           text = get_text (icon_view, item);
           if (text)
             {

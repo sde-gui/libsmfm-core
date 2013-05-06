@@ -162,7 +162,7 @@ static void deferred_mime_type_load(FmFileInfo* fi)
 
     fi->deferred_mime_type_load = TRUE;
 
-    //g_print("deferred_mime_type_load2: %s\n", fi->native_path);
+    //g_print("deferred_mime_type_load: %s\n", fi->native_path);
 
     fi->mime_type = fm_mime_type_from_native_file(fi->native_path, fm_file_info_get_disp_name(fi), NULL);
 

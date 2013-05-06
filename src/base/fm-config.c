@@ -139,6 +139,7 @@ static void fm_config_init(FmConfig *self)
     self->places_unmounted = FM_CONFIG_DEFAULT_PLACES_UNMOUNTED;
 
     self->deferred_mime_type_loading = TRUE;
+    self->exo_icon_view_pixbuf_hack = TRUE;
 }
 
 /**

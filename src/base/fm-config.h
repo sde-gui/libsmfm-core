@@ -160,6 +160,7 @@ struct _FmConfig
     gboolean template_type_once;
 
     gboolean deferred_mime_type_loading;
+    gboolean exo_icon_view_pixbuf_hack;
 
     /*< private >*/
     gpointer _reserved1; /* reserved space for updates until next ABI */
