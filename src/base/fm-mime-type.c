@@ -261,18 +261,8 @@ FmMimeType* fm_mime_type_from_name(const char* type)
 FmMimeType* fm_mime_type_new(const char* type_name)
 {
     FmMimeType * mime_type = g_slice_new0(FmMimeType);
-    GIcon* gicon;
     mime_type->type = g_strdup(type_name);
     mime_type->n_ref = 1;
-
-    gicon = g_content_type_get_icon(mime_type->type);
-    if(strcmp(mime_type->type, "inode/directory") == 0)
-        g_themed_icon_prepend_name(G_THEMED_ICON(gicon), "folder");
-    else if(g_content_type_can_be_executable(mime_type->type))
-        g_themed_icon_append_name(G_THEMED_ICON(gicon), "application-x-executable");
-
-    mime_type->icon = fm_icon_from_gicon(gicon);
-    g_object_unref(gicon);
 
     return mime_type;
 }
@@ -359,7 +349,24 @@ void fm_mime_type_unref(gpointer mime_type_)
  */
 FmIcon* fm_mime_type_get_icon(FmMimeType* mime_type)
 {
-    return mime_type ? mime_type->icon :  NULL;
+    GIcon* gicon;
+
+    if (!mime_type)
+        return NULL;
+
+    if (G_UNLIKELY(!mime_type->icon))
+    {
+        gicon = g_content_type_get_icon(mime_type->type);
+        if(strcmp(mime_type->type, "inode/directory") == 0)
+            g_themed_icon_prepend_name(G_THEMED_ICON(gicon), "folder");
+        else if(g_content_type_can_be_executable(mime_type->type))
+            g_themed_icon_append_name(G_THEMED_ICON(gicon), "application-x-executable");
+
+        mime_type->icon = fm_icon_from_gicon(gicon);
+        g_object_unref(gicon);
+    }
+
+    return mime_type->icon;
 }
 
 /**
