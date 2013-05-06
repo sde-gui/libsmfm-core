@@ -144,7 +144,10 @@ FmMimeType* fm_mime_type_from_native_file(const char* file_path,
     {
         pstat = &st;
         if(stat(file_path, &st) == -1)
-            return NULL;
+        {
+            if(lstat(file_path, &st) == -1)
+                return NULL;
+        }
     }
 
     if(S_ISREG(pstat->st_mode))
