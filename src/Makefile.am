@@ -343,7 +343,7 @@ libsmfm_demo_LDADD = \
 	$(NULL)
 
 libsmfm_file_search_cli_demo_SOURCES = \
-	demo/libfm-file-search-cli-demo.c \
+	demo/libsmfm-file-search-cli-demo.c \
 	$(NULL)
 
 libsmfm_file_search_cli_demo_CFLAGS = \
