@@ -650,6 +650,8 @@ gboolean fm_file_info_only_one_ref(FmFileInfo* fi)
  */
 void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
 {
+    //g_print("fm_file_info_update\n");
+
     FmPath* tmp_path = fm_path_ref(src->path);
     FmMimeType* tmp_type = fm_mime_type_ref(src->mime_type);
     FmIcon* tmp_icon = fm_icon_ref(src->icon);
@@ -733,7 +735,7 @@ gboolean fm_file_info_icon_loaded(FmFileInfo* fi)
  */
 FmPath* fm_file_info_get_path(FmFileInfo* fi)
 {
-    return fi->path;
+    return fi ? fi->path : NULL;
 }
 
 /**

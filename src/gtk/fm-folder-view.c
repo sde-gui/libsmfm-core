@@ -1532,6 +1532,8 @@ void fm_folder_view_item_clicked(FmFolderView* fv, GtkTreePath* path,
     g_return_if_fail(FM_IS_FOLDER_VIEW(fv));
 
     iface = FM_FOLDER_VIEW_GET_IFACE(fv);
+    g_return_if_fail(iface);
+
     if(path)
     {
         model = GTK_TREE_MODEL(iface->get_model(fv));

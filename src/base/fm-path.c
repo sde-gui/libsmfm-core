@@ -719,7 +719,7 @@ FmPath* fm_path_get_scheme_path(FmPath* path)
  */
 const char* fm_path_get_basename(FmPath* path)
 {
-    return path->name;
+    return path ? path->name : NULL;
 }
 
 /**
@@ -734,7 +734,7 @@ const char* fm_path_get_basename(FmPath* path)
  */
 FmPathFlags fm_path_get_flags(FmPath* path)
 {
-    return path->flags;
+    return path ? path->flags : 0;
 }
 
 /**
