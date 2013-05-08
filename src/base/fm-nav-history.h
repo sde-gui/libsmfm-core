@@ -82,6 +82,9 @@ void fm_nav_history_chdir(FmNavHistory* nh, FmPath* path, gint old_scroll_pos);
 void fm_nav_history_clear(FmNavHistory* nh);
 void fm_nav_history_set_max(FmNavHistory* nh, guint num);
 
+void fm_nav_history_set_allow_duplicates(FmNavHistory* nh, gboolean allow_duplicates);
+gboolean fm_nav_history_get_allow_duplicates(FmNavHistory* nh);
+
 G_END_DECLS
 
 #endif /* __FM_NAV_HISTORY_H__ */

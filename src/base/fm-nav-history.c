@@ -39,6 +39,7 @@ struct _FmNavHistory
     GList* cur;
     gint n_max;
     guint n_cur;
+    gboolean allow_duplicates;
 };
 
 struct _FmNavHistoryClass
@@ -83,6 +84,7 @@ static void fm_nav_history_init(FmNavHistory *self)
 {
     g_queue_init(&self->items);
     self->n_max = FM_NAV_HISTORY_DEFAULT_SIZE;
+    self->allow_duplicates = TRUE;
 }
 
 /**
@@ -242,6 +244,26 @@ void fm_nav_history_back(FmNavHistory* nh, int old_scroll_pos)
 
 static inline void cut_history(FmNavHistory* nh, guint num)
 {
+    if (!nh->allow_duplicates && num > 0)
+    {
+        FmNavHistoryItem * tmp = (FmNavHistoryItem *) nh->cur->data;
+        const GList * l;
+        int index;
+    repeat:
+        for (index = 0, l = fm_nav_history_list(nh); l; index++, l = l->next)
+        {
+            if (index == 0)
+                continue;
+            FmNavHistoryItem * item = (FmNavHistoryItem *) l->data;
+            if (fm_path_equal(tmp->path, item->path))
+            {
+                FmNavHistoryItem* item = (FmNavHistoryItem *) g_queue_pop_nth(&nh->items, index);
+                fm_nav_history_item_free(item);
+                goto repeat;
+            }
+        }
+    }
+
     while(g_queue_get_length(&nh->items) > num)
     {
         FmNavHistoryItem* item = (FmNavHistoryItem*)g_queue_pop_tail(&nh->items);
@@ -438,4 +460,14 @@ gint fm_nav_history_get_scroll_pos(FmNavHistory* nh)
 {
     g_return_val_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh), -1);
     return ((FmNavHistoryItem*)nh->cur->data)->scroll_pos;
+}
+
+void fm_nav_history_set_allow_duplicates(FmNavHistory* nh, gboolean allow_duplicates)
+{
+    nh->allow_duplicates = allow_duplicates;
+}
+
+gboolean fm_nav_history_get_allow_duplicates(FmNavHistory* nh)
+{
+    return nh->allow_duplicates;
 }
