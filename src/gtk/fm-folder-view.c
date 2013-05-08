@@ -1072,6 +1072,10 @@ static void on_file_prop(GtkAction* act, FmFolderView* fv)
             fm_show_file_properties(GTK_WINDOW(win), files);
             fm_file_info_list_unref(files);
         }
+        else
+        {
+            on_prop(NULL, fv);
+        }
     }
 }
 
