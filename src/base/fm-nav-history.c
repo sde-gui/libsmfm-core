@@ -282,7 +282,7 @@ static inline void cut_history(FmNavHistory* nh, guint num)
  *
  * Since: 0.1.0
  */
-void fm_nav_history_chdir(FmNavHistory* nh, FmPath* path, gint old_scroll_pos)
+gboolean fm_nav_history_chdir(FmNavHistory* nh, FmPath* path, gint old_scroll_pos)
 {
     FmNavHistoryItem* tmp;
 
@@ -310,7 +310,11 @@ void fm_nav_history_chdir(FmNavHistory* nh, FmPath* path, gint old_scroll_pos)
         g_queue_push_head(&nh->items, tmp);
         nh->cur = g_queue_peek_head_link(&nh->items);
         cut_history(nh, nh->n_max);
+
+        return TRUE;
     }
+
+    return FALSE;
 }
 
 /**
