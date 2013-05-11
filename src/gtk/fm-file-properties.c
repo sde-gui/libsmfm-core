@@ -581,11 +581,12 @@ static void update_permissions(FmFilePropData* data)
     data->has_dir = (S_ISDIR(fi_mode) != FALSE);
     data->all_dirs = data->has_dir;
 
-    if((fi_mode & ~S_IFDIR) == 0) /* no permissions accessible */
+    if((fi_mode & ~S_IFDIR) == 0 && uid < 0) /* no permissions accessible */
     {
         gtk_widget_hide(data->permissions_tab);
         return;
     }
+
     for(l=fm_file_info_list_peek_head_link(data->files)->next; l; l=l->next)
     {
         FmFileInfo* fi = FM_FILE_INFO(l->data);
