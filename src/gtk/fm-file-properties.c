@@ -193,11 +193,31 @@ struct _FmFilePropData
     gpointer extdata;
 };
 
+static void label_set_size(GtkLabel * label, long long unsigned int size)
+{
+    char size_str1[256];
+    fm_file_size_to_str(size_str1, sizeof(size_str1), size, fm_config->si_unit);
+
+    gchar * size_str2 = g_strdup_printf("%'llu %s", size,
+        dngettext(GETTEXT_PACKAGE, "byte", "bytes", size));
+
+    if (strcmp(size_str1, size_str2) == 0)
+    {
+        gtk_label_set_text(label, size_str1);
+    }
+    else
+    {
+        gchar * str = g_strdup_printf("%s (%s)", size_str1, size_str2);
+        gtk_label_set_text(label, str);
+        g_free(str);
+    }
+
+    g_free(size_str2);
+}
 
 static gboolean on_timeout(gpointer user_data)
 {
     FmFilePropData* data = (FmFilePropData*)user_data;
-    char size_str[128];
     FmDeepCountJob* dc;
 
     GDK_THREADS_ENTER();
@@ -209,24 +229,8 @@ static gboolean on_timeout(gpointer user_data)
     dc = data->dc_job;
     if(G_LIKELY(dc && !fm_job_is_cancelled(FM_JOB(dc))))
     {
-        char* str;
-        fm_file_size_to_str(size_str, sizeof(size_str), dc->total_size,
-                            fm_config->si_unit);
-        str = g_strdup_printf("%s (%'llu %s)", size_str,
-                              (long long unsigned int)dc->total_size,
-                              dngettext(GETTEXT_PACKAGE, "byte", "bytes",
-                                       (gulong)dc->total_size));
-        gtk_label_set_text(data->total_size, str);
-        g_free(str);
-
-        fm_file_size_to_str(size_str, sizeof(size_str), dc->total_ondisk_size,
-                            fm_config->si_unit);
-        str = g_strdup_printf("%s (%'llu %s)", size_str,
-                              (long long unsigned int)dc->total_ondisk_size,
-                              dngettext(GETTEXT_PACKAGE, "byte", "bytes",
-                                       (gulong)dc->total_ondisk_size));
-        gtk_label_set_text(data->size_on_disk, str);
-        g_free(str);
+        label_set_size(data->total_size, dc->total_size);
+        label_set_size(data->size_on_disk, dc->total_ondisk_size);
     }
     GDK_THREADS_LEAVE();
     return TRUE;
