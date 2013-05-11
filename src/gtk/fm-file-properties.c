@@ -776,6 +776,34 @@ static void update_permissions(FmFilePropData* data)
     }
 }
 
+static void set_time_interval(GtkLabel * label, time_t min_time, time_t max_time)
+{
+    struct tm tm;
+    char buf1[256], buf2[256];
+
+    localtime_r(&min_time, &tm);
+    strftime(buf1, sizeof(buf1), "%x %R", &tm);
+
+    if (min_time == 0)
+    {
+        gtk_label_set_text(label, _("N/A"));
+    }
+    else if (min_time == max_time)
+    {
+        gtk_label_set_text(label, buf1);
+    }
+    else
+    {
+        localtime_r(&max_time, &tm);
+        strftime(buf2, sizeof(buf2), "%x %R", &tm);
+
+        gchar * s = g_strdup_printf(_("%s ... %s"), buf1, buf2);
+        gtk_label_set_text(label, s);
+        g_free(s);
+    }
+
+}
+
 static void update_ui(FmFilePropData* data)
 {
     GtkImage* img = data->icon;
@@ -853,12 +881,9 @@ static void update_ui(FmFilePropData* data)
         data->open_with_label = NULL;
     }
 
-    /* FIXME: check if all files has the same parent dir, mtime, or atime */
     if( data->single_file )
     {
         char buf[128];
-        FmPath* parent = fm_path_get_parent(fm_file_info_get_path(data->fi));
-        char* parent_str = parent ? fm_path_display_name(parent, TRUE) : NULL;
         time_t atime;
         struct tm tm;
         gtk_entry_set_text(data->name, fm_file_info_get_disp_name(data->fi));
@@ -866,23 +891,7 @@ static void update_ui(FmFilePropData* data)
         if(strlen(fm_file_info_get_disp_name(data->fi)) > 16)
             gtk_widget_set_tooltip_text(GTK_WIDGET(data->name),
                                         fm_file_info_get_disp_name(data->fi));
-        if(parent_str)
-        {
-            gtk_label_set_text(data->dir, parent_str);
-            /* FIXME: check if text fits in line */
-            if(strlen(parent_str) > 16)
-                gtk_widget_set_tooltip_text(GTK_WIDGET(data->dir), parent_str);
-            g_free(parent_str);
-        }
-        else
-            gtk_label_set_text(data->dir, "");
-        gtk_label_set_text(data->mtime, fm_file_info_get_disp_mtime(data->fi));
 
-        /* FIXME: need to encapsulate this in an libfm API. */
-        atime = fm_file_info_get_atime(data->fi);
-        localtime_r(&atime, &tm);
-        strftime(buf, sizeof(buf), "%x %R", &tm);
-        gtk_label_set_text(data->atime, buf);
         /* FIXME: changing file name isn't implemented yet, disable entry */
         gtk_widget_set_can_focus(GTK_WIDGET(data->name), FALSE);
         gtk_editable_set_editable(GTK_EDITABLE(data->name), FALSE);
@@ -892,6 +901,48 @@ static void update_ui(FmFilePropData* data)
         gtk_entry_set_text(data->name, _("Multiple Files"));
         gtk_widget_set_sensitive(GTK_WIDGET(data->name), FALSE);
     }
+
+    FmPath * common_parent = fm_path_get_parent(fm_file_info_get_path(data->fi));
+    time_t min_atime = fm_file_info_get_atime(data->fi), max_atime = min_atime;
+    time_t min_mtime = fm_file_info_get_mtime(data->fi), max_mtime = min_mtime;
+
+    GList * l;
+    for (l = fm_file_info_list_peek_head_link(data->files)->next; l; l = l->next)
+    {
+        FmFileInfo* fi = FM_FILE_INFO(l->data);
+
+        if (!fm_path_equal(fm_path_get_parent(fm_file_info_get_path(fi)), common_parent))
+            common_parent = NULL;
+
+        time_t atime = fm_file_info_get_atime(fi);
+        if (min_atime > atime)
+            min_atime = atime;
+        if (max_atime < atime)
+            max_atime = atime;
+
+        time_t mtime = fm_file_info_get_mtime(fi);
+        if (min_mtime > mtime)
+            min_mtime = mtime;
+        if (max_mtime < mtime)
+            max_mtime = mtime;
+    }
+
+    gchar * parent_str = common_parent ? fm_path_display_name(common_parent, TRUE) : NULL;
+    if (parent_str)
+    {
+        gtk_label_set_text(data->dir, parent_str);
+        /* FIXME: check if text fits in line */
+        if (strlen(parent_str) > 16)
+            gtk_widget_set_tooltip_text(GTK_WIDGET(data->dir), parent_str);
+        g_free(parent_str);
+    }
+    else
+    {
+        gtk_label_set_text(data->dir, "");
+    }
+
+    set_time_interval(data->atime, min_atime, max_atime);
+    set_time_interval(data->mtime, min_mtime, max_mtime);
 
     update_permissions(data);
 
