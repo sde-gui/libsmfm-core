@@ -91,6 +91,7 @@ FmPath* fm_path_get_home(void); /* home directory */
 FmPath* fm_path_get_desktop(void); /* $HOME/Desktop */
 FmPath* fm_path_get_trash(void); /* trash:/// */
 FmPath* fm_path_get_apps_menu(void); /* menu://applications.menu/ */
+FmPath* fm_path_get_computer(void); /* computer:/// */
 
 FmPath* fm_path_ref(FmPath* path);
 void fm_path_unref(FmPath* path);

@@ -69,6 +69,7 @@ static FmPath* trash_root_path = NULL;
 static FmPath* network_root = NULL;*/
 
 static FmPath* apps_root_path = NULL;
+static FmPath* computer_root_path = NULL;
 
 static GSList* roots = NULL;
 G_LOCK_DEFINE(roots);
@@ -992,6 +993,11 @@ FmPath* fm_path_get_apps_menu()
     return apps_root_path;
 }
 
+FmPath* fm_path_get_computer()
+{
+    return computer_root_path;
+}
+
 void _fm_path_init()
 {
     const char* sep, *name;
@@ -1059,6 +1065,7 @@ void _fm_path_init()
     /* FIXME: currently there are problems with URIs. using trash:/ here will cause problems. */
     trash_root_path = _fm_path_new_internal(NULL, "trash:///", 9, FM_PATH_IS_TRASH|FM_PATH_IS_VIRTUAL|FM_PATH_IS_LOCAL);
     apps_root_path = _fm_path_new_internal(NULL, "menu://applications/", 20, FM_PATH_IS_VIRTUAL|FM_PATH_IS_XDG_MENU);
+    computer_root_path = _fm_path_new_internal(NULL, "computer:///", 12, FM_PATH_IS_VIRTUAL|FM_PATH_IS_LOCAL);
 }
 
 void _fm_path_finalize(void)

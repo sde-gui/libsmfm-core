@@ -855,8 +855,15 @@ static void fm_places_model_init(FmPlacesModel *self)
         new_path_item(model, &it, fm_path_get_desktop(), FM_PLACES_ID_DESKTOP,
                       _("Desktop"), "user-desktop", job);
     }
+
+    if(fm_config->places_computer)
+    {
+        path = fm_path_get_computer();
+        new_path_item(model, &it, path, FM_PLACES_ID_COMPUTER,
+                      fm_path_display_basename(path), "computer", job);
+    }
+
     /* FIXME: use fm_config->places_root */
-    /* FIXME: use fm_config->places_computer */
 
     if(fm_config->places_applications)
     {

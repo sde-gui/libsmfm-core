@@ -106,7 +106,7 @@ typedef struct _FmConfigClass       FmConfigClass;
  * @places_applications: show 'Applications' item in Places
  * @places_trash: show 'Trash' item in Places
  * @places_root: show '/' item in Places
- * @places_computer: chow 'My computer' item in Places
+ * @places_computer: show 'My computer' item in Places
  * @places_network: show 'Network' item in Places
  * @places_unmounted: show unmounted internal volumes in Places
  * @only_user_templates: show only user defined templates in 'Create...' menu

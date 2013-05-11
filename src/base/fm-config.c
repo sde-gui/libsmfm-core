@@ -347,7 +347,7 @@ void fm_config_save(FmConfig* cfg, const char* name)
             fprintf(f, "places_home=%d\n", cfg->places_home);
             fprintf(f, "places_desktop=%d\n", cfg->places_desktop);
             //fprintf(f, "places_root=%d\n", cfg->places_root);
-            //fprintf(f, "places_computer=%d\n", cfg->places_computer);
+            fprintf(f, "places_computer=%d\n", cfg->places_computer);
             fprintf(f, "places_trash=%d\n", cfg->places_trash);
             fprintf(f, "places_applications=%d\n", cfg->places_applications);
             //fprintf(f, "places_network=%d\n", cfg->places_network);
