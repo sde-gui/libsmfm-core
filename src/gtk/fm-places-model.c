@@ -738,6 +738,51 @@ static void on_places_home_changed(FmConfig* cfg, gpointer user_data)
     }
 }
 
+static void on_places_computer_changed(FmConfig* cfg, gpointer user_data)
+{
+    GtkListStore* model = GTK_LIST_STORE(user_data);
+    GtkTreeIter it;
+    if(cfg->places_computer)
+    {
+        FmPath* path = fm_path_get_computer();
+        FmFileInfoJob* job = fm_file_info_job_new(NULL, FM_FILE_INFO_JOB_FOLLOW_SYMLINK);
+        FmPlacesModel* self = FM_PLACES_MODEL(model);
+
+        new_path_item(model, &it, path, FM_PLACES_ID_COMPUTER,
+                      fm_path_display_basename(path), "computer", job);
+        g_signal_connect(job, "finished", G_CALLBACK(on_file_info_job_finished), self);
+        self->jobs = g_slist_prepend(self->jobs, job);
+        fm_job_run_async(FM_JOB(job));
+    }
+    else
+    {
+        remove_path_item(model, FM_PLACES_ID_COMPUTER);
+    }
+}
+
+
+static void on_places_root_changed(FmConfig* cfg, gpointer user_data)
+{
+    GtkListStore* model = GTK_LIST_STORE(user_data);
+    GtkTreeIter it;
+    if(cfg->places_root)
+    {
+        FmPath* path = fm_path_get_root();
+        FmFileInfoJob* job = fm_file_info_job_new(NULL, FM_FILE_INFO_JOB_FOLLOW_SYMLINK);
+        FmPlacesModel* self = FM_PLACES_MODEL(model);
+
+        new_path_item(model, &it, path, FM_PLACES_ID_ROOT,
+                      _("File System"), "gtk-harddisk", job);
+        g_signal_connect(job, "finished", G_CALLBACK(on_file_info_job_finished), self);
+        self->jobs = g_slist_prepend(self->jobs, job);
+        fm_job_run_async(FM_JOB(job));
+    }
+    else
+    {
+        remove_path_item(model, FM_PLACES_ID_ROOT);
+    }
+}
+
 static void on_places_desktop_changed(FmConfig* cfg, gpointer user_data)
 {
     GtkListStore* model = GTK_LIST_STORE(user_data);
@@ -834,6 +879,10 @@ static void fm_places_model_init(FmPlacesModel *self)
                                              G_CALLBACK(on_use_trash_changed), self);
     self->places_applications_change_handler = g_signal_connect(fm_config, "changed::places_applications",
                                              G_CALLBACK(on_places_applications_changed), self);
+    self->places_applications_change_handler = g_signal_connect(fm_config, "changed::places_computer",
+                                             G_CALLBACK(on_places_computer_changed), self);
+    self->places_applications_change_handler = g_signal_connect(fm_config, "changed::places_root",
+                                             G_CALLBACK(on_places_root_changed), self);
 
     self->pane_icon_size_change_handler = g_signal_connect(fm_config, "changed::pane_icon_size",
                                              G_CALLBACK(on_pane_icon_size_changed), self);
@@ -865,10 +914,9 @@ static void fm_places_model_init(FmPlacesModel *self)
 
     if(fm_config->places_root)
     {
-        path = fm_path_new_for_str("file:///");
+        path = fm_path_get_root();
         new_path_item(model, &it, path, FM_PLACES_ID_ROOT,
                       _("File System"), "gtk-harddisk", job);
-        fm_path_unref(path);
     }
 
     /* FIXME: use fm_config->places_root */
