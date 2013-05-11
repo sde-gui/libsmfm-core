@@ -888,6 +888,8 @@ char* fm_path_display_basename(FmPath* path)
                 return g_strdup(_("My Computer"));
             if(g_str_has_prefix(path->name, "network:/"))
                 return g_strdup(_("Network"));
+            /*if (strcmp(path->name, "file:///") == 0)
+                return g_strdup(_("File System"));*/
         }
     }
     if(!fm_path_is_native(path))

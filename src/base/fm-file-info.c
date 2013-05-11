@@ -169,6 +169,8 @@ static void deferred_icon_load(FmFileInfo* fi)
         fi->icon = fm_icon_from_name("folder-templates");
     else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_VIDEOS)) == 0)
         fi->icon = fm_icon_from_name("folder-videos");
+    else if(strcmp(path, "/") == 0)
+        fi->icon = fm_icon_from_name("gtk-harddisk");
     else
         fi->icon = fm_icon_ref(fm_mime_type_get_icon(fm_file_info_get_mime_type(fi)));
 

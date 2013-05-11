@@ -863,6 +863,14 @@ static void fm_places_model_init(FmPlacesModel *self)
                       fm_path_display_basename(path), "computer", job);
     }
 
+    if(fm_config->places_root)
+    {
+        path = fm_path_new_for_str("file:///");
+        new_path_item(model, &it, path, FM_PLACES_ID_ROOT,
+                      _("File System"), "gtk-harddisk", job);
+        fm_path_unref(path);
+    }
+
     /* FIXME: use fm_config->places_root */
 
     if(fm_config->places_applications)
