@@ -4361,6 +4361,8 @@ exo_icon_view_row_changed (GtkTreeModel *model,
 {
   ExoIconViewItem *item;
 
+  update_indeces(icon_view);
+
   item = g_list_nth_data (icon_view->priv->items, gtk_tree_path_get_indices(path)[0]);
 
   /* stop editing this item */
