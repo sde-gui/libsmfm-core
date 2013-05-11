@@ -85,6 +85,9 @@ void fm_nav_history_set_max(FmNavHistory* nh, guint num);
 void fm_nav_history_set_allow_duplicates(FmNavHistory* nh, gboolean allow_duplicates);
 gboolean fm_nav_history_get_allow_duplicates(FmNavHistory* nh);
 
+void fm_nav_history_set_remove_parent(FmNavHistory* nh, gboolean remove_parent);
+gboolean fm_nav_history_get_remove_parent(FmNavHistory* nh);
+
 G_END_DECLS
 
 #endif /* __FM_NAV_HISTORY_H__ */

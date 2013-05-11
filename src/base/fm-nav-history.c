@@ -40,6 +40,7 @@ struct _FmNavHistory
     gint n_max;
     guint n_cur;
     gboolean allow_duplicates;
+    gboolean remove_parent;
 };
 
 struct _FmNavHistoryClass
@@ -244,23 +245,38 @@ void fm_nav_history_back(FmNavHistory* nh, int old_scroll_pos)
 
 static inline void cut_history(FmNavHistory* nh, guint num)
 {
-    if (!nh->allow_duplicates && num > 0)
+    if ((!nh->allow_duplicates || nh->remove_parent) && num > 0)
     {
-        FmNavHistoryItem * tmp = (FmNavHistoryItem *) nh->cur->data;
+        FmNavHistoryItem * selected_item = (FmNavHistoryItem *) nh->cur->data;
         const GList * l;
-        int index;
+        int index, prev_item_index;
+        FmNavHistoryItem * prev_item;
     repeat:
-        for (index = 0, l = fm_nav_history_list(nh); l; index++, l = l->next)
+        for (prev_item = NULL, prev_item_index = 0, index = 0, l = fm_nav_history_list(nh); l; index++, l = l->next)
         {
-            if (index == 0)
-                continue;
             FmNavHistoryItem * item = (FmNavHistoryItem *) l->data;
-            if (fm_path_equal(tmp->path, item->path))
+            if (selected_item == item)
+                continue;
+
+            gboolean remove = (
+                (!nh->allow_duplicates && fm_path_equal(selected_item->path, item->path)) ||
+                (nh->remove_parent && fm_path_equal(item->path, fm_path_get_parent(selected_item->path))));
+
+            if (remove)
             {
                 FmNavHistoryItem* item = (FmNavHistoryItem *) g_queue_pop_nth(&nh->items, index);
                 fm_nav_history_item_free(item);
                 goto repeat;
             }
+
+            if (nh->remove_parent && prev_item && fm_path_equal(prev_item->path, fm_path_get_parent(item->path)))
+            {
+                FmNavHistoryItem* item = (FmNavHistoryItem *) g_queue_pop_nth(&nh->items, prev_item_index);
+                fm_nav_history_item_free(item);
+                goto repeat;
+            }
+            prev_item = item;
+            prev_item_index = index;
         }
     }
 
@@ -474,4 +490,14 @@ void fm_nav_history_set_allow_duplicates(FmNavHistory* nh, gboolean allow_duplic
 gboolean fm_nav_history_get_allow_duplicates(FmNavHistory* nh)
 {
     return nh->allow_duplicates;
+}
+
+void fm_nav_history_set_remove_parent(FmNavHistory* nh, gboolean remove_parent)
+{
+    nh->remove_parent = remove_parent;
+}
+
+gboolean fm_nav_history_get_remove_parent(FmNavHistory* nh)
+{
+    return nh->remove_parent;
 }
