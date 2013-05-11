@@ -500,6 +500,13 @@ static void parse_search_uri(FmVfsSearchEnumerator* priv, const char* uri_str)
                     priv->content_case_insensitive = (value[0] == '1') ? TRUE : FALSE;
                 else if(strcmp(name, "mime_types") == 0)
                 {
+                    char * v;
+                    for (v = value; *v; v++)
+                    {
+                        if (*v == '\\')
+                            *v = '/';
+                    }
+
                     priv->mime_types = g_strsplit(value, ";", -1);
 
                     /* For mime_type patterns such as image/* and audio/*,
