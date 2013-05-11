@@ -472,6 +472,7 @@ static gboolean exo_icon_view_search_scroll_event       (GtkWidget      *widget,
 static gboolean exo_icon_view_search_timeout            (gpointer        user_data);
 static void     exo_icon_view_search_timeout_destroy    (gpointer        user_data);
 
+static void update_indeces(ExoIconView * icon_view);
 
 
 struct _ExoIconViewCellInfo
@@ -650,6 +651,8 @@ struct _ExoIconViewPrivate
   guint flags;
 
   gboolean new_model_set;
+
+  gint update_indeces;
 };
 
 
@@ -1549,7 +1552,6 @@ exo_icon_view_set_property (GObject      *object,
 }
 
 
-
 static void
 exo_icon_view_realize (GtkWidget *widget)
 {
@@ -1844,6 +1846,8 @@ exo_icon_view_expose_event (GtkWidget      *widget,
    */
   if (G_UNLIKELY (priv->layout_idle_id != 0))
     return FALSE;
+
+  update_indeces(icon_view);
 
   /* scroll to the previously remembered path (if any) */
   if (G_UNLIKELY (priv->scroll_to_path != NULL))
@@ -2221,6 +2225,8 @@ exo_icon_view_item_selected_changed (ExoIconView      *icon_view,
   AtkObject *obj;
   AtkObject *item_obj;
 
+  update_indeces(icon_view);
+
   obj = gtk_widget_get_accessible (GTK_WIDGET (icon_view));
   if (obj != NULL)
     {
@@ -2245,6 +2251,8 @@ exo_icon_view_item_activate_cell (ExoIconView         *icon_view,
   GtkTreePath        *path;
   gboolean            visible;
   gchar              *path_string;
+
+  update_indeces(icon_view);
 
   exo_icon_view_set_cell_data (icon_view, item, FALSE);
 
@@ -2331,6 +2339,8 @@ exo_icon_view_start_editing (ExoIconView         *icon_view,
   GtkTreePath        *path;
   gboolean            visible;
   gchar              *path_string;
+
+  update_indeces(icon_view);
 
   /* setup cell data for the given item */
   exo_icon_view_set_cell_data (icon_view, item, FALSE);
@@ -2435,6 +2445,8 @@ exo_icon_view_button_press_event (GtkWidget      *widget,
   gint                 cursor_cell;
 
   icon_view = EXO_ICON_VIEW (widget);
+
+  update_indeces(icon_view);
 
   if (event->window != icon_view->priv->bin_window)
     return FALSE;
@@ -2588,6 +2600,8 @@ exo_icon_view_button_release_event (GtkWidget      *widget,
   ExoIconViewItem *item;
   ExoIconView     *icon_view = EXO_ICON_VIEW (widget);
   GtkTreePath     *path;
+
+  update_indeces(icon_view);
 
   if (icon_view->priv->pressed_button == (gint) event->button)
     {
@@ -3232,6 +3246,8 @@ exo_icon_view_real_activate_cursor_item (ExoIconView *icon_view)
   GtkCellRendererMode mode;
   ExoIconViewCellInfo *info = NULL;
 
+  update_indeces(icon_view);
+
   if (!icon_view->priv->cursor_item)
     return FALSE;
 
@@ -3779,6 +3795,8 @@ exo_icon_view_calculate_item_size (ExoIconView     *icon_view,
   if (G_LIKELY (item->area.width != -1))
     return;
 
+  update_indeces(icon_view);
+
   if (G_UNLIKELY (item->n_cells != icon_view->priv->n_cells))
     {
       /* apply the new cell size */
@@ -4153,6 +4171,8 @@ exo_icon_view_set_cursor_item (ExoIconView     *icon_view,
   AtkObject *item_obj;
   AtkObject *cursor_item_obj;
 
+  update_indeces(icon_view);
+
   /* When hitting this path from keynav, the focus cell is
    * already set, we dont need to notify the atk object
    * but we still need to queue the draw here (in the case
@@ -4205,6 +4225,8 @@ exo_icon_view_get_item_at_coords (const ExoIconView    *icon_view,
   GdkRectangle              box;
   const GList              *items;
   const GList              *lp;
+
+  update_indeces(icon_view);
 
   for (items = priv->items; items != NULL; items = items->next)
     {
@@ -4310,6 +4332,26 @@ verify_items (ExoIconView *icon_view)
     }
 }
 
+static void update_indeces(ExoIconView * icon_view)
+{
+  if (icon_view->priv->update_indeces < 0)
+    return;
+
+  int idx = icon_view->priv->update_indeces;
+  GList * list = g_list_nth(icon_view->priv->items, idx);
+  for (; list; list = list->next, idx++)
+  {
+    ExoIconViewItem *item;
+    item = list->data;
+
+    item->index = idx;
+  }
+
+  icon_view->priv->update_indeces = -1;
+
+  verify_items(icon_view);
+}
+
 
 static void
 exo_icon_view_row_changed (GtkTreeModel *model,
@@ -4358,14 +4400,8 @@ exo_icon_view_row_inserted (GtkTreeModel *model,
   item->index = idx;
   icon_view->priv->items = g_list_insert (icon_view->priv->items, item, idx);
 
-  list = g_list_nth (icon_view->priv->items, idx + 1);
-  for (; list; list = list->next)
-    {
-      item = list->data;
-
-      item->index++;
-    }
-  verify_items (icon_view);
+  if (icon_view->priv->update_indeces < 0 || icon_view->priv->update_indeces > idx)
+    icon_view->priv->update_indeces = idx;
 
   /* recalculate the layout */
   exo_icon_view_queue_layout (icon_view);
@@ -4381,6 +4417,8 @@ exo_icon_view_row_deleted (GtkTreeModel *model,
   ExoIconViewItem *item;
   gboolean         changed = FALSE;
   GList           *list, *next;
+
+  update_indeces(icon_view);
 
   /* determine the position and the item for the path */
   list = g_list_nth (icon_view->priv->items, gtk_tree_path_get_indices (path)[0]);
@@ -4458,6 +4496,8 @@ exo_icon_view_rows_reordered (GtkTreeModel *model,
   gint   *order;
   gint     length;
   gint     i;
+
+  update_indeces(icon_view);
 
   /* cancel any editing attempt */
   exo_icon_view_stop_editing (icon_view, TRUE);
@@ -4764,6 +4804,8 @@ exo_icon_view_move_cursor_up_down (ExoIconView *icon_view,
   if (!gtk_widget_has_focus (GTK_WIDGET (icon_view)))
     return;
 
+  update_indeces(icon_view);
+
   if (!icon_view->priv->cursor_item)
     {
       if (count > 0)
@@ -4919,6 +4961,8 @@ exo_icon_view_move_cursor_left_right (ExoIconView *icon_view,
 
   if (!gtk_widget_has_focus (GTK_WIDGET (icon_view)))
     return;
+
+  update_indeces(icon_view);
 
   if (gtk_widget_get_direction (GTK_WIDGET (icon_view)) == GTK_TEXT_DIR_RTL)
     count *= -1;
@@ -5469,6 +5513,8 @@ exo_icon_view_get_path_at_pos (const ExoIconView *icon_view,
 
   g_return_val_if_fail (EXO_IS_ICON_VIEW (icon_view), NULL);
 
+  update_indeces(icon_view);
+
   /* translate the widget coordinates to icon window coordinates */
   x += gtk_adjustment_get_value(icon_view->priv->hadjustment);
   y += gtk_adjustment_get_value(icon_view->priv->vadjustment);
@@ -5509,6 +5555,8 @@ exo_icon_view_get_item_at_pos (const ExoIconView *icon_view,
   ExoIconViewItem     *item;
 
   g_return_val_if_fail (EXO_IS_ICON_VIEW (icon_view), FALSE);
+
+  update_indeces(icon_view);
 
   item = exo_icon_view_get_item_at_coords (icon_view, x, y, TRUE, &info);
 
@@ -5551,6 +5599,8 @@ exo_icon_view_get_visible_range (const ExoIconView *icon_view,
   gint                      i;
 
   g_return_val_if_fail (EXO_IS_ICON_VIEW (icon_view), FALSE);
+
+  update_indeces(icon_view);
 
   if (priv->hadjustment == NULL || priv->vadjustment == NULL)
     return FALSE;
@@ -5598,6 +5648,8 @@ exo_icon_view_selected_foreach (ExoIconView           *icon_view,
 {
   GtkTreePath *path;
   GList       *lp;
+
+  update_indeces(icon_view);
 
   path = gtk_tree_path_new_first ();
   for (lp = icon_view->priv->items; lp != NULL; lp = lp->next)
@@ -6225,6 +6277,8 @@ exo_icon_view_get_cursor (const ExoIconView *icon_view,
   ExoIconViewItem     *item;
 
   g_return_val_if_fail (EXO_IS_ICON_VIEW (icon_view), FALSE);
+
+  update_indeces(icon_view);
 
   item = icon_view->priv->cursor_item;
   info = (icon_view->priv->cursor_cell < 0) ? NULL : g_list_nth_data (icon_view->priv->cell_list, icon_view->priv->cursor_cell);
@@ -7227,6 +7281,8 @@ exo_icon_view_drag_begin (GtkWidget      *widget,
 
   icon_view = EXO_ICON_VIEW (widget);
 
+  update_indeces(icon_view);
+
   /* if the user uses a custom DnD impl, we don't set the icon here */
   if (!icon_view->priv->dest_set && !icon_view->priv->source_set)
     return;
@@ -7806,6 +7862,8 @@ exo_icon_view_get_dest_item_at_pos (ExoIconView              *icon_view,
   g_return_val_if_fail (drag_y >= 0, FALSE);
   g_return_val_if_fail (icon_view->priv->bin_window != NULL, FALSE);
 
+  update_indeces(icon_view);
+
   if (G_LIKELY (path != NULL))
     *path = NULL;
 
@@ -7867,6 +7925,8 @@ exo_icon_view_create_drag_icon (ExoIconView *icon_view,
 
   g_return_val_if_fail (EXO_IS_ICON_VIEW (icon_view), NULL);
   g_return_val_if_fail (gtk_tree_path_get_depth (path) > 0, NULL);
+
+  update_indeces(icon_view);
 
   /* verify that the widget is realized */
   if (G_UNLIKELY (!gtk_widget_get_realized (GTK_WIDGET (icon_view))))
@@ -9113,6 +9173,7 @@ exo_icon_view_item_accessible_idle_do_action (gpointer data)
   if (item->widget != NULL)
     {
       icon_view = EXO_ICON_VIEW (item->widget);
+      update_indeces(icon_view);
       path = gtk_tree_path_new_from_indices (item->item->index, -1);
       exo_icon_view_item_activated (icon_view, path);
       gtk_tree_path_free (path);
@@ -10222,6 +10283,9 @@ exo_icon_view_accessible_ref_child (AtkObject *accessible,
     return NULL;
 
   icon_view = EXO_ICON_VIEW (widget);
+
+  update_indeces(icon_view);
+
   icons = g_list_nth (icon_view->priv->items, index);
   obj = NULL;
   if (icons)
@@ -10399,6 +10463,7 @@ exo_icon_view_accessible_model_row_changed (GtkTreeModel *tree_model,
     {
       widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (atk_obj));
       icon_view = EXO_ICON_VIEW (widget);
+      update_indeces(icon_view);
       item = a11y_item->item;
 
       name = atk_object_get_name (ATK_OBJECT (a11y_item));
@@ -10838,6 +10903,7 @@ exo_icon_view_accessible_add_selection (AtkSelection *selection,
     return FALSE;
 
   icon_view = EXO_ICON_VIEW (widget);
+  update_indeces(icon_view);
 
   item = g_list_nth_data (icon_view->priv->items, i);
 
