@@ -494,13 +494,13 @@ static gboolean launch_search(FileSearchUI* ui)
 
         /* search for the files of specific mime-types */
         if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(ui->text_file_checkbutton)))
-            mime_types = g_slist_prepend(mime_types, (gpointer)"text/plain");
+            mime_types = g_slist_prepend(mime_types, (gpointer)"text\\plain");
         if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(ui->image_file_checkbutton)))
-            mime_types = g_slist_prepend(mime_types, (gpointer)"image/*");
+            mime_types = g_slist_prepend(mime_types, (gpointer)"image\\*");
         if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(ui->audio_file_checkbutton)))
-            mime_types = g_slist_prepend(mime_types, (gpointer)"audio/*");
+            mime_types = g_slist_prepend(mime_types, (gpointer)"audio\\*");
         if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(ui->video_file_checkbutton)))
-            mime_types = g_slist_prepend(mime_types, (gpointer)"video/*");
+            mime_types = g_slist_prepend(mime_types, (gpointer)"video\\*");
         if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(ui->doc_file_checkbutton)))
         {
             // mime_types = g_slist_prepend(mime_types, (gpointer)"text/plain");
