@@ -887,9 +887,6 @@ static void update_ui(FmFilePropData* data)
 
     if( data->single_file )
     {
-        char buf[128];
-        time_t atime;
-        struct tm tm;
         gtk_entry_set_text(data->name, fm_file_info_get_disp_name(data->fi));
         /* FIXME: check if text fits in line */
         if(strlen(fm_file_info_get_disp_name(data->fi)) > 16)
