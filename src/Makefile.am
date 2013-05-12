@@ -474,3 +474,5 @@ uninstall-local:
 		rm -f "$(DESTDIR)$(includedir)/@PACKAGE@"; \
 	fi
 	-rmdir "$(DESTDIR)$(libsmfmincludedir)"
+
+install-data-local: install-pkgincludeHEADERS
