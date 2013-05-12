@@ -919,8 +919,6 @@ static void fm_places_model_init(FmPlacesModel *self)
                       _("File System"), "gtk-harddisk", job);
     }
 
-    /* FIXME: use fm_config->places_root */
-
     if(fm_config->places_applications)
     {
         new_path_item(model, &it, fm_path_get_apps_menu(),
