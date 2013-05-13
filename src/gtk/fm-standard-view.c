@@ -357,7 +357,13 @@ static void fm_standard_view_dispose(GObject *object)
 
 static void set_icon_size(FmStandardView* fv, guint icon_size)
 {
+    g_object_set(G_OBJECT(fv->renderer_pixbuf), "visible", icon_size > 0, NULL);
+
+    if (icon_size < 1)
+        icon_size = 1;
+
     fm_cell_renderer_pixbuf_set_fixed_size(fv->renderer_pixbuf, icon_size, icon_size);
+
     if (fv->model)
         fm_folder_model_set_icon_size(fv->model, icon_size);
 
