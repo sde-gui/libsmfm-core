@@ -74,6 +74,9 @@ struct _FmFolderModel
     GHashTable* items_hash;
 
     GSList* filters;
+
+    GPatternSpec * pattern;
+    char * pattern_str;
 };
 
 typedef struct _FmFolderItem FmFolderItem;
@@ -388,6 +391,18 @@ static void fm_folder_model_dispose(GObject *object)
     {
         g_slist_free_full(model->filters, (GDestroyNotify)fm_folder_model_filter_item_free);
         model->filters = NULL;
+    }
+
+    if(model->pattern)
+    {
+        g_pattern_spec_free(model->pattern);
+        model->pattern = NULL;
+    }
+
+    if(model->pattern_str)
+    {
+        g_free(model->pattern_str);
+        model->pattern_str = NULL;
     }
 
     (*G_OBJECT_CLASS(fm_folder_model_parent_class)->dispose)(object);
@@ -1177,6 +1192,13 @@ static inline gboolean file_can_show(FmFolderModel* model, FmFileInfo* file)
 {
     if(!model->show_hidden && fm_file_info_is_hidden(file))
         return FALSE;
+
+    if(model->pattern)
+    {
+        if (!g_pattern_match_string(model->pattern, fm_file_info_get_name(file)) && !fm_file_info_is_dir(file))
+            return FALSE;
+    }
+
     if(model->filters)
     {
         GSList* l;
@@ -1221,6 +1243,36 @@ void fm_folder_model_set_show_hidden(FmFolderModel* model, gboolean show_hidden)
         return;
     model->show_hidden = show_hidden;
     fm_folder_model_apply_filters(model);
+}
+
+void fm_folder_model_set_pattern(FmFolderModel* model, const char * pattern_str)
+{
+    if (!pattern_str)
+        pattern_str = "";
+
+    if (model->pattern_str && strcmp(model->pattern_str, pattern_str) == 0)
+        return;
+
+    if (model->pattern_str)
+        g_free(model->pattern_str);
+
+    model->pattern_str = g_strdup(pattern_str);
+
+    if (model->pattern)
+    {
+        g_pattern_spec_free(model->pattern);
+        model->pattern = NULL;
+    }
+
+    if (*pattern_str)
+        model->pattern = g_pattern_spec_new(pattern_str);
+
+    fm_folder_model_apply_filters(model);
+}
+
+const char * fm_folder_model_get_pattern(FmFolderModel* model)
+{
+    return model->pattern_str ? model->pattern_str : "";
 }
 
 static void reload_icons(FmFolderModel* model, enum ReloadFlags flags)

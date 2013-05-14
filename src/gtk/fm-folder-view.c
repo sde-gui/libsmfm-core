@@ -111,6 +111,8 @@ static const char folder_popup_xml[] =
   "<menuitem action='Remove'/>"
   "<menuitem action='FileProp'/>"
   "<separator/>"
+  "<menuitem action='SetPattern'/>"
+  "<separator/>"
   "<menuitem action='SelAll'/>"
   "<menuitem action='InvSel'/>"
   "<separator/>"
@@ -155,6 +157,7 @@ static void on_copy(GtkAction* act, FmFolderView* fv);
 static void on_paste(GtkAction* act, FmFolderView* fv);
 static void on_trash(GtkAction* act, FmFolderView* fv);
 static void on_rm(GtkAction* act, FmFolderView* fv);
+static void on_set_pattern(GtkAction* act, FmFolderView* fv);
 static void on_select_all(GtkAction* act, FmFolderView* fv);
 static void on_invert_select(GtkAction* act, FmFolderView* fv);
 static void on_rename(GtkAction* act, FmFolderView* fv);
@@ -181,6 +184,7 @@ static const GtkActionEntry folder_popup_actions[]=
     {"Del2", NULL, NULL, "KP_Delete", NULL, G_CALLBACK(on_trash)},
     {"Remove", GTK_STOCK_REMOVE, NULL, "<Shift>Delete", NULL, G_CALLBACK(on_rm)},
     {"Remove2", NULL, NULL, "<Shift>KP_Delete", NULL, G_CALLBACK(on_rm)},
+    {"SetPattern", NULL, "_Filter...", NULL, NULL, G_CALLBACK(on_set_pattern)},
     {"SelAll", GTK_STOCK_SELECT_ALL, NULL, "<Ctrl>A", NULL, G_CALLBACK(on_select_all)},
     {"InvSel", NULL, N_("_Invert Selection"), "<Ctrl>I", NULL, G_CALLBACK(on_invert_select)},
     {"Sort", NULL, N_("_Sort Files"), NULL, NULL, NULL},
@@ -1012,6 +1016,29 @@ static void on_rm(GtkAction* act, FmFolderView* fv)
     /* for editables 'Shift+Del' means 'Cut' */
     else if(GTK_IS_EDITABLE(focus))
         gtk_editable_cut_clipboard((GtkEditable*)focus);
+}
+
+static void on_set_pattern(GtkAction* act, FmFolderView* fv)
+{
+    g_return_if_fail(FM_IS_FOLDER_VIEW(fv));
+
+    GtkMenu *popup = g_object_get_qdata(G_OBJECT(fv), popup_quark);
+    GtkWidget *win = gtk_menu_get_attach_widget(popup);
+
+    FmFolderViewInterface* iface = FM_FOLDER_VIEW_GET_IFACE(fv);
+
+    const char * old_pattern = NULL;
+    if (iface && iface->get_pattern)
+        old_pattern = iface->get_pattern(fv);
+    if (!old_pattern)
+        old_pattern = "";
+
+    gchar * new_pattern = fm_get_user_input(GTK_WINDOW(win), "Select pattern", "Enter a pattern to filter displayed files", old_pattern);
+
+    if (iface && iface->set_pattern)
+        iface->set_pattern(fv, new_pattern);
+
+    g_free(new_pattern);
 }
 
 static void on_select_all(GtkAction* act, FmFolderView* fv)

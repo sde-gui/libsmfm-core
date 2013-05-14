@@ -150,6 +150,9 @@ struct _FmFolderViewInterface
     gboolean (*set_columns)(FmFolderView* fv, const GSList* cols);
     GSList* (*get_columns)(FmFolderView* fv);
 
+    const char * (*get_pattern)(FmFolderView* fv);
+    void (*set_pattern)(FmFolderView* fv, const char * pattern_str);
+
     /* for implementation internal usage */
     void (*get_custom_menu_callbacks)(FmFolderView* fv, FmFolderViewUpdatePopup*,
                                       FmLaunchFolderFunc*);

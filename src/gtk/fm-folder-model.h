@@ -154,6 +154,9 @@ void fm_folder_model_add_filter(FmFolderModel* model, FmFolderModelFilterFunc fu
 void fm_folder_model_remove_filter(FmFolderModel* model, FmFolderModelFilterFunc func, gpointer user_data);
 void fm_folder_model_apply_filters(FmFolderModel* model);
 
+void fm_folder_model_set_pattern(FmFolderModel* model, const char * pattern_str);
+const char * fm_folder_model_get_pattern(FmFolderModel* model);
+
 void fm_folder_model_set_sort(FmFolderModel* model, FmFolderModelCol col, FmSortMode mode);
 gboolean fm_folder_model_get_sort(FmFolderModel* model, FmFolderModelCol *col, FmSortMode *mode);
 

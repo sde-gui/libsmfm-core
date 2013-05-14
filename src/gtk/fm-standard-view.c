@@ -61,6 +61,7 @@ struct _FmStandardView
     GtkSelectionMode sel_mode;
 
     gboolean show_hidden;
+    char * pattern;
 
     GtkWidget* view; /* either ExoIconView or ExoTreeView */
     FmFolderModel* model; /* FmStandardView doesn't use abstract GtkTreeModel! */
@@ -368,6 +369,12 @@ static void fm_standard_view_dispose(GObject *object)
     {
         g_signal_handler_disconnect(fm_config, self->highlight_file_names_handler);
         self->highlight_file_names_handler = 0;
+    }
+
+    if(self->pattern)
+    {
+        g_free(self->pattern);
+        self->pattern = NULL;
     }
 
     (* G_OBJECT_CLASS(fm_standard_view_parent_class)->dispose)(object);
@@ -1184,6 +1191,10 @@ void fm_standard_view_set_mode(FmStandardView* fv, FmStandardViewMode mode)
             fv->select_invert = select_invert_list_view;
             fv->select_path = select_path_list_view;
         }
+
+        if (fv->model)
+            fm_folder_model_set_pattern(fv->model, fv->pattern);
+
         g_list_foreach(sels, (GFunc)gtk_tree_path_free, NULL);
         g_list_free(sels);
 
@@ -1619,6 +1630,7 @@ static void fm_standard_view_set_model(FmFolderView* ffv, FmFolderModel* model)
         g_signal_connect(model, "row-changed", G_CALLBACK(on_row_changed), fv);
 
         fm_folder_model_set_use_custom_colors(model, fm_config->highlight_file_names);
+        fm_folder_model_set_pattern(fv->model, fv->pattern);
 
         update_icon_size(fv);
     }
@@ -1742,6 +1754,28 @@ static GSList* _fm_standard_view_get_columns(FmFolderView* fv)
     return list;
 }
 
+const char * _fm_standard_view_get_pattern(FmFolderView * fv)
+{
+    g_return_val_if_fail(FM_IS_STANDARD_VIEW(fv), NULL);
+    FmStandardView * view = (FmStandardView *) fv;
+
+    return view->pattern;
+}
+
+void _fm_standard_view_set_pattern(FmFolderView * fv, const char * pattern_str)
+{
+    g_return_if_fail(FM_IS_STANDARD_VIEW(fv));
+    FmStandardView * view = (FmStandardView *) fv;
+
+    if (view->pattern)
+        g_free(view->pattern);
+
+    view->pattern = g_strdup(pattern_str);
+
+    if (view->model)
+        fm_folder_model_set_pattern(view->model, view->pattern);
+}
+
 static void fm_standard_view_view_init(FmFolderViewInterface* iface)
 {
     iface->set_sel_mode = fm_standard_view_set_selection_mode;
@@ -1761,6 +1795,8 @@ static void fm_standard_view_view_init(FmFolderViewInterface* iface)
     iface->get_custom_menu_callbacks = fm_standard_view_get_custom_menu_callbacks;
     iface->set_columns = _fm_standard_view_set_columns;
     iface->get_columns = _fm_standard_view_get_columns;
+    iface->set_pattern = _fm_standard_view_set_pattern;
+    iface->get_pattern = _fm_standard_view_get_pattern;
 }
 
 typedef struct
