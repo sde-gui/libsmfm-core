@@ -51,6 +51,8 @@
 #include "fm-config.h"
 #include "fm-utils.h"
 
+#include "fm-highlighter.h"
+
 #define COLLATE_USING_DISPLAY_NAME    ((char*)-1)
 
 static FmIcon* icon_locked_folder = NULL;
@@ -91,10 +93,13 @@ struct _FmFileInfo
 
     char* target; /* target of shortcut or mountable. */
 
+    unsigned long color;
+
     gboolean accessible : 1; /* TRUE if can be read by user */
     gboolean hidden : 1; /* TRUE if file is hidden */
     gboolean backup : 1; /* TRUE if file is backup */
 
+    gboolean color_loaded : 1;
     gboolean from_native_file : 1;
     gboolean deferred_icon_load : 1;
     gboolean deferred_mime_type_load : 1;
@@ -1394,4 +1399,23 @@ gboolean fm_file_info_list_is_same_fs(FmFileInfoList* list)
         }
     }
     return TRUE;
+}
+
+unsigned long fm_file_info_get_color(FmFileInfo* fi)
+{
+    g_return_val_if_fail(fi, 0);
+
+    if (!fi->color_loaded)
+    {
+        fm_file_info_highlight(fi);
+        fi->color_loaded = TRUE;
+    }
+
+    return fi->color;
+}
+
+void fm_file_info_set_color(FmFileInfo* fi, unsigned long color)
+{
+    fi->color_loaded = TRUE;
+    fi->color = color;
 }

@@ -68,6 +68,7 @@ struct _FmStandardView
     FmCellRendererText* renderer_text;
     guint icon_size_changed_handler;
     guint show_full_names_handler;
+    guint highlight_file_names_handler;
 
     FmDndSrc* dnd_src; /* dnd source manager */
     FmDndDest* dnd_dest; /* dnd dest manager */
@@ -166,6 +167,12 @@ static void on_single_click_changed(FmConfig* cfg, FmStandardView* fv)
         fv->set_single_click(fv->view, cfg->single_click);
 }
 
+static void on_highlight_file_names_changed(FmConfig* cfg, FmStandardView* fv)
+{
+    if (fv->model)
+        fm_folder_model_set_use_custom_colors(fv->model, cfg->highlight_file_names);
+}
+
 static void on_icon_view_item_activated(ExoIconView* iv, GtkTreePath* path, FmStandardView* fv)
 {
     fm_folder_view_item_clicked(FM_FOLDER_VIEW(fv), path, FM_FV_ACTIVATED);
@@ -190,6 +197,9 @@ static void fm_standard_view_init(FmStandardView *self)
     g_signal_connect(self->dnd_src, "data-get", G_CALLBACK(on_dnd_src_data_get), self);
 
     self->dnd_dest = fm_dnd_dest_new_with_handlers(NULL);
+
+    self->highlight_file_names_handler = g_signal_connect(fm_config, "changed::highlight_file_names",
+        G_CALLBACK(on_highlight_file_names_changed), self);
 
     self->mode = -1;
     self->updated_col = -1;
@@ -347,11 +357,19 @@ static void fm_standard_view_dispose(GObject *object)
         g_signal_handler_disconnect(fm_config, self->icon_size_changed_handler);
         self->icon_size_changed_handler = 0;
     }
+
     if(self->show_full_names_handler)
     {
         g_signal_handler_disconnect(fm_config, self->show_full_names_handler);
         self->show_full_names_handler = 0;
     }
+
+    if(self->highlight_file_names_handler)
+    {
+        g_signal_handler_disconnect(fm_config, self->highlight_file_names_handler);
+        self->highlight_file_names_handler = 0;
+    }
+
     (* G_OBJECT_CLASS(fm_standard_view_parent_class)->dispose)(object);
 }
 
@@ -574,6 +592,13 @@ static inline void create_icon_view(FmStandardView* fv, GList* sels)
     gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(fv->view), render, TRUE);
     gtk_cell_layout_add_attribute(GTK_CELL_LAYOUT(fv->view), render,
                                 "text", FM_FOLDER_MODEL_COL_NAME );
+
+    gtk_cell_layout_add_attribute(GTK_CELL_LAYOUT(fv->view), render,
+                                "foreground-gdk", FM_FOLDER_MODEL_COL_COLOR);
+
+//    g_object_set(G_OBJECT(render), "foreground-set", TRUE, NULL);
+
+
     if(fv->renderer_text)
         g_object_unref(fv->renderer_text);
     fv->renderer_text = g_object_ref_sink(render);
@@ -885,6 +910,9 @@ static GtkTreeViewColumn* create_list_view_column(FmStandardView* fv,
 
     gtk_tree_view_column_pack_start(col, render, TRUE);
     gtk_tree_view_column_set_attributes(col, render, "text", col_id, NULL);
+
+    gtk_tree_view_column_add_attribute(col, render, "foreground-gdk", FM_FOLDER_MODEL_COL_COLOR);
+
     gtk_tree_view_column_set_resizable(col, TRUE);
     /* Unfortunately if we don't set it sortable we cannot right-click it too
     if(fm_folder_model_col_is_sortable(fv->model, col_id)) */
@@ -1589,6 +1617,8 @@ static void fm_standard_view_set_model(FmFolderView* ffv, FmFolderModel* model)
         g_signal_connect(model, "row-inserted", G_CALLBACK(on_row_inserted), fv);
         g_signal_connect(model, "row-deleted", G_CALLBACK(on_row_deleted), fv);
         g_signal_connect(model, "row-changed", G_CALLBACK(on_row_changed), fv);
+
+        fm_folder_model_set_use_custom_colors(model, fm_config->highlight_file_names);
 
         update_icon_size(fv);
     }

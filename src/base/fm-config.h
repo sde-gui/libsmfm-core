@@ -130,6 +130,8 @@ struct _FmConfig
     gint auto_selection_delay;
     gint drop_default_action;
 
+    gboolean highlight_file_names;
+
     gboolean single_click;
     gboolean use_trash;
     gboolean confirm_del;

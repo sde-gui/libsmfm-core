@@ -58,6 +58,7 @@ struct _FmFolderModel
     GSequence* hidden; /* items hidden by filter */
 
     gboolean show_hidden : 1;
+    gboolean use_custom_colors;
 
     FmFolderModelCol sort_col;
     FmSortMode sort_mode;
@@ -84,6 +85,7 @@ struct _FmFolderItem
     gboolean is_thumbnail : 1;
     gboolean thumbnail_loading : 1;
     gboolean thumbnail_failed : 1;
+    GdkColor color;
 };
 
 typedef struct _FmFolderModelFilterItem
@@ -195,7 +197,8 @@ static FmFolderModelInfo column_infos_raw[] = {
     /* columns used internally */
     { FM_FOLDER_MODEL_COL_INFO, 0, "info", NULL, TRUE },
     { FM_FOLDER_MODEL_COL_ICON, 0, "icon", NULL, FALSE },
-    { FM_FOLDER_MODEL_COL_GICON, 0, "gicon", NULL, FALSE }
+    { FM_FOLDER_MODEL_COL_GICON, 0, "gicon", NULL, FALSE },
+    { FM_FOLDER_MODEL_COL_COLOR, 0, "color", NULL, FALSE }
 };
 
 static guint column_infos_n = 0;
@@ -324,6 +327,7 @@ static void fm_folder_model_tree_model_init(GtkTreeModelIface *iface)
     column_infos[FM_FOLDER_MODEL_COL_INFO]->type= G_TYPE_POINTER;
     column_infos[FM_FOLDER_MODEL_COL_ICON]->type= GDK_TYPE_PIXBUF;
     column_infos[FM_FOLDER_MODEL_COL_GICON]->type= G_TYPE_ICON;
+    column_infos[FM_FOLDER_MODEL_COL_COLOR]->type= GDK_TYPE_COLOR;
 }
 
 static void fm_folder_model_tree_sortable_init(GtkTreeSortableIface *iface)
@@ -421,7 +425,7 @@ static inline FmFolderItem* fm_folder_item_new(FmFileInfo* inf)
 static inline void fm_folder_item_free(gpointer data)
 {
     FmFolderItem* item = (FmFolderItem*)data;
-    if( item->icon )
+    if (item->icon)
         g_object_unref(item->icon);
     fm_file_info_unref(item->inf);
     g_slice_free(FmFolderItem, item);
@@ -729,6 +733,24 @@ static void fm_folder_model_get_value(GtkTreeModel *tree_model,
         break;
     case FM_FOLDER_MODEL_COL_INFO:
         g_value_set_pointer(value, info);
+        break;
+    case FM_FOLDER_MODEL_COL_COLOR:
+        if (model->use_custom_colors)
+        {
+            if (!item->color.pixel)
+            {
+                unsigned long color = fm_file_info_get_color(info);
+                item->color.red = ((color >> 16) & 0xFF) * 257;
+                item->color.green = ((color >> 8) & 0xFF) * 257;
+                item->color.blue = ((color) & 0xFF) * 257;
+                item->color.pixel = 1;
+            }
+            g_value_set_boxed(value, &item->color);
+        }
+        else
+        {
+            g_value_set_boxed(value, NULL);
+        }
         break;
     case FM_FOLDER_MODEL_COL_DIRNAME:
         {
@@ -1943,4 +1965,14 @@ FmFolderModelCol fm_folder_model_add_custom_column(const char* name,
 gboolean fm_folder_model_col_is_valid(FmFolderModelCol col_id)
 {
     return col_id < column_infos_n;
+}
+
+void fm_folder_model_set_use_custom_colors(FmFolderModel* model, gboolean use_custom_colors)
+{
+    model->use_custom_colors = use_custom_colors;
+}
+
+gboolean fm_folder_model_get_use_custom_colors(FmFolderModel* model)
+{
+    return model->use_custom_colors;
 }

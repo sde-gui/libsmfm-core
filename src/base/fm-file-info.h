@@ -132,6 +132,9 @@ dev_t fm_file_info_get_dev( FmFileInfo* fi );
 
 gboolean fm_file_info_can_thumbnail(FmFileInfo* fi);
 
+unsigned long fm_file_info_get_color(FmFileInfo* fi);
+void fm_file_info_set_color(FmFileInfo* fi, unsigned long color);
+
 FmFileInfoList* fm_file_info_list_new();
 //FmFileInfoList* fm_file_info_list_new_from_glist();
 

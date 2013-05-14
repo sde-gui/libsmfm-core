@@ -66,6 +66,7 @@ typedef enum {
     FM_FOLDER_MODEL_COL_MTIME,
     FM_FOLDER_MODEL_COL_INFO,
     FM_FOLDER_MODEL_COL_DIRNAME,
+    FM_FOLDER_MODEL_COL_COLOR,
     /*< private >*/
     FM_FOLDER_MODEL_N_COLS
 } FmFolderModelCol;
@@ -157,6 +158,9 @@ void fm_folder_model_set_sort(FmFolderModel* model, FmFolderModelCol col, FmSort
 gboolean fm_folder_model_get_sort(FmFolderModel* model, FmFolderModelCol *col, FmSortMode *mode);
 
 /* void fm_folder_model_set_thumbnail_size(FmFolderModel* model, guint size); */
+
+void fm_folder_model_set_use_custom_colors(FmFolderModel* model, gboolean use_custom_colors);
+gboolean fm_folder_model_get_use_custom_colors(FmFolderModel* model);
 
 /* APIs for FmFolderModelCol */
 

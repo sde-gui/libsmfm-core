@@ -62,6 +62,8 @@ base_SOURCES = \
 	base/fm-folder.c \
 	base/fm-file-info.c \
 	base/fm-file-info-deferred-load-worker.c \
+	base/fm-highlighter.c \
+	base/fm-highlighter.h \
 	base/fm-mime-type.c \
 	base/fm-utils.c \
 	base/fm-file-launcher.c \

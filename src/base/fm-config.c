@@ -217,6 +217,7 @@ void fm_config_load_from_key_file(FmConfig* cfg, GKeyFile* kf)
     fm_key_file_get_int(kf, "ui", "thumbnail_size", &cfg->thumbnail_size);
     fm_key_file_get_bool(kf, "ui", "show_thumbnail", &cfg->show_thumbnail);
     fm_key_file_get_bool(kf, "ui", "shadow_hidden", &cfg->shadow_hidden);
+    fm_key_file_get_bool(kf, "ui", "highlight_file_names", &cfg->highlight_file_names);
 
     fm_key_file_get_bool(kf, "places", "places_home", &cfg->places_home);
     fm_key_file_get_bool(kf, "places", "places_desktop", &cfg->places_desktop);
@@ -343,6 +344,7 @@ void fm_config_save(FmConfig* cfg, const char* name)
             fprintf(f, "thumbnail_size=%d\n", cfg->thumbnail_size);
             fprintf(f, "show_thumbnail=%d\n", cfg->show_thumbnail);
             fprintf(f, "shadow_hidden=%d\n", cfg->shadow_hidden);
+            fprintf(f, "highlight_file_names=%d\n", cfg->highlight_file_names);
             fputs("\n[places]\n", f);
             fprintf(f, "places_home=%d\n", cfg->places_home);
             fprintf(f, "places_desktop=%d\n", cfg->places_desktop);

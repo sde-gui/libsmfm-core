@@ -176,6 +176,14 @@ static void fm_cell_renderer_text_set_property(GObject *object, guint param_id,
     }
 }
 
+static void add_attr(PangoAttrList * attr_list, PangoAttribute * attr)
+{
+  attr->start_index = 0;
+  attr->end_index = G_MAXUINT;
+  pango_attr_list_insert(attr_list, attr);
+}
+
+
 #if GTK_CHECK_VERSION(3, 0, 0)
 static void fm_cell_renderer_text_render(GtkCellRenderer *cell,
                                          cairo_t *cr,
@@ -200,6 +208,7 @@ static void fm_cell_renderer_text_render(GtkCellRenderer *cell,
 #else
     GtkStyle* style;
     GtkStateType state;
+    GdkColor * foreground_color = NULL;
 #endif
     gchar* text;
     gint text_width;
@@ -214,19 +223,33 @@ static void fm_cell_renderer_text_render(GtkCellRenderer *cell,
     gfloat xalign, yalign;
     gint xpad, ypad;
 
+    g_object_get(G_OBJECT(cell),
+                 "wrap-mode" , &wrap_mode,
+                 "wrap-width", &wrap_width,
+                 "alignment" , &alignment,
+                 "text", &text,
+                 "foreground-gdk", &foreground_color,
+                 NULL);
+
+#if 0
     /* FIXME: this is time-consuming since it invokes pango_layout.
      *        if we want to fix this, we must implement the whole cell
      *        renderer ourselves instead of derived from GtkCellRendererText. */
     PangoContext* context = gtk_widget_get_pango_context(widget);
 
     PangoLayout* layout = pango_layout_new(context);
+#endif
 
-    g_object_get(G_OBJECT(cell),
-                 "wrap-mode" , &wrap_mode,
-                 "wrap-width", &wrap_width,
-                 "alignment" , &alignment,
-                 "text", &text,
-                 NULL);
+    PangoLayout* layout = gtk_widget_create_pango_layout(widget, text);
+
+    if (foreground_color && (flags & GTK_CELL_RENDERER_SELECTED) == 0)
+    {
+        PangoAttrList * attr_list = pango_attr_list_new();
+        add_attr(attr_list,
+            pango_attr_foreground_new(foreground_color->red, foreground_color->green, foreground_color->blue));
+        pango_layout_set_attributes(layout, attr_list);
+        pango_attr_list_unref(attr_list);
+    }
 
     pango_layout_set_alignment(layout, alignment);
 
@@ -249,8 +272,6 @@ static void fm_cell_renderer_text_render(GtkCellRenderer *cell,
         else
             pango_layout_set_ellipsize(layout, PANGO_ELLIPSIZE_NONE);
     }
-
-    pango_layout_set_text(layout, text, -1);
 
     pango_layout_set_auto_dir(layout, TRUE);
 
