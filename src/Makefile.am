@@ -104,6 +104,7 @@ libsmfminclude_HEADERS = \
 	base/fm-path.h \
 	base/fm-folder.h \
 	base/fm-file-info.h \
+	base/fm-file-info-deferred-load-worker.h \
 	base/fm-mime-type.h \
 	base/fm-utils.h \
 	base/fm-file-launcher.h \
