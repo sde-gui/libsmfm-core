@@ -18,33 +18,6 @@ AC_PROG_CC
 AM_PROG_CC_C_O
 AM_PROG_LIBTOOL
 
-# Vala
-AC_ARG_ENABLE(actions,
-    [AC_HELP_STRING([--disable-actions],
-        [disable custom actions in context menu if you have no decent Vala compiler])],
-    [enable_actions="${enableval}"],
-    [enable_actions=yes]
-)
-if test x"$enable_actions" = xyes; then
-    dnl no vala compiler required when sources are from dist tarball
-    if test -f src/actions/libsmfmctions_la_vala.stamp; then
-        AM_PROG_VALAC
-    else
-        AM_PROG_VALAC([0.13.0])
-        if test x"$VALAC" = x; then
-            AC_ERROR([No Vala compiler found but it is required.])
-        fi
-    fi
-    LIBSMFMACTIONS='$(srcdir)/actions/libsmfmactions.la'
-    ACTIONS_SUBDIR='actions'
-    AC_DEFINE(HAVE_ACTIONS, 1, [Define to 1 to enable custom actions])
-else
-    LIBSMFMACTIONS=
-    ACTIONS_SUBDIR=
-fi
-AC_SUBST(LIBSMFMACTIONS)
-AC_SUBST(ACTIONS_SUBDIR)
-
 # Checks for libraries.
 
 # Checks for header files.
@@ -72,16 +45,6 @@ fi
 # intltool
 IT_PROG_INTLTOOL([0.40.0])
 
-dnl libgtk version
-AC_ARG_WITH(gtk,
-    [AC_HELP_STRING([--with-gtk=VER],
-        [choose Gtk+ version for libsmfm-gtk build (default=2)])
-AC_HELP_STRING([--without-gtk],
-        [disable libsmfm-gtk build])],
-    [ac_with_gtk="${withval}"],
-    [ac_with_gtk=2]
-)
-
 # modules required
 if test x"$enable_actions" = xyes; then
   gio_modules="gio-unix-2.0 >= 2.26.0 glib-2.0 >= 2.26.0"
@@ -93,44 +56,6 @@ gio_modules="$gio_modules gthread-2.0 gobject-2.0 pango >= 1.16.0"
 PKG_CHECK_MODULES(GIO, [$gio_modules])
 AC_SUBST(GIO_CFLAGS)
 AC_SUBST(GIO_LIBS)
-
-if test x"$ac_with_gtk" != xno; then
-  case "$ac_with_gtk" in
-    3|3.*)
-      pkg_modules="$gio_modules gtk+-3.0 cairo >= 1.8.0"
-      LIBSMFM_GTK_LTLIBRARIES=libsmfm-gtk3.la
-      ac_with_gtk="3.0"
-      ;;
-    *)
-      pkg_modules="$gio_modules gtk+-2.0 >= 2.18.0 cairo >= 1.8.0"
-      LIBSMFM_GTK_LTLIBRARIES=libsmfm-gtk.la
-      ac_with_gtk="2.0"
-      ;;
-  esac
-  PKG_CHECK_MODULES(GTK, [$pkg_modules])
-  LIBSMFM_PREF_APPS="libsmfm-pref-apps"
-else
-  GTK_CFLAGS=
-  GTK_LIBS=
-  LIBSMFM_GTK_LTLIBRARIES=
-  ac_with_gtk="none"
-  LIBSMFM_PREF_APPS=
-fi
-AC_SUBST(GTK_CFLAGS)
-AC_SUBST(GTK_LIBS)
-AC_SUBST(LIBSMFM_GTK_LTLIBRARIES)
-AC_SUBST(LIBSMFM_PREF_APPS)
-
-dnl pango_modules="pango >= 1.16.0"
-dnl PKG_CHECK_MODULES(PANGO, [$pango_modules])
-dnl AC_SUBST(PANGO_CFLAGS)
-dnl AC_SUBST(PANGO_LIBS)
-
-dnl gmodule may be used for libsmfm-chooser-hack.la
-#gmodule_modules="gmodule-2.0"
-#PKG_CHECK_MODULES(GMODULE, [$gmodule_modules])
-#AC_SUBST(GMODULE_CFLAGS)
-#AC_SUBST(GMODULE_LIBS)
 
 menu_modules="libmenu-cache >= 0.3.2"
 PKG_CHECK_MODULES(MENU_CACHE, [$menu_modules])
@@ -199,14 +124,6 @@ $EXIF_PKG_ERRORS
 
 #check for gtk-doc
 GTK_DOC_CHECK([1.14],[--flavour no-tmpl])
-
-AC_ARG_ENABLE(demo,
-    [AC_HELP_STRING([--enable-demo],
-        [build libsmfm-demo file manager @<:@default=no@:>@])],
-    [enable_demo="${enableval}"],
-    [enable_demo=no]
-)
-AM_CONDITIONAL(ENABLE_DEMO, test x"$enable_demo" = x"yes")
 
 # GIO extension module
 giomodulesdir=$libdir/gio/modules
@@ -281,16 +198,12 @@ AC_CONFIG_FILES([
     src/tests/Makefile
     src/fm.h
     data/Makefile
-    data/libsmfm-pref-apps.1
-    data/ui/Makefile
     po/Makefile.in
     docs/Makefile
     docs/reference/Makefile
     docs/reference/libfm/Makefile
     docs/reference/libfm/version.xml
     libsmfm.pc
-    libsmfm-gtk.pc
-    libsmfm-gtk3.pc
 ])
 
 AC_OUTPUT
@@ -311,7 +224,6 @@ echo "GIO module for preferred apps (for glib < 2.28 only):   $giomodulesdir"
 else
 echo "GIO module for preferred apps (for glib < 2.28 only):   not required"
 fi
-echo "Build libsmfm-gtk for Gtk+ version:                     $ac_with_gtk"
 echo "Build API doc with gtk-doc (recommended for make dist): $enable_gtk_doc"
 echo
 echo

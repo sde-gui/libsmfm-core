@@ -15,10 +15,7 @@ AM_CPPFLAGS = \
 	-I$(srcdir)/base \
 	-I$(srcdir)/actions \
 	-I$(srcdir)/job \
-	-I$(srcdir)/gtk \
-	-I$(srcdir)/demo \
 	-DPACKAGE_DATA_DIR=\""$(datadir)/libsmfm"\" \
-	-DPACKAGE_UI_DIR=\""$(datadir)/libsmfm/ui"\" \
 	-DPACKAGE_LIB_DIR=\""$(libdir)/libsmfm"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	$(NULL)
@@ -26,12 +23,6 @@ AM_CPPFLAGS = \
 glib_compat_SOURCES= \
 	glib-compat.c \
 	glib-compat.h \
-	$(NULL)
-
-gtk_compat_SOURCES= \
-	$(glib_compat_SOURCES) \
-	gtk-compat.c \
-	gtk-compat.h \
 	$(NULL)
 
 if ENABLE_UDISKS
@@ -104,53 +95,6 @@ libsmfm_SOURCES = \
 	$(udisks_SOURCES) \
 	$(NULL)
 
-exo_SOURCES = \
-	gtk/exo/exo-icon-view.c \
-	gtk/exo/exo-private.c \
-	gtk/exo/exo-tree-view.c \
-	gtk/exo/exo-icon-view.h \
-	gtk/exo/exo-private.h \
-	gtk/exo/exo-tree-view.h \
-	gtk/exo/exo-marshal.c \
-	gtk/exo/exo-string.c \
-	gtk/exo/exo-marshal.h \
-	gtk/exo/exo-string.h \
-	$(NULL)
-
-libsmfm_gtk_SOURCES = \
-	fm-gtk.c \
-	$(gtk_compat_SOURCES) \
-	$(exo_SOURCES) \
-	gtk/fm-folder-view.c \
-	gtk/fm-standard-view.c \
-	gtk/fm-folder-model.c \
-	gtk/fm-places-view.c \
-	gtk/fm-places-model.c \
-	gtk/fm-dir-tree-view.c \
-	gtk/fm-dir-tree-model.c \
-	gtk/fm-side-pane.c \
-	gtk/fm-app-menu-view.c \
-	gtk/fm-app-chooser-dlg.c \
-	gtk/fm-app-chooser-combo-box.c \
-	gtk/fm-path-entry.c \
-	gtk/fm-file-menu.c \
-	gtk/fm-file-properties.c \
-	gtk/fm-clipboard.c \
-	gtk/fm-progress-dlg.c \
-	gtk/fm-icon-pixbuf.c \
-	gtk/fm-cell-renderer-text.c \
-	gtk/fm-cell-renderer-pixbuf.c \
-	gtk/fm-dnd-src.c \
-	gtk/fm-dnd-dest.c \
-	gtk/fm-dnd-auto-scroll.c \
-	gtk/fm-gtk-utils.c \
-	gtk/fm-gtk-file-launcher.c \
-	gtk/fm-thumbnail.c \
-	gtk/fm-tab-label.c \
-	gtk/fm-path-bar.c \
-	gtk/fm-dentry-properties.c \
-	gtk/fm-gtk-marshal.c \
-	$(NULL)
 
 libsmfmincludedir = $(includedir)/@PACKAGE@-@FMLIBVER@
 libsmfminclude_HEADERS = \
@@ -187,48 +131,11 @@ libsmfminclude_HEADERS = \
 	job/fm-file-ops-job-change-attr.h \
 	$(NULL)
 
-libsmfmgtkincludedir = $(includedir)/@PACKAGE@-@FMLIBVER@
-libsmfmgtkinclude_HEADERS = \
-	fm-gtk.h \
-	gtk/fm-folder-view.h \
-	gtk/fm-standard-view.h \
-	gtk/fm-folder-model.h \
-	gtk/fm-places-view.h \
-	gtk/fm-places-model.h \
-	gtk/fm-dir-tree-view.h \
-	gtk/fm-dir-tree-model.h \
-	gtk/fm-side-pane.h \
-	gtk/fm-app-menu-view.h \
-	gtk/fm-app-chooser-dlg.h \
-	gtk/fm-app-chooser-combo-box.h \
-	gtk/fm-path-entry.h \
-	gtk/fm-file-menu.h \
-	gtk/fm-file-properties.h \
-	gtk/fm-clipboard.h \
-	gtk/fm-progress-dlg.h \
-	gtk/fm-icon-pixbuf.h \
-	gtk/fm-cell-renderer-text.h \
-	gtk/fm-cell-renderer-pixbuf.h \
-	gtk/fm-dnd-src.h \
-	gtk/fm-dnd-dest.h \
-	gtk/fm-dnd-auto-scroll.h \
-	gtk/fm-gtk-utils.h \
-	gtk/fm-gtk-file-launcher.h \
-	gtk/fm-thumbnail.h \
-	gtk/fm-tab-label.h \
-	gtk/fm-path-bar.h \
-	gtk/fm-sortable.h \
-	gtk/fm-gtk-marshal.h \
-	$(NULL)
-
 pkginclude_HEADERS = \
 	$(LIBSMFM_INCLUDES) \
-	$(LIBSMFM_GTK_INCLUDES) \
 	$(NULL)
 
-EXTRA_LTLIBRARIES = libsmfm-gtk.la libsmfm-gtk3.la
-
-lib_LTLIBRARIES = libsmfm.la @LIBSMFM_GTK_LTLIBRARIES@
+lib_LTLIBRARIES = libsmfm.la
 libsmfm_la_SOURCES = \
 	$(libsmfm_SOURCES) \
 	$(NULL)
@@ -259,107 +166,6 @@ libsmfm_la_LDFLAGS = \
 	-export-symbols-regex ^fm \
 	-version-info $(ABI_VERSION) \
 	$(NULL)
-
-libsmfm_gtk_la_SOURCES = \
-	$(libsmfm_gtk_SOURCES) \
-	$(NULL)
-libsmfm_gtk3_la_SOURCES = $(libsmfm_gtk_la_SOURCES)
-
-libsmfm_gtk_la_CFLAGS = \
-	$(GTK_CFLAGS) \
-	$(MENU_CACHE_CFLAGS) \
-	-I$(srcdir) \
-	-I$(srcdir)/base \
-	-I$(srcdir)/job \
-	-Werror-implicit-function-declaration
-libsmfm_gtk3_la_CFLAGS = $(libsmfm_gtk_la_CFLAGS)
-
-libsmfm_gtk_la_LIBADD = \
-	$(GTK_LIBS) \
-	$(MENU_CACHE_LIBS) \
-	$(INTLLIBS) \
-	libsmfm.la \
-	$(NULL)
-libsmfm_gtk3_la_LIBADD = $(libsmfm_gtk_la_LIBADD)
-
-libsmfm_gtk_la_LDFLAGS = \
-	-no-undefined \
-	-export-symbols-regex ^fm \
-	-version-info $(ABI_VERSION) \
-	-rpath $(libdir) \
-	$(NULL)
-libsmfm_gtk3_la_LDFLAGS = $(libsmfm_gtk_la_LDFLAGS)
-
-EXTRA_PROGRAMS = libsmfm-pref-apps
-
-bin_PROGRAMS = @LIBSMFM_PREF_APPS@
-
-libsmfm_pref_apps_SOURCES = \
-	$(gtk_compat_SOURCES) \
-	tools/libfm-pref-apps.c \
-	$(NULL)
-
-libsmfm_pref_apps_DEPENDENCIES = \
-	libsmfm.la \
-	@LIBSMFM_GTK_LTLIBRARIES@ \
-	$(NULL)
-
-libsmfm_pref_apps_CFLAGS = \
-	$(GTK_CFLAGS) \
-	$(MENU_CACHE_CFLAGS) \
-	-Werror-implicit-function-declaration \
-	$(NULL)
-
-libsmfm_pref_apps_LDADD = \
-	$(GTK_LIBS) \
-	$(MENU_CACHE_LIBS) \
-	$(INTLLIBS) \
-	libsmfm.la \
-	@LIBSMFM_GTK_LTLIBRARIES@ \
-	$(NULL)
-
-
-if ENABLE_DEMO
-bin_PROGRAMS += libsmfm-demo libsmfm-file-search-cli-demo
-libsmfm_demo_SOURCES = \
-	$(gtk_compat_SOURCES) \
-	demo/libsmfm-demo.c \
-	demo/main-win.c demo/main-win.h \
-	$(NULL)
-
-libsmfm_demo_DEPENDENCIES = \
-	libsmfm.la \
-	@LIBSMFM_GTK_LTLIBRARIES@ \
-	$(NULL)
-
-libsmfm_demo_CFLAGS = \
-	$(GTK_CFLAGS) \
-	-Werror-implicit-function-declaration \
-	$(NULL)
-
-libsmfm_demo_LDADD = \
-	$(GTK_LIBS) \
-	$(INTLLIBS) \
-	libsmfm.la \
-	@LIBSMFM_GTK_LTLIBRARIES@ \
-	$(NULL)
-
-libsmfm_file_search_cli_demo_SOURCES = \
-	demo/libsmfm-file-search-cli-demo.c \
-	$(NULL)
-
-libsmfm_file_search_cli_demo_CFLAGS = \
-	$(GTK_CFLAGS) \
-	-Werror-implicit-function-declaration \
-	$(NULL)
-
-libsmfm_file_search_cli_demo_LDADD = \
-	$(GTK_LIBS) \
-	$(INTLLIBS) \
-	libsmfm.la \
-	libsmfm-gtk.la \
-	$(NULL)
-endif
 
 
 # GIO module implementing some extension points
@@ -406,18 +212,10 @@ base/fm-marshal.h: base/fm-marshal.list
 base/fm-marshal.c: base/fm-marshal.list
 	glib-genmarshal --body --prefix=fm_marshal $? > $@.tmp && mv $@.tmp $@
 
-gtk/fm-gtk-marshal.h: gtk/fm-gtk-marshal.list
-	glib-genmarshal --header --prefix=fm_marshal $? > $@.tmp && mv $@.tmp $@
-
-gtk/fm-gtk-marshal.c: gtk/fm-gtk-marshal.list
-	glib-genmarshal --body --prefix=fm_marshal $? > $@.tmp && mv $@.tmp $@
-
 # Workarounds to force the build
 BUILT_SOURCES= \
 	base/fm-marshal.h \
 	base/fm-marshal.c \
-	gtk/fm-gtk-marshal.h \
-	gtk/fm-gtk-marshal.c \
 	$(NULL)
 
 # Vala vapi files
@@ -427,10 +225,6 @@ VAPI_FILES = \
 
 EXTRA_DIST = \
 	base/fm-marshal.list \
-	gtk/fm-gtk-marshal.list \
-	gtk/fm-file-search-ui.c \
-	gtk/exo/README \
-	demo/main-win-ui.c \
 	udisks/gen-binding \
 	udisks/udisks.h \
 	udisks/udisks-device.h \
@@ -442,19 +236,7 @@ EXTRA_DIST = \
 CLEANFILES = \
 	base/fm-marshal.h \
 	base/fm-marshal.c \
-	gtk/fm-gtk-marshal.h \
-	gtk/fm-gtk-marshal.c \
 	$(NULL)
-
-# A lib to be loaede with LD_PRELOADS to override GtkFileChooserWidget
-#lib_LTLIBRARIES=libfm-chooser-hack.la
-
-#libfm_chooser_hack_la_SOURCES=libfm-chooser-hack.c
-#libfm_chooser_hack_la_CFLAGS=$(GTK_CFLAGS)
-#libfm_chooser_hack_la_LIBADD=$(GMODULE_LIBS)
-#libfm_chooser_hack_la_LDFLAGS= \
-#        -no-undefined \
-#        -export-symbols-regex gtk
 
 # Little program to optimize size of xml files
 noinst_PROGRAMS=xml-purge

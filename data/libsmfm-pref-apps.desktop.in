@@ -1,8 +1,0 @@
-[Desktop Entry]
-Type=Application
-_Name=Preferred Applications
-Icon=preferences-desktop
-Exec=libsmfm-pref-apps
-StartupNotify=true
-Categories=Settings;DesktopSettings;X-LXDE-Settings;GTK;
-NotShowIn=GNOME;XFCE;KDE;
