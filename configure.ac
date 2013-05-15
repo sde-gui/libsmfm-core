@@ -130,7 +130,7 @@ giomodulesdir=$libdir/gio/modules
 AC_SUBST(giomodulesdir)
 
 
-GETTEXT_PACKAGE=libsmfm
+GETTEXT_PACKAGE=libsmfm-core
 AC_SUBST(GETTEXT_PACKAGE)
 
 # Generate po/LINGUAS on the fly rather than relying on translators
@@ -203,7 +203,7 @@ AC_CONFIG_FILES([
     docs/reference/Makefile
     docs/reference/libfm/Makefile
     docs/reference/libfm/version.xml
-    libsmfm.pc
+    libsmfm-core.pc
 ])
 
 AC_OUTPUT

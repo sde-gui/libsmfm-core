@@ -87,7 +87,7 @@ job_SOURCES = \
 	job/fm-file-ops-job-change-attr.c \
 	$(NULL)
 
-libsmfm_SOURCES = \
+libsmfm_core_SOURCES = \
 	fm.c \
 	$(glib_compat_SOURCES) \
 	$(base_SOURCES) \
@@ -136,12 +136,12 @@ pkginclude_HEADERS = \
 	$(LIBSMFM_INCLUDES) \
 	$(NULL)
 
-lib_LTLIBRARIES = libsmfm.la
-libsmfm_la_SOURCES = \
-	$(libsmfm_SOURCES) \
+lib_LTLIBRARIES = libsmfm-core.la
+libsmfm_core_la_SOURCES = \
+	$(libsmfm_core_SOURCES) \
 	$(NULL)
 
-libsmfm_la_CFLAGS = \
+libsmfm_core_la_CFLAGS = \
 	$(GIO_CFLAGS) \
 	$(MENU_CACHE_CFLAGS) \
 	$(DBUS_CFLAGS) \
@@ -149,20 +149,18 @@ libsmfm_la_CFLAGS = \
 	-Werror-implicit-function-declaration \
 	$(NULL)
 
-libsmfm_la_LIBADD = \
+libsmfm_core_la_LIBADD = \
 	$(GIO_LIBS) \
 	$(MENU_CACHE_LIBS) \
 	$(DBUS_LIBS) \
 	$(EXIF_LIBS) \
 	$(INTLLIBS) \
-	$(LIBSMFMACTIONS) \
 	$(NULL)
 
-libsmfm_la_DEPENDENCIES_EXTRA = \
-	$(LIBSMFMACTIONS) \
+libsmfm_core_la_DEPENDENCIES_EXTRA = \
 	$(NULL)
 
-libsmfm_la_LDFLAGS = \
+libsmfm_core_la_LDFLAGS = \
 	-no-undefined \
 	-export-symbols-regex ^fm \
 	-version-info $(ABI_VERSION) \
@@ -219,11 +217,6 @@ BUILT_SOURCES= \
 	base/fm-marshal.c \
 	$(NULL)
 
-# Vala vapi files
-VAPI_FILES = \
-	vapi/libfm.vapi \
-	$(NULL)
-
 EXTRA_DIST = \
 	base/fm-marshal.list \
 	udisks/gen-binding \
@@ -231,7 +224,6 @@ EXTRA_DIST = \
 	udisks/udisks-device.h \
 	vfs/fm-vfs-menu.h \
 	vfs/fm-vfs-search.h \
-	$(VAPI_FILES) \
 	$(NULL)
 
 CLEANFILES = \

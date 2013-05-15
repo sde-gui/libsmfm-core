@@ -5,9 +5,7 @@ NULL=
 AM_CPPFLAGS = \
 	-I../ \
 	-I../base \
-	-I../actions \
 	-I../job \
-	-I../gtk \
 	$(GIO_CFLAGS) \
 	$(MENU_CACHE_CFLAGS) \
 	$(DBUS_CFLAGS) \
@@ -19,6 +17,6 @@ noinst_PROGRAMS = $(TEST_PROGS)
 TEST_PROGS += fm-path
 fm_path_SOURCES = test-fm-path.c
 fm_path_LDADD= \
-	../libsmfm.la \
+	../libsmfm-core.la \
 	$(GIO_LIBS) \
 	$(NULL)
