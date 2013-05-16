@@ -96,7 +96,7 @@ libsmfm_core_SOURCES = \
 	$(NULL)
 
 
-libsmfmincludedir = $(includedir)/@PACKAGE@-@FMLIBVER@
+libsmfmincludedir = $(includedir)/libsmfm-@FMLIBVER@/libsmfm-core
 libsmfminclude_HEADERS = \
 	fm.h \
 	base/fm-config.h \
@@ -237,19 +237,3 @@ xml_purge_SOURCES=xml-purge.c
 xml_purge_CFLAGS=$(GIO_CFLAGS)
 xml_purge_LDADD=$(GIO_LIBS)
 
-install-data-local:
-	@if test -e "$(DESTDIR)$(includedir)/@PACKAGE@"; then \
-		echo rm -rf "$(DESTDIR)$(includedir)/@PACKAGE@"; \
-		rm -rf "$(DESTDIR)$(includedir)/@PACKAGE@"; \
-	fi
-	test -z "$(includedir)" || $(MKDIR_P) "$(DESTDIR)$(includedir)"
-	@LN_S@ @PACKAGE@-@FMLIBVER@ "$(DESTDIR)$(includedir)/@PACKAGE@"
-
-uninstall-local:
-	@if test -L "$(DESTDIR)$(includedir)/@PACKAGE@"; then \
-		echo rm -f "$(DESTDIR)$(includedir)/@PACKAGE@"; \
-		rm -f "$(DESTDIR)$(includedir)/@PACKAGE@"; \
-	fi
-	-rmdir "$(DESTDIR)$(libsmfmincludedir)"
-
-install-data-local: install-pkgincludeHEADERS

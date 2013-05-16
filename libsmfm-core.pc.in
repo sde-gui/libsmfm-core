@@ -8,4 +8,4 @@ Description: A glib/gio-based library used to develop file managers providing so
 Requires: gthread-2.0 gio-unix-2.0 glib-2.0 >= 2.22.0
 Version: @VERSION@
 Libs: -L${libdir} -lsmfm-core
-Cflags: @FMINCLUDEADD@
+Cflags: @FMINCLUDEADD@/libsmfm-@FMLIBVER@/

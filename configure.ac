@@ -147,12 +147,8 @@ AM_GLIB_GNU_GETTEXT
 AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [Gettext package.])
 
 AC_SUBST(FMLIBVER)
-if test `eval "echo $includedir"` = /usr/include
-then
-    FMINCLUDEADD=''
-else
-    FMINCLUDEADD='-I${includedir}'
-fi
+
+FMINCLUDEADD='-I${includedir}'
 AC_SUBST(FMINCLUDEADD)
 
 AC_ARG_ENABLE(debug,
