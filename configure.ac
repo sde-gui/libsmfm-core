@@ -190,7 +190,6 @@ AC_SUBST(FM_VERSION_MICRO)
 AC_CONFIG_FILES([
     Makefile
     src/Makefile
-    src/actions/Makefile
     src/tests/Makefile
     src/fm.h
     data/Makefile
