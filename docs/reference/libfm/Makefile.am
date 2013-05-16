@@ -11,7 +11,7 @@ AUTOMAKE_OPTIONS = 1.6
 # of using the various options.
 
 # The name of the module, e.g. 'glib'.
-DOC_MODULE=libfm
+DOC_MODULE=libsmfm-core
 
 # Uncomment for versioned docs and specify the version of the module, e.g. '2'.
 #DOC_MODULE_VERSION=2
@@ -57,13 +57,11 @@ HFILE_GLOB= \
 	$(top_srcdir)/src/*.h \
 	$(top_srcdir)/src/base/*.h \
 	$(top_srcdir)/src/job/*.h \
-	$(top_srcdir)/src/gtk/*.h \
 	$(NULL)
 
 CFILE_GLOB=$(top_srcdir)/src/*.c \
 	$(top_srcdir)/src/base/*.c \
 	$(top_srcdir)/src/job/*.c \
-	$(top_srcdir)/src/gtk/*.c \
 	$(NULL)
 
 # Extra header to include when scanning, which are not under DOC_SOURCE_DIR
@@ -74,7 +72,6 @@ EXTRA_HFILES=
 # e.g. IGNORE_HFILES=gtkdebug.h gtkintl.h
 IGNORE_HFILES= \
 	fm-marshal.h \
-	fm-gtk-marshal.h \
 	main-win.h \
 	dbus-utils.h \
 	fm-udisks.h \
@@ -86,14 +83,7 @@ IGNORE_HFILES= \
 	udisks-device.h \
 	udisks.h \
 	fm-app-lookup.h \
-	exo-icon-view.h \
-	exo-marshal.h \
-	exo-private.h \
-	exo-string.h \
-	exo-tree-view.h \
-	fm-actions.h \
 	glib-compat.h \
-	gtk-compat.h \
 	$(NULL)
 
 # Images to copy into HTML directory.
@@ -117,11 +107,9 @@ expand_content_files=
 GTKDOC_CFLAGS= \
 	-I$(top_srcdir) \
 	-I$(top_builddir) \
-	$(GTK_CFLAGS)
+	$(NULL)
 GTKDOC_LIBS= \
-	$(top_builddir)/src/libfm.la \
-	$(top_builddir)/src/$(LIBFM_GTK_LTLIBRARIES) \
-	$(GTK_LIBS) \
+	$(top_srcdir)/src/libsmfm-core.la \
 	$(NULL)
 
 # This includes the standard gtk-doc make rules, copied by gtkdocize.
