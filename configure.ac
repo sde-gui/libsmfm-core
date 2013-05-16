@@ -197,8 +197,8 @@ AC_CONFIG_FILES([
     po/Makefile.in
     docs/Makefile
     docs/reference/Makefile
-    docs/reference/libfm/Makefile
-    docs/reference/libfm/version.xml
+    docs/reference/libsmfm-core/Makefile
+    docs/reference/libsmfm-core/version.xml
     libsmfm-core.pc
 ])
 

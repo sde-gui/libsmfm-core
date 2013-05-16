@@ -57,38 +57,6 @@ used to develop other file manager-related tools as well.
       <xi:include href="xml/fm-job.xml"/>
       <xi:include href="xml/fm-simple-job.xml"/>
     </chapter>
-    <chapter id="libfm-gtk">
-      <title>Libfm Gtk+ Widgets and Objects.</title>
-      <xi:include href="xml/fm-gtk.xml"/>
-      <xi:include href="xml/fm-app-chooser-combo-box.xml"/>
-      <xi:include href="xml/fm-app-chooser-dlg.xml"/>
-      <xi:include href="xml/fm-app-menu-view.xml"/>
-      <xi:include href="xml/fm-cell-renderer-pixbuf.xml"/>
-      <xi:include href="xml/fm-cell-renderer-text.xml"/>
-      <xi:include href="xml/fm-clipboard.xml"/>
-      <xi:include href="xml/fm-dir-tree-model.xml"/>
-      <xi:include href="xml/fm-dir-tree-view.xml"/>
-      <xi:include href="xml/fm-dnd-auto-scroll.xml"/>
-      <xi:include href="xml/fm-dnd-dest.xml"/>
-      <xi:include href="xml/fm-dnd-src.xml"/>
-      <xi:include href="xml/fm-file-menu.xml"/>
-      <xi:include href="xml/fm-file-properties.xml"/>
-      <xi:include href="xml/fm-folder-model.xml"/>
-      <xi:include href="xml/fm-standard-view.xml"/>
-      <xi:include href="xml/fm-folder-view.xml"/>
-      <xi:include href="xml/fm-gtk-file-launcher.xml"/>
-      <xi:include href="xml/fm-gtk-utils.xml"/>
-      <xi:include href="xml/fm-icon-pixbuf.xml"/>
-      <xi:include href="xml/fm-path-bar.xml"/>
-      <xi:include href="xml/fm-path-entry.xml"/>
-      <xi:include href="xml/fm-places-model.xml"/>
-      <xi:include href="xml/fm-places-view.xml"/>
-      <xi:include href="xml/fm-progress-dlg.xml"/>
-      <xi:include href="xml/fm-side-pane.xml"/>
-      <xi:include href="xml/fm-sortable.xml"/>
-      <xi:include href="xml/fm-tab-label.xml"/>
-      <xi:include href="xml/fm-thumbnail.xml"/>
-    </chapter>
   </part>
   <part id="object-tree">
     <title>Object Hierarchy</title>

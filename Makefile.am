@@ -11,11 +11,11 @@ EXTRA_DIST_DOCS = \
 	docs/Makefile.in \
 	docs/reference/Makefile.am \
 	docs/reference/Makefile.in \
-	docs/reference/libfm/Makefile.am \
-	docs/reference/libfm/Makefile.in \
-	docs/reference/libfm/libfm-docs.xml \
-	docs/reference/libfm/libfm-sections.txt \
-	docs/reference/libfm/version.xml.in
+	docs/reference/libsmfm-core/Makefile.am \
+	docs/reference/libsmfm-core/Makefile.in \
+	docs/reference/libsmfm-core/libsmfm-core-docs.xml \
+	docs/reference/libsmfm-core/libsmfm-core-sections.txt \
+	docs/reference/libsmfm-core/version.xml.in
 
 DIST_SUBDIRS = src po data
 SUBDIRS = $(DIST_SUBDIRS) $(SUBDIRS_DOCS)
