@@ -55,6 +55,8 @@ typedef struct _FmFileInfo FmFileInfo;
 
 struct _MenuCacheItem;/* forward declaration for MenuCacheItem */
 
+#define FILE_INFO_DEFAULT_COLOR 0xFF00FF
+
 /* intialize the file info system */
 void _fm_file_info_init();
 void _fm_file_info_finalize();

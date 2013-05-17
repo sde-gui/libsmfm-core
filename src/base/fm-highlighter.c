@@ -28,7 +28,7 @@
 
 void fm_file_info_highlight(FmFileInfo * fi)
 {
-    unsigned long color = 0;
+    unsigned long color = FILE_INFO_DEFAULT_COLOR;
 
     if (fm_file_info_is_dir(fi))
         color = 0x000080;
