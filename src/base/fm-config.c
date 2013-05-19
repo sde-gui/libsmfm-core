@@ -140,6 +140,7 @@ static void fm_config_init(FmConfig *self)
 
     self->deferred_mime_type_loading = TRUE;
     self->exo_icon_view_pixbuf_hack = TRUE;
+    self->exo_icon_draw_rectangle_around_selected_item = TRUE;
 }
 
 /**
@@ -230,6 +231,8 @@ void fm_config_load_from_key_file(FmConfig* cfg, GKeyFile* kf)
 
     fm_key_file_get_bool(kf, "hacks", "deferred_mime_type_loading", &cfg->deferred_mime_type_loading);
     fm_key_file_get_bool(kf, "hacks", "exo_icon_view_pixbuf_hack", &cfg->exo_icon_view_pixbuf_hack);
+    fm_key_file_get_bool(kf, "hacks", "exo_icon_draw_rectangle_around_selected_item",
+		&cfg->exo_icon_draw_rectangle_around_selected_item);
 }
 
 /**
@@ -358,6 +361,7 @@ void fm_config_save(FmConfig* cfg, const char* name)
             fputs("\n[hacks]\n", f);
             fprintf(f, "deferred_mime_type_loading=%d\n", cfg->deferred_mime_type_loading);
             fprintf(f, "exo_icon_view_pixbuf_hack=%d\n", cfg->exo_icon_view_pixbuf_hack);
+            fprintf(f, "exo_icon_draw_rectangle_around_selected_item=%d\n", cfg->exo_icon_draw_rectangle_around_selected_item);
 
             fclose(f);
         }

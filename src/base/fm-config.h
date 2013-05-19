@@ -164,6 +164,8 @@ struct _FmConfig
     gboolean deferred_mime_type_loading;
     gboolean exo_icon_view_pixbuf_hack;
 
+    gboolean exo_icon_draw_rectangle_around_selected_item;
+
     /*< private >*/
     gpointer _reserved1; /* reserved space for updates until next ABI */
     gpointer _reserved2;
