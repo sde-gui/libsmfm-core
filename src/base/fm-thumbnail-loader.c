@@ -866,161 +866,182 @@ static void save_thumbnail_to_disk(ThumbnailTask* task, GObject* pix, const char
 }
 
 /* in thread */
-static void generate_thumbnails_with_builtin(ThumbnailTask* task)
+static GObject* load_picture_object(ThumbnailTask * task, int * _rotate_degrees)
 {
     /* FIXME: only formats supported by GObject should be handled this way. */
     GFile* gf = fm_path_to_gfile(fm_file_info_get_path(task->fi));
     GFileInputStream* ins;
+
+    GObject* picture = NULL;
+    int rotate_degrees = 0;
+
+    ins = g_file_read(gf, generator_cancellable, NULL);
+    if (!ins)
+        goto end;
+
+#ifdef USE_EXIF
+    /* use libexif to extract thumbnails embedded in jpeg files */
+    FmMimeType* mime_type = fm_file_info_get_mime_type(task->fi);
+    if(strcmp(fm_mime_type_get_type(mime_type), "image/jpeg") == 0) /* if this is a jpeg file */
+    {
+        /* try to extract thumbnails embedded in jpeg files */
+        ExifLoader *exif_loader = exif_loader_new();
+        ExifData *exif_data;
+        while(!g_cancellable_is_cancelled(generator_cancellable)) {
+            unsigned char buf[4096];
+            gssize read_size = g_input_stream_read((GInputStream*)ins, buf, 4096, generator_cancellable, NULL);
+            if(read_size == 0) /* EOF */
+                break;
+            if(exif_loader_write(exif_loader, buf, read_size) == 0)
+                break; /* no more EXIF data */
+        }
+        exif_data = exif_loader_get_data(exif_loader);
+        exif_loader_unref(exif_loader);
+        if(exif_data)
+        {
+            /* reference for EXIF orientation tag:
+             * http://www.impulseadventure.com/photo/exif-orientation.html */
+            ExifEntry* orient_ent = exif_data_get_entry(exif_data, EXIF_TAG_ORIENTATION);
+            if(orient_ent) /* orientation flag found in EXIF */
+            {
+                gushort orient;
+                ExifByteOrder bo = exif_data_get_byte_order(exif_data);
+                /* bo == EXIF_BYTE_ORDER_INTEL ; */
+                orient = exif_get_short (orient_ent->data, bo);
+                switch(orient) {
+                case 1: /* no rotation */
+                    rotate_degrees = 0;
+                    break;
+                case 8:
+                    rotate_degrees = 270;
+                    break;
+                case 3:
+                    rotate_degrees = 180;
+                    break;
+                case 6:
+                    rotate_degrees = 90;
+                    break;
+                }
+                /* g_print("orientation flag found, rotate: %d\n", rotate_degrees); */
+            }
+            if(exif_data->data) /* if an embedded thumbnail is available */
+            {
+                /* load the embedded jpeg thumbnail */
+                GInputStream* mem_stream = g_memory_input_stream_new_from_data(exif_data->data, exif_data->size, NULL);
+                picture = backend.read_image_from_stream(mem_stream, exif_data->size, generator_cancellable);
+                g_object_unref(mem_stream);
+            }
+            exif_data_unref(exif_data);
+        }
+    }
+
+    if(!picture)
+    {
+        /* FIXME: instead of reload the image file again, it's posisble to get the bytes
+         * read already by libexif with exif_loader_get_buf() and feed the data to
+         * GObjectLoader ourselves. However the performance improvement by doing this
+         * might be negliable, I think. */
+        GSeekable* seekable = G_SEEKABLE(ins);
+        if(g_seekable_can_seek(seekable))
+        {
+            /* an EXIF thumbnail is not found, lets rewind the file pointer to beginning of
+             * the file and load the image with gdkpixbuf instead. */
+            g_seekable_seek(seekable, 0, G_SEEK_SET, generator_cancellable, NULL);
+        }
+        else
+        {
+            /* if the stream is not seekable, close it and open it again. */
+            g_input_stream_close(G_INPUT_STREAM(ins), NULL, NULL);
+            g_object_unref(ins);
+            ins = g_file_read(gf, generator_cancellable, NULL);
+        }
+        picture = backend.read_image_from_stream(G_INPUT_STREAM(ins), fm_file_info_get_size(task->fi), generator_cancellable);
+    }
+#else
+    picture = backend.read_image_from_stream(G_INPUT_STREAM(ins), fm_file_info_get_size(task->fi), generator_cancellable);
+#endif
+    g_input_stream_close(G_INPUT_STREAM(ins), NULL, NULL);
+    g_object_unref(ins);
+
+end:
+
+    g_object_unref(gf);
+
+    if (_rotate_degrees)
+        *_rotate_degrees = rotate_degrees;
+
+    return picture;
+}
+
+/* in thread */
+static void generate_thumbnails_with_builtin(ThumbnailTask* task)
+{
+    /* FIXME: only formats supported by GObject should be handled this way. */
     GObject* normal_pix = NULL;
     GObject* large_pix = NULL;
 
     DEBUG("generate thumbnail for %s", fm_file_info_get_name(task->fi));
 
-    ins = g_file_read(gf, generator_cancellable, NULL);
-    if(ins)
+    int rotate_degrees = 0;
+    GObject* ori_pix = load_picture_object(task, &rotate_degrees);
+
+    if (!ori_pix)
+        goto end;
+
+    int width = backend.get_image_width(ori_pix);
+    int height = backend.get_image_height(ori_pix);
+    gboolean need_save;
+
+    if(task->flags & GENERATE_NORMAL)
     {
-        GObject* ori_pix = NULL;
-        int rotate_degrees = 0;
-#ifdef USE_EXIF
-        /* use libexif to extract thumbnails embedded in jpeg files */
-        FmMimeType* mime_type = fm_file_info_get_mime_type(task->fi);
-        if(strcmp(fm_mime_type_get_type(mime_type), "image/jpeg") == 0) /* if this is a jpeg file */
+        /* don't create thumbnails for images which are too small */
+        if(width <=128 && height <= 128)
         {
-            /* try to extract thumbnails embedded in jpeg files */
-            ExifLoader *exif_loader = exif_loader_new();
-            ExifData *exif_data;
-            while(!g_cancellable_is_cancelled(generator_cancellable)) {
-                unsigned char buf[4096];
-                gssize read_size = g_input_stream_read((GInputStream*)ins, buf, 4096, generator_cancellable, NULL);
-                if(read_size == 0) /* EOF */
-                    break;
-                if(exif_loader_write(exif_loader, buf, read_size) == 0)
-                    break; /* no more EXIF data */
-            }
-            exif_data = exif_loader_get_data(exif_loader);
-            exif_loader_unref(exif_loader);
-            if(exif_data)
-            {
-                /* reference for EXIF orientation tag:
-                 * http://www.impulseadventure.com/photo/exif-orientation.html */
-                ExifEntry* orient_ent = exif_data_get_entry(exif_data, EXIF_TAG_ORIENTATION);
-                if(orient_ent) /* orientation flag found in EXIF */
-                {
-                    gushort orient;
-                    ExifByteOrder bo = exif_data_get_byte_order(exif_data);
-                    /* bo == EXIF_BYTE_ORDER_INTEL ; */
-                    orient = exif_get_short (orient_ent->data, bo);
-                    switch(orient) {
-                    case 1: /* no rotation */
-                        rotate_degrees = 0;
-                        break;
-                    case 8:
-                        rotate_degrees = 270;
-                        break;
-                    case 3:
-                        rotate_degrees = 180;
-                        break;
-                    case 6:
-                        rotate_degrees = 90;
-                        break;
-                    }
-                    /* g_print("orientation flag found, rotate: %d\n", rotate_degrees); */
-                }
-                if(exif_data->data) /* if an embedded thumbnail is available */
-                {
-                    /* load the embedded jpeg thumbnail */
-                    GInputStream* mem_stream = g_memory_input_stream_new_from_data(exif_data->data, exif_data->size, NULL);
-                    ori_pix = backend.read_image_from_stream(mem_stream, exif_data->size, generator_cancellable);
-                    g_object_unref(mem_stream);
-                }
-                exif_data_unref(exif_data);
-            }
+            normal_pix = (GObject*)g_object_ref(ori_pix);
+            need_save = FALSE;
         }
-
-        if(!ori_pix)
+        else
         {
-            /* FIXME: instead of reload the image file again, it's posisble to get the bytes
-             * read already by libexif with exif_loader_get_buf() and feed the data to
-             * GObjectLoader ourselves. However the performance improvement by doing this
-             * might be negliable, I think. */
-            GSeekable* seekable = G_SEEKABLE(ins);
-            if(g_seekable_can_seek(seekable))
-            {
-                /* an EXIF thumbnail is not found, lets rewind the file pointer to beginning of
-                 * the file and load the image with gdkpixbuf instead. */
-                g_seekable_seek(seekable, 0, G_SEEK_SET, generator_cancellable, NULL);
-            }
-            else
-            {
-                /* if the stream is not seekable, close it and open it again. */
-                g_input_stream_close(G_INPUT_STREAM(ins), NULL, NULL);
-                g_object_unref(ins);
-                ins = g_file_read(gf, generator_cancellable, NULL);
-            }
-            ori_pix = backend.read_image_from_stream(G_INPUT_STREAM(ins), fm_file_info_get_size(task->fi), generator_cancellable);
+            normal_pix = scale_pix(ori_pix, 128);
+            need_save = TRUE;
         }
-#else
-        ori_pix = backend.read_image_from_stream(G_INPUT_STREAM(ins), fm_file_info_get_size(task->fi), generator_cancellable);
-#endif
-        g_input_stream_close(G_INPUT_STREAM(ins), NULL, NULL);
-        g_object_unref(ins);
-
-        if(ori_pix) /* if the original image is successfully loaded */
+        if(rotate_degrees != 0) // rotate the image by EXIF oritation
         {
-            int width = backend.get_image_width(ori_pix);
-            int height = backend.get_image_height(ori_pix);
-            gboolean need_save;
-
-            if(task->flags & GENERATE_NORMAL)
-            {
-                /* don't create thumbnails for images which are too small */
-                if(width <=128 && height <= 128)
-                {
-                    normal_pix = (GObject*)g_object_ref(ori_pix);
-                    need_save = FALSE;
-                }
-                else
-                {
-                    normal_pix = scale_pix(ori_pix, 128);
-                    need_save = TRUE;
-                }
-                if(rotate_degrees != 0) // rotate the image by EXIF oritation
-                {
-                    GObject* rotated;
-                    rotated = backend.rotate_image(normal_pix, rotate_degrees);
-                    g_object_unref(normal_pix);
-                    normal_pix = rotated;
-                }
-                if(need_save)
-                    save_thumbnail_to_disk(task, normal_pix, task->normal_path);
-            }
-
-            if(task->flags & GENERATE_LARGE)
-            {
-                /* don't create thumbnails for images which are too small */
-                if(width <=256 && height <= 256)
-                {
-                    large_pix = (GObject*)g_object_ref(ori_pix);
-                    need_save = FALSE;
-                }
-                else
-                {
-                    large_pix = scale_pix(ori_pix, 256);
-                    need_save = TRUE;
-                }
-                if(rotate_degrees != 0)
-                {
-                    GObject* rotated;
-                    rotated = backend.rotate_image(large_pix, rotate_degrees);
-                    g_object_unref(large_pix);
-                    large_pix = rotated;
-                }
-                if(need_save)
-                    save_thumbnail_to_disk(task, large_pix, task->large_path);
-            }
-            g_object_unref(ori_pix);
+            GObject* rotated;
+            rotated = backend.rotate_image(normal_pix, rotate_degrees);
+            g_object_unref(normal_pix);
+            normal_pix = rotated;
         }
+        if(need_save)
+            save_thumbnail_to_disk(task, normal_pix, task->normal_path);
     }
+
+    if(task->flags & GENERATE_LARGE)
+    {
+        /* don't create thumbnails for images which are too small */
+        if(width <=256 && height <= 256)
+        {
+            large_pix = (GObject*)g_object_ref(ori_pix);
+            need_save = FALSE;
+        }
+        else
+        {
+            large_pix = scale_pix(ori_pix, 256);
+            need_save = TRUE;
+        }
+        if(rotate_degrees != 0)
+        {
+            GObject* rotated;
+            rotated = backend.rotate_image(large_pix, rotate_degrees);
+            g_object_unref(large_pix);
+            large_pix = rotated;
+        }
+        if(need_save)
+            save_thumbnail_to_disk(task, large_pix, task->large_path);
+    }
+    g_object_unref(ori_pix);
+
+end:
 
     thumbnail_task_finish(task, normal_pix, large_pix);
 
@@ -1028,8 +1049,6 @@ static void generate_thumbnails_with_builtin(ThumbnailTask* task)
         g_object_unref(normal_pix);
     if(large_pix)
         g_object_unref(large_pix);
-
-    g_object_unref(gf);
 }
 
 /* call from main thread */
