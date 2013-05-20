@@ -878,10 +878,6 @@ static GObject* load_picture_object_from_exif_thumbnail(ThumbnailTask * task, in
     if (strcmp(fm_mime_type_get_type(mime_type), "image/jpeg") != 0)
         return NULL;
 
-    /* Do not use exif to load lagre thumbnails. */
-    if(task->flags & GENERATE_LARGE)
-        return NULL;
-
     GFileInputStream * ins = *_ins;
 
     /* try to extract thumbnails embedded in jpeg files */
@@ -924,7 +920,12 @@ static GObject* load_picture_object_from_exif_thumbnail(ThumbnailTask * task, in
             }
             /* g_print("%s: orientation flag found, orient: %d, rotate: %d\n", fm_file_info_get_name(task->fi), orient, *_rotate_degrees); */
         }
-        if(exif_data->data) /* if an embedded thumbnail is available */
+
+        /* if an embedded thumbnail is available */
+        /* Do not use exif to load lagre thumbnails.
+           FIXME: Check the size of exif thumbnail and use it if it is suitable as lagre.
+        */
+        if(exif_data->data && !(task->flags & GENERATE_LARGE))
         {
             /* load the embedded jpeg thumbnail */
             GInputStream* mem_stream = g_memory_input_stream_new_from_data(exif_data->data, exif_data->size, NULL);
