@@ -878,6 +878,10 @@ static GObject* load_picture_object_from_exif_thumbnail(ThumbnailTask * task, in
     if (strcmp(fm_mime_type_get_type(mime_type), "image/jpeg") != 0)
         return NULL;
 
+    /* Do not use exif to load lagre thumbnails. */
+    if(task->flags & GENERATE_LARGE)
+        return NULL;
+
     GFileInputStream * ins = *_ins;
 
     /* try to extract thumbnails embedded in jpeg files */
