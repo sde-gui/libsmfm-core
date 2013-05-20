@@ -866,73 +866,68 @@ static void save_thumbnail_to_disk(ThumbnailTask* task, GObject* pix, const char
 }
 
 /* in thread */
-static GObject* load_picture_object(ThumbnailTask * task, int * _rotate_degrees)
+static GObject* load_picture_object_from_exif_thumbnail(ThumbnailTask * task, int * _rotate_degrees,
+                                                        GFile * gf, GFileInputStream ** _ins)
 {
-    /* FIXME: only formats supported by GObject should be handled this way. */
-    GFile* gf = fm_path_to_gfile(fm_file_info_get_path(task->fi));
-    GFileInputStream* ins;
-
     GObject* picture = NULL;
-    int rotate_degrees = 0;
-
-    ins = g_file_read(gf, generator_cancellable, NULL);
-    if (!ins)
-        goto end;
 
 #ifdef USE_EXIF
     /* use libexif to extract thumbnails embedded in jpeg files */
+
     FmMimeType* mime_type = fm_file_info_get_mime_type(task->fi);
-    if(strcmp(fm_mime_type_get_type(mime_type), "image/jpeg") == 0) /* if this is a jpeg file */
+    if (strcmp(fm_mime_type_get_type(mime_type), "image/jpeg") != 0)
+        return NULL;
+
+    GFileInputStream * ins = *_ins;
+
+    /* try to extract thumbnails embedded in jpeg files */
+    ExifLoader *exif_loader = exif_loader_new();
+    ExifData *exif_data;
+    while(!g_cancellable_is_cancelled(generator_cancellable)) {
+        unsigned char buf[4096];
+        gssize read_size = g_input_stream_read((GInputStream*)ins, buf, 4096, generator_cancellable, NULL);
+        if(read_size == 0) /* EOF */
+            break;
+        if(exif_loader_write(exif_loader, buf, read_size) == 0)
+            break; /* no more EXIF data */
+    }
+    exif_data = exif_loader_get_data(exif_loader);
+    exif_loader_unref(exif_loader);
+    if(exif_data)
     {
-        /* try to extract thumbnails embedded in jpeg files */
-        ExifLoader *exif_loader = exif_loader_new();
-        ExifData *exif_data;
-        while(!g_cancellable_is_cancelled(generator_cancellable)) {
-            unsigned char buf[4096];
-            gssize read_size = g_input_stream_read((GInputStream*)ins, buf, 4096, generator_cancellable, NULL);
-            if(read_size == 0) /* EOF */
-                break;
-            if(exif_loader_write(exif_loader, buf, read_size) == 0)
-                break; /* no more EXIF data */
-        }
-        exif_data = exif_loader_get_data(exif_loader);
-        exif_loader_unref(exif_loader);
-        if(exif_data)
+        /* reference for EXIF orientation tag:
+         * http://www.impulseadventure.com/photo/exif-orientation.html */
+        ExifEntry* orient_ent = exif_data_get_entry(exif_data, EXIF_TAG_ORIENTATION);
+        if(orient_ent) /* orientation flag found in EXIF */
         {
-            /* reference for EXIF orientation tag:
-             * http://www.impulseadventure.com/photo/exif-orientation.html */
-            ExifEntry* orient_ent = exif_data_get_entry(exif_data, EXIF_TAG_ORIENTATION);
-            if(orient_ent) /* orientation flag found in EXIF */
-            {
-                gushort orient;
-                ExifByteOrder bo = exif_data_get_byte_order(exif_data);
-                /* bo == EXIF_BYTE_ORDER_INTEL ; */
-                orient = exif_get_short (orient_ent->data, bo);
-                switch(orient) {
-                case 1: /* no rotation */
-                    rotate_degrees = 0;
-                    break;
-                case 8:
-                    rotate_degrees = 270;
-                    break;
-                case 3:
-                    rotate_degrees = 180;
-                    break;
-                case 6:
-                    rotate_degrees = 90;
-                    break;
-                }
-                /* g_print("orientation flag found, rotate: %d\n", rotate_degrees); */
+            gushort orient;
+            ExifByteOrder bo = exif_data_get_byte_order(exif_data);
+            /* bo == EXIF_BYTE_ORDER_INTEL ; */
+            orient = exif_get_short (orient_ent->data, bo);
+            switch(orient) {
+            case 1: /* no rotation */
+                *_rotate_degrees = 0;
+                break;
+            case 8:
+                *_rotate_degrees = 270;
+                break;
+            case 3:
+                *_rotate_degrees = 180;
+                break;
+            case 6:
+                *_rotate_degrees = 90;
+                break;
             }
-            if(exif_data->data) /* if an embedded thumbnail is available */
-            {
-                /* load the embedded jpeg thumbnail */
-                GInputStream* mem_stream = g_memory_input_stream_new_from_data(exif_data->data, exif_data->size, NULL);
-                picture = backend.read_image_from_stream(mem_stream, exif_data->size, generator_cancellable);
-                g_object_unref(mem_stream);
-            }
-            exif_data_unref(exif_data);
+            /* g_print("orientation flag found, rotate: %d\n", rotate_degrees); */
         }
+        if(exif_data->data) /* if an embedded thumbnail is available */
+        {
+            /* load the embedded jpeg thumbnail */
+            GInputStream* mem_stream = g_memory_input_stream_new_from_data(exif_data->data, exif_data->size, NULL);
+            picture = backend.read_image_from_stream(mem_stream, exif_data->size, generator_cancellable);
+            g_object_unref(mem_stream);
+        }
+        exif_data_unref(exif_data);
     }
 
     if(!picture)
@@ -955,20 +950,36 @@ static GObject* load_picture_object(ThumbnailTask * task, int * _rotate_degrees)
             g_object_unref(ins);
             ins = g_file_read(gf, generator_cancellable, NULL);
         }
-        picture = backend.read_image_from_stream(G_INPUT_STREAM(ins), fm_file_info_get_size(task->fi), generator_cancellable);
+        *_ins = ins;
     }
-#else
-    picture = backend.read_image_from_stream(G_INPUT_STREAM(ins), fm_file_info_get_size(task->fi), generator_cancellable);
 #endif
+    return picture;
+}
+
+/* in thread */
+static GObject* load_picture_object(ThumbnailTask * task, int * _rotate_degrees)
+{
+    /* FIXME: only formats supported by GObject should be handled this way. */
+    GFile* gf = fm_path_to_gfile(fm_file_info_get_path(task->fi));
+    GFileInputStream* ins;
+
+    GObject* picture = NULL;
+
+    ins = g_file_read(gf, generator_cancellable, NULL);
+    if (!ins)
+        goto end;
+
+    picture = load_picture_object_from_exif_thumbnail(task, _rotate_degrees, gf, &ins);
+
+    if (!picture)
+        picture = backend.read_image_from_stream(G_INPUT_STREAM(ins), fm_file_info_get_size(task->fi), generator_cancellable);
+
     g_input_stream_close(G_INPUT_STREAM(ins), NULL, NULL);
     g_object_unref(ins);
 
 end:
 
     g_object_unref(gf);
-
-    if (_rotate_degrees)
-        *_rotate_degrees = rotate_degrees;
 
     return picture;
 }
