@@ -913,16 +913,16 @@ static GObject* load_picture_object_from_exif_thumbnail(ThumbnailTask * task, in
                 *_rotate_degrees = 0;
                 break;
             case 8:
-                *_rotate_degrees = 270;
+                *_rotate_degrees = 90;
                 break;
             case 3:
                 *_rotate_degrees = 180;
                 break;
             case 6:
-                *_rotate_degrees = 90;
+                *_rotate_degrees = 270;
                 break;
             }
-            /* g_print("orientation flag found, rotate: %d\n", rotate_degrees); */
+            /* g_print("%s: orientation flag found, orient: %d, rotate: %d\n", fm_file_info_get_name(task->fi), orient, *_rotate_degrees); */
         }
         if(exif_data->data) /* if an embedded thumbnail is available */
         {
