@@ -67,13 +67,13 @@ static gpointer worker_thread_func(gpointer data)
 #endif
         if (!incomming_list && !working_list)
         {
-            g_print("deferred_load_worker: waiting for wake up\n");
+            //g_print("deferred_load_worker: waiting for wake up\n");
 #if NEW_THREAD_API
             g_cond_wait(&worker_wake_up_condition, &incomming_list_mutex);
 #else
             g_cond_wait(worker_wake_up_condition, g_static_mutex_get_mutex(&incomming_list_mutex));
 #endif
-            g_print("deferred_load_worker: wake up\n");
+            //g_print("deferred_load_worker: wake up\n");
         }
 
         if (incomming_list)
@@ -96,7 +96,7 @@ static gpointer worker_thread_func(gpointer data)
             FmFileInfo * fi = list_item->data;
             g_slist_free_1(list_item);
 
-            g_print("deferred_load_worker: fi %s\n", fm_file_info_get_disp_name(fi));
+            //g_print("deferred_load_worker: fi %s\n", fm_file_info_get_disp_name(fi));
 
             if (fi && !fm_file_info_only_one_ref(fi) && !fm_file_info_icon_loaded(fi) && !stop)
             {
