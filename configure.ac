@@ -7,6 +7,8 @@ AM_INIT_AUTOMAKE([-Wall -Werror foreign -Wno-portability subdir-objects])
 AC_CONFIG_MACRO_DIR(m4)
 AC_CONFIG_HEADERS([config.h])
 
+AC_DISABLE_STATIC
+
 dnl version of API generation
 FMLIBVER="1.0"
 
