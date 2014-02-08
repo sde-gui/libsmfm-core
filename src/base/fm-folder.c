@@ -723,6 +723,7 @@ static void on_dirlist_job_files_found(FmDirListJob* job, GSList* files, gpointe
         fm_file_info_list_push_tail(folder->files, file);
     }
     g_signal_emit(folder, signals[FILES_ADDED], 0, files);
+    g_signal_emit(folder, signals[CONTENT_CHANGED], 0);
 }
 
 static FmJobErrorAction on_dirlist_job_error(FmDirListJob* job, GError* err, FmJobErrorSeverity severity, FmFolder* folder)
@@ -974,7 +975,7 @@ void fm_folder_reload(FmFolder* folder)
 
     if(folder->dir_fi)
     {
-        /* we need to reload folde info. */
+        /* we need to reload folder info. */
         fm_file_info_unref(folder->dir_fi);
         folder->dir_fi = NULL;
     }
