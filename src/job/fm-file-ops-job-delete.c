@@ -256,10 +256,9 @@ gboolean _fm_file_ops_job_delete_run(FmFileOpsJob* job)
 
 gboolean _fm_file_ops_job_trash_run(FmFileOpsJob* job)
 {
-    gboolean ret = TRUE;
-    GList* l;
+    GFile * gf = NULL;
+
     FmPathList* unsupported = fm_path_list_new();
-    GError* err = NULL;
     FmJob* fmjob = FM_JOB(job);
     g_debug("total number of files to delete: %u", fm_path_list_get_length(job->srcs));
     job->total = fm_path_list_get_length(job->srcs);
@@ -268,74 +267,105 @@ gboolean _fm_file_ops_job_trash_run(FmFileOpsJob* job)
 
     /* FIXME: we shouldn't trash a file already in trash:/// */
 
-    l = fm_path_list_peek_head_link(job->srcs);
-    for(; !fm_job_is_cancelled(fmjob) && l;l=l->next)
+    GList * l = fm_path_list_peek_head_link(job->srcs);
+    for(; !fm_job_is_cancelled(fmjob) && l; l=l->next)
     {
-        GFile* gf = fm_path_to_gfile(FM_PATH(l->data));
-        GFileInfo* inf;
-_retry_trash:
-        inf = g_file_query_info(gf, G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME, 0, fmjob->cancellable, &err);
-        if(inf)
+        gf = fm_path_to_gfile(FM_PATH(l->data));
+
+        GError * error = NULL;
+
+do_retry_trash: ;
+
+        GFileInfo* file_info = g_file_query_info(gf, G_FILE_ATTRIBUTE_STANDARD_DISPLAY_NAME, 0, fm_job_get_cancellable(fmjob), &error);
+        if (file_info)
         {
             /* currently processed file. */
-            fm_file_ops_job_emit_cur_file(job, g_file_info_get_display_name(inf));
-            g_object_unref(inf);
+            fm_file_ops_job_emit_cur_file(job, g_file_info_get_display_name(file_info));
+            g_object_unref(file_info);
         }
         else
         {
-            char* basename = g_file_get_basename(gf);
-            char* disp = g_filename_display_name(basename);
-            g_free(basename);
-            ret = FALSE;
+            char * basename = g_file_get_basename(gf);
+            char * disp = g_filename_display_name(basename);
             fm_file_ops_job_emit_cur_file(job, disp);
+            g_free(basename);
             g_free(disp);
-            goto _on_error;
-        }
-        ret = FALSE;
-        if(fm_config->no_usb_trash)
-        {
-            GMount *mnt = g_file_find_enclosing_mount(gf, NULL, &err);
-
-            if(mnt)
-            {
-                ret = g_mount_can_unmount(mnt); /* TRUE if it's removable media */
-                g_object_unref(mnt);
-                if(ret)
-                    fm_path_list_push_tail(unsupported, FM_PATH(l->data));
-            }
-            else
-            {
-                g_error_free(err);
-                err = NULL;
-            }
         }
 
-        if(!ret)
-            ret = g_file_trash(gf, fm_job_get_cancellable(fmjob), &err);
-        if(!ret)
+        if (error)
         {
-_on_error:
-            /* if trashing is not supported by the file system */
-            if( err->domain == G_IO_ERROR && err->code == G_IO_ERROR_NOT_SUPPORTED)
+            g_error_free(error);
+            error = NULL;
+        }
+
+        if (fm_job_is_cancelled(fmjob))
+            goto do_abort;
+
+        gboolean skip_file = FALSE;
+
+        if (fm_config->no_usb_trash)
+        {
+            GError * error1 = NULL;
+            GMount * mount = g_file_find_enclosing_mount(gf, NULL, &error1);
+
+            if (error1)
+            {
+                g_error_free(error1);
+                error1 = NULL;
+            }
+
+            GDrive * drive = mount ? g_mount_get_drive(mount) : NULL;
+
+            if (drive && g_drive_is_media_removable(drive))
+            {
                 fm_path_list_push_tail(unsupported, FM_PATH(l->data));
-            else
+                skip_file = TRUE;
+            }
+
+            if (drive)
+                g_object_unref(drive);
+            if (mount)
+                g_object_unref(mount);
+        }
+
+        if (!skip_file)
+        {
+            gboolean trashed = g_file_trash(gf, fm_job_get_cancellable(fmjob), &error);
+
+            if (fm_job_is_cancelled(fmjob))
+                goto do_abort;
+
+            if (!trashed)
             {
-                FmJobErrorAction act = fm_job_emit_error(fmjob, err, FM_JOB_ERROR_MODERATE);
-                g_error_free(err);
-                err = NULL;
-                if(act == FM_JOB_RETRY)
-                    goto _retry_trash;
-                else if(act == FM_JOB_ABORT)
+                if (!error) /* should not happen */
+                    goto do_abort;
+
+                /* if trashing is not supported by the file system */
+                if (error->domain == G_IO_ERROR && error->code == G_IO_ERROR_NOT_SUPPORTED)
                 {
-                    g_object_unref(gf);
-                    fm_path_list_unref(unsupported);
-                    return FALSE;
+                    fm_path_list_push_tail(unsupported, FM_PATH(l->data));
+
+                    g_error_free(error);
+                    error = NULL;
+                }
+                else
+                {
+                    FmJobErrorAction action = fm_job_emit_error(fmjob, error, FM_JOB_ERROR_MODERATE);
+
+                    g_error_free(error);
+                    error = NULL;
+
+                    if (action == FM_JOB_RETRY)
+                        goto do_retry_trash;
+                    else if (action == FM_JOB_ABORT)
+                        goto do_abort;
                 }
             }
-            g_error_free(err);
-            err = NULL;
         }
+
         g_object_unref(gf);
+        gf = NULL;
+
         ++job->finished;
         fm_file_ops_job_emit_percent(job);
     }
@@ -351,6 +381,12 @@ _on_error:
         g_object_set_data_full(G_OBJECT(job), "trash-unsupported", unsupported, (GDestroyNotify)fm_path_list_unref);
     }
     return TRUE;
+
+do_abort:
+    if (gf)
+        g_object_unref(gf);
+    fm_path_list_unref(unsupported);
+    return FALSE;
 }
 
 static const char trash_query[]=
