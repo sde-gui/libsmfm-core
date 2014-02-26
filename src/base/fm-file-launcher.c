@@ -161,6 +161,61 @@ gboolean fm_launch_desktop_entry(GAppLaunchContext* ctx, const char* file_or_id,
     return ret;
 }
 
+static gboolean _fm_launch_executable_file(GAppLaunchContext* ctx, FmFileInfo* fi,
+                                       FmFileLauncher* launcher, gpointer user_data)
+{
+    FmPath * path = fm_file_info_get_path(fi);
+    char * filename = fm_path_to_str(path);
+
+    /* FIXME: we need to use eaccess/euidaccess here. */
+    if (!g_file_test(filename, G_FILE_TEST_IS_EXECUTABLE))
+        goto do_open;
+
+    if (!launcher->exec_file)
+        goto do_open;
+
+    FmFileLauncherExecAction act = launcher->exec_file(fi, user_data);
+    GAppInfoCreateFlags flags = 0;
+    switch(act)
+    {
+    case FM_FILE_LAUNCHER_EXEC_IN_TERMINAL:
+        flags |= G_APP_INFO_CREATE_NEEDS_TERMINAL;
+        /* NOTE: no break here */
+    case FM_FILE_LAUNCHER_EXEC:
+    {
+        /* filename may contain spaces. Fix #3143296 */
+        char* quoted = g_shell_quote(filename);
+        GAppInfo * app = fm_app_info_create_from_commandline(quoted, NULL, flags, NULL);
+        g_free(quoted);
+        if (app)
+        {
+            GError * err = NULL;
+            if(!fm_app_info_launch(app, NULL, ctx, &err))
+            {
+                if(launcher->error)
+                    launcher->error(ctx, err, NULL, user_data);
+                g_error_free(err);
+            }
+            g_object_unref(app);
+            goto do_not_open;
+        }
+        goto do_open;
+    }
+    case FM_FILE_LAUNCHER_EXEC_OPEN:
+        goto do_open;
+    case FM_FILE_LAUNCHER_EXEC_CANCEL:
+        goto do_not_open;
+    }
+
+do_open:
+    g_free(filename);
+    return FALSE;
+
+do_not_open:
+    g_free(filename);
+    return TRUE;
+}
+
 /**
  * fm_launch_files
  * @ctx: (allow-none): a launch context
@@ -179,104 +234,62 @@ gboolean fm_launch_files(GAppLaunchContext* ctx, GList* file_infos, FmFileLaunch
     GList* l;
     GHashTable* hash = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, NULL);
     GList* folders = NULL;
-    FmFileInfo* fi;
     GError* err = NULL;
-    GAppInfo* app;
     const char* type;
 
-    for(l = file_infos; l; l=l->next)
+    for (l = file_infos; l; l=l->next)
     {
-        GList* fis;
-        fi = (FmFileInfo*)l->data;
+        FmFileInfo* fi = (FmFileInfo*)l->data;
+
         if (launcher->open_folder && fm_file_info_is_dir(fi))
-            folders = g_list_prepend(folders, fi);
-        else
         {
-            FmPath* path = fm_file_info_get_path(fi);
-            FmMimeType* mime_type;
-            /* FIXME: handle shortcuts, such as the items in menu:// */
-            if(fm_path_is_native(path))
+            folders = g_list_prepend(folders, fi);
+            continue;
+        }
+
+        FmPath* path = fm_file_info_get_path(fi);
+        FmMimeType* mime_type;
+        /* FIXME: handle shortcuts, such as the items in menu:// */
+        if (fm_path_is_native(path))
+        {
+            if (fm_file_info_is_desktop_entry(fi))
             {
-                char* filename;
-                if(fm_file_info_is_desktop_entry(fi))
-                {
-                    /* if it's a desktop entry file, directly launch it. */
-                    filename = fm_path_to_str(path);
-                    fm_launch_desktop_entry(ctx, filename, NULL, launcher, user_data);
-                    g_free(filename);
+                /* if it's a desktop entry file, directly launch it. */
+                char * filename = fm_path_to_str(path);
+                fm_launch_desktop_entry(ctx, filename, NULL, launcher, user_data);
+                g_free(filename);
+                continue;
+            }
+
+            if (fm_file_info_is_executable_type(fi))
+            {
+                if (_fm_launch_executable_file(ctx, fi, launcher, user_data))
                     continue;
-                }
-                else if(fm_file_info_is_executable_type(fi))
-                {
-                    /* if it's an executable file, directly execute it. */
-                    filename = fm_path_to_str(path);
-
-                    /* FIXME: we need to use eaccess/euidaccess here. */
-                    if(g_file_test(filename, G_FILE_TEST_IS_EXECUTABLE))
+            }
+        }
+        else /* not a native path */
+        {
+            if(fm_file_info_is_shortcut(fi) && !fm_file_info_is_dir(fi))
+            {
+                /* FIXME: special handling for shortcuts */
+                //if(fm_path_is_xdg_menu(path))
+                //{
+                    const char* target = fm_file_info_get_target(fi);
+                    if(target)
                     {
-                        if(launcher->exec_file)
-                        {
-                            FmFileLauncherExecAction act = launcher->exec_file(fi, user_data);
-                            GAppInfoCreateFlags flags = 0;
-                            switch(act)
-                            {
-                            case FM_FILE_LAUNCHER_EXEC_IN_TERMINAL:
-                                flags |= G_APP_INFO_CREATE_NEEDS_TERMINAL;
-                                /* NOTE: no break here */
-                            case FM_FILE_LAUNCHER_EXEC:
-                            {
-                                /* filename may contain spaces. Fix #3143296 */
-                                char* quoted = g_shell_quote(filename);
-                                app = fm_app_info_create_from_commandline(quoted, NULL, flags, NULL);
-                                g_free(quoted);
-                                if(app)
-                                {
-                                    if(!fm_app_info_launch(app, NULL, ctx, &err))
-                                    {
-                                        if(launcher->error)
-                                            launcher->error(ctx, err, NULL, user_data);
-                                        g_error_free(err);
-                                        err = NULL;
-                                    }
-                                    g_object_unref(app);
-                                    continue;
-                                }
-                                break;
-                            }
-                            case FM_FILE_LAUNCHER_EXEC_OPEN:
-                                break;
-                            case FM_FILE_LAUNCHER_EXEC_CANCEL:
-                                continue;
-                            }
-                        }
+                        fm_launch_desktop_entry(ctx, target, NULL, launcher, user_data);
+                        continue;
                     }
-                    g_free(filename);
-                }
+                //}
             }
-            else /* not a native path */
-            {
-                if(fm_file_info_is_shortcut(fi) && !fm_file_info_is_dir(fi))
-                {
-                    /* FIXME: special handling for shortcuts */
-                    //if(fm_path_is_xdg_menu(path))
-                    //{
-                        const char* target = fm_file_info_get_target(fi);
-                        if(target)
-                        {
-                            fm_launch_desktop_entry(ctx, target, NULL, launcher, user_data);
-                            continue;
-                        }
-                    //}
-                }
-            }
+        }
 
-            mime_type = fm_file_info_get_mime_type(fi);
-            if(mime_type && (type = fm_mime_type_get_type(mime_type)))
-            {
-                fis = g_hash_table_lookup(hash, type);
-                fis = g_list_prepend(fis, fi);
-                g_hash_table_insert(hash, (gpointer)type, fis);
-            }
+        mime_type = fm_file_info_get_mime_type(fi);
+        if(mime_type && (type = fm_mime_type_get_type(mime_type)))
+        {
+            GList* fis = g_hash_table_lookup(hash, type);
+            fis = g_list_prepend(fis, fi);
+            g_hash_table_insert(hash, (gpointer)type, fis);
         }
     }
 
@@ -301,7 +314,7 @@ gboolean fm_launch_files(GAppLaunchContext* ctx, GList* file_infos, FmFileLaunch
                 for(l=fis; l; l=l->next)
                 {
                     char* uri;
-                    fi = (FmFileInfo*)l->data;
+                    FmFileInfo* fi = (FmFileInfo*)l->data;
                     uri = fm_path_to_uri(fm_file_info_get_path(fi));
                     l->data = uri;
                 }
