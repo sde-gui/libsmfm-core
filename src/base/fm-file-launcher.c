@@ -248,8 +248,7 @@ gboolean fm_launch_files(GAppLaunchContext* ctx, GList* file_infos, FmFileLaunch
         }
 
         FmPath* path = fm_file_info_get_path(fi);
-        FmMimeType* mime_type;
-        /* FIXME: handle shortcuts, such as the items in menu:// */
+
         if (fm_path_is_native(path))
         {
             if (fm_file_info_is_desktop_entry(fi))
@@ -269,23 +268,23 @@ gboolean fm_launch_files(GAppLaunchContext* ctx, GList* file_infos, FmFileLaunch
         }
         else /* not a native path */
         {
-            if(fm_file_info_is_shortcut(fi) && !fm_file_info_is_dir(fi))
+            /*
+              FIXME: it should probably be fm_file_info_is_shortcut(fi) instead of !fm_file_info_is_symlink(fi).
+              but check fm_file_info_is_shortcut(fi) does not work properly.
+            */
+            if (!fm_file_info_is_symlink(fi) && !fm_file_info_is_dir(fi))
             {
-                /* FIXME: special handling for shortcuts */
-                //if(fm_path_is_xdg_menu(path))
-                //{
-                    const char* target = fm_file_info_get_target(fi);
-                    if(target)
-                    {
-                        fm_launch_desktop_entry(ctx, target, NULL, launcher, user_data);
-                        continue;
-                    }
-                //}
+                const char * target = fm_file_info_get_target(fi);
+                if (target)
+                {
+                    fm_launch_desktop_entry(ctx, target, NULL, launcher, user_data);
+                    continue;
+                }
             }
         }
 
-        mime_type = fm_file_info_get_mime_type(fi);
-        if(mime_type && (type = fm_mime_type_get_type(mime_type)))
+        FmMimeType* mime_type = fm_file_info_get_mime_type(fi);
+        if (mime_type && (type = fm_mime_type_get_type(mime_type)))
         {
             GList* fis = g_hash_table_lookup(hash, type);
             fis = g_list_prepend(fis, fi);
