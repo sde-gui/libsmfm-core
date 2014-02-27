@@ -53,8 +53,6 @@ typedef enum _FmFileInfoFlag FmFileInfoFlag;
 typedef struct _FmFileInfo FmFileInfo;
 //typedef struct _FmFileInfoList FmFileInfoList; // defined in fm-path.h
 
-struct _MenuCacheItem;/* forward declaration for MenuCacheItem */
-
 #define FILE_INFO_DEFAULT_COLOR 0xFF00FF
 
 /* intialize the file info system */
@@ -66,10 +64,8 @@ void _fm_file_info_finalize();
 FmFileInfo* fm_file_info_new();
 
 FmFileInfo* fm_file_info_new_from_gfileinfo(FmPath* path, GFileInfo* inf);
-FmFileInfo* fm_file_info_new_from_menu_cache_item(FmPath* path, struct _MenuCacheItem* item);
 
 void        fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf);
-void        fm_file_info_set_from_menu_cache_item(FmFileInfo* fi, struct _MenuCacheItem* item);
 gboolean    fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GError** err);
 
 /*****************************************************************************/
