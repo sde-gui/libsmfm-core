@@ -228,20 +228,6 @@ static void fm_job_init(FmJob *self)
     g_cond_init(&self->cond);
 }
 
-/**
- * fm_job_new
- *
- * Creates a new #FmJob object.
- *
- * Returns: a new #FmJob object.
- *
- * Since: 0.1.0
- */
-FmJob* fm_job_new(void)
-{
-    return (FmJob*)g_object_new(FM_TYPE_JOB, NULL);
-}
-
 
 static void fm_job_finalize(GObject *object)
 {
