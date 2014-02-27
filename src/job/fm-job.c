@@ -79,8 +79,13 @@ static guint idle_handler = 0;
 static GSList* finished = NULL;
 G_LOCK_DEFINE_STATIC(idle_handler);
 
+/*****************************************************************************/
+
+G_LOCK_DEFINE_STATIC(thread_pool);
 static GThreadPool* thread_pool = NULL;
 static guint n_jobs = 0;
+
+/*****************************************************************************/
 
 static guint signals[N_SIGNALS];
 
@@ -213,10 +218,11 @@ static void fm_job_class_init(FmJobClass *klass)
 
 static void fm_job_init(FmJob *self)
 {
-    /* create the thread pool if it doesn't exist. */
-    if( G_UNLIKELY(!thread_pool) )
+    G_LOCK(thread_pool);
+    if (G_UNLIKELY(!thread_pool))
         thread_pool = g_thread_pool_new((GFunc)job_thread, NULL, -1, FALSE, NULL);
     ++n_jobs;
+    G_UNLOCK(thread_pool);
 
     g_mutex_init(&self->mutex);
     g_cond_init(&self->cond);
@@ -252,12 +258,14 @@ static void fm_job_finalize(GObject *object)
     if (G_OBJECT_CLASS(fm_job_parent_class)->finalize)
         (* G_OBJECT_CLASS(fm_job_parent_class)->finalize)(object);
 
-    --n_jobs;
-    if(0 == n_jobs)
+    G_LOCK(thread_pool);
+    n_jobs--;
+    if (n_jobs == 0)
     {
         g_thread_pool_free(thread_pool, TRUE, FALSE);
         thread_pool = NULL;
     }
+    G_UNLOCK(thread_pool);
 }
 
 static gboolean fm_job_real_run_async(FmJob* job)
