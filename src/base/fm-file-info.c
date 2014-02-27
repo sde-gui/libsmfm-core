@@ -170,71 +170,6 @@ FmFileInfo* fm_file_info_new ()
     return fi;
 }
 
-static void deferred_icon_load(FmFileInfo* fi)
-{
-    G_LOCK(deferred_icon_load);
-
-    if (fi->icon || fi->deferred_icon_load || !fi->from_native_file)
-    {
-        G_UNLOCK(deferred_icon_load);
-        return;
-    }
-
-    fi->deferred_icon_load = TRUE;
-
-    const char * path = fi->native_path;
-
-    /* set "locked" icon on unaccesible folder */
-    if(!fi->accessible && S_ISDIR(fi->mode))
-        fi->icon = fm_icon_ref(icon_locked_folder);
-    else if(strcmp(path, fm_get_home_dir()) == 0)
-        fi->icon = fm_icon_from_name("user-home");
-    else if(strcmp(path, g_get_user_special_dir(G_USER_DIRECTORY_DESKTOP)) == 0)
-        fi->icon = fm_icon_from_name("user-desktop");
-    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS)) == 0)
-        fi->icon = fm_icon_from_name("folder-documents");
-    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD)) == 0)
-        fi->icon = fm_icon_from_name("folder-download");
-    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_MUSIC)) == 0)
-        fi->icon = fm_icon_from_name("folder-music");
-    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_PICTURES)) == 0)
-        fi->icon = fm_icon_from_name("folder-pictures");
-    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_PUBLIC_SHARE)) == 0)
-        fi->icon = fm_icon_from_name("folder-publicshare");
-    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_TEMPLATES)) == 0)
-        fi->icon = fm_icon_from_name("folder-templates");
-    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_VIDEOS)) == 0)
-        fi->icon = fm_icon_from_name("folder-videos");
-    else if(strcmp(path, "/") == 0)
-        fi->icon = fm_icon_from_name("gtk-harddisk");
-    else
-        fi->icon = fm_icon_ref(fm_mime_type_get_icon(fm_file_info_get_mime_type(fi)));
-
-    G_UNLOCK(deferred_icon_load);
-}
-
-static void deferred_mime_type_load(FmFileInfo* fi)
-{
-    G_LOCK(deferred_mime_type_load);
-
-    if (fi->mime_type || fi->deferred_mime_type_load || !fi->from_native_file)
-    {
-        G_UNLOCK(deferred_mime_type_load);
-        return;
-    }
-
-    fi->deferred_mime_type_load = TRUE;
-
-    //g_print("deferred_mime_type_load: %s\n", fi->native_path);
-
-    fi->mime_type = fm_mime_type_from_native_file(fi->native_path, fm_file_info_get_disp_name(fi), NULL);
-
-    /*if (!fi->mime_type)
-        g_print("fi->mime_type == NULL\n");*/
-
-    G_UNLOCK(deferred_mime_type_load);
-}
-
 /**
  * fm_file_info_set_from_native_file:
  * @fi:  A FmFileInfo struct
@@ -691,6 +626,93 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
     fi->native_path = g_strdup(src->native_path);
 }
 
+/*****************************************************************************/
+
+void fm_file_info_set_color(FmFileInfo* fi, unsigned long color)
+{
+    fi->color = color;
+    fi->color_loaded = TRUE;
+}
+
+/*****************************************************************************/
+
+/* Logic of deferred field evaluation. Called from getters. */
+
+static void deferred_icon_load(FmFileInfo* fi)
+{
+    if (G_LIKELY(fi->icon))
+        return;
+
+    G_LOCK(deferred_icon_load);
+
+    if (fi->icon || fi->deferred_icon_load || !fi->from_native_file)
+    {
+        G_UNLOCK(deferred_icon_load);
+        return;
+    }
+
+    fi->deferred_icon_load = TRUE;
+
+    const char * path = fi->native_path;
+
+    /* set "locked" icon on unaccesible folder */
+    if(!fi->accessible && S_ISDIR(fi->mode))
+        fi->icon = fm_icon_ref(icon_locked_folder);
+    else if(strcmp(path, fm_get_home_dir()) == 0)
+        fi->icon = fm_icon_from_name("user-home");
+    else if(strcmp(path, g_get_user_special_dir(G_USER_DIRECTORY_DESKTOP)) == 0)
+        fi->icon = fm_icon_from_name("user-desktop");
+    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS)) == 0)
+        fi->icon = fm_icon_from_name("folder-documents");
+    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD)) == 0)
+        fi->icon = fm_icon_from_name("folder-download");
+    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_MUSIC)) == 0)
+        fi->icon = fm_icon_from_name("folder-music");
+    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_PICTURES)) == 0)
+        fi->icon = fm_icon_from_name("folder-pictures");
+    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_PUBLIC_SHARE)) == 0)
+        fi->icon = fm_icon_from_name("folder-publicshare");
+    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_TEMPLATES)) == 0)
+        fi->icon = fm_icon_from_name("folder-templates");
+    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_VIDEOS)) == 0)
+        fi->icon = fm_icon_from_name("folder-videos");
+    else if(strcmp(path, "/") == 0)
+        fi->icon = fm_icon_from_name("gtk-harddisk");
+    else
+        fi->icon = fm_icon_ref(fm_mime_type_get_icon(fm_file_info_get_mime_type(fi)));
+
+    G_UNLOCK(deferred_icon_load);
+}
+
+static void deferred_mime_type_load(FmFileInfo* fi)
+{
+    if (G_LIKELY(fi->mime_type))
+        return;
+
+    G_LOCK(deferred_mime_type_load);
+
+    if (fi->mime_type || fi->deferred_mime_type_load || !fi->from_native_file)
+    {
+        G_UNLOCK(deferred_mime_type_load);
+        return;
+    }
+
+    fi->deferred_mime_type_load = TRUE;
+
+    //g_print("deferred_mime_type_load: %s\n", fi->native_path);
+
+    fi->mime_type = fm_mime_type_from_native_file(fi->native_path, fm_file_info_get_disp_name(fi), NULL);
+
+    /*if (!fi->mime_type)
+        g_print("fi->mime_type == NULL\n");*/
+
+    G_UNLOCK(deferred_mime_type_load);
+}
+
+/*****************************************************************************/
+
+/* getters */
+
 /**
  * fm_file_info_get_icon:
  * @fi:  A FmFileInfo struct
@@ -704,8 +726,7 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
  */
 FmIcon* fm_file_info_get_icon(FmFileInfo* fi)
 {
-    if (G_UNLIKELY(!fi->icon))
-        deferred_icon_load(fi);
+    deferred_icon_load(fi);
     return fi->icon;
 }
 
@@ -841,8 +862,7 @@ goffset fm_file_info_get_blocks(FmFileInfo* fi)
  */
 FmMimeType* fm_file_info_get_mime_type(FmFileInfo* fi)
 {
-    if (G_UNLIKELY(!fi->mime_type))
-        deferred_mime_type_load(fi);
+    deferred_mime_type_load(fi);
     return fi->mime_type;
 }
 
@@ -1305,8 +1325,3 @@ unsigned long fm_file_info_get_color(FmFileInfo* fi)
     return fi->color;
 }
 
-void fm_file_info_set_color(FmFileInfo* fi, unsigned long color)
-{
-    fi->color = color;
-    fi->color_loaded = TRUE;
-}
