@@ -178,6 +178,8 @@ char* fm_path_list_to_uri_list(FmPathList* pl);
 /* char** fm_path_list_to_uris(FmPathList* pl); */
 void fm_path_list_write_uri_list(FmPathList* pl, GString* buf);
 
+void fm_log_memory_usage_for_path(void);
+
 G_END_DECLS
 
 #endif /* __FM_PATH_H__ */

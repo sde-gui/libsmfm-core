@@ -36,6 +36,7 @@
 #include "fm-marshal.h"
 #include "fm-dummy-monitor.h"
 #include "fm-file.h"
+#include "fm-utils.h"
 
 #include <string.h>
 
@@ -713,7 +714,7 @@ static void on_dirlist_job_finished(FmDirListJob* job, FmFolder* folder)
     g_signal_emit(folder, signals[FINISH_LOADING], 0);
     g_object_unref(folder);
 
-    fm_log_file_info_memory_usage();
+    fm_log_memory_usage();
 }
 
 static void on_dirlist_job_files_found(FmDirListJob* job, GSList* files, gpointer user_data)

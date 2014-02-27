@@ -28,6 +28,7 @@
 
 #include "fm-config.h"
 #include "fm-file-info-deferred-load-worker.h"
+#include "fm-utils.h"
 
 gboolean fm_file_info_only_one_ref(FmFileInfo* fi);
 gboolean fm_file_info_icon_loaded(FmFileInfo* fi);
@@ -51,7 +52,7 @@ static gpointer worker_thread_func(gpointer data)
 
         if (!incomming_list && !working_list)
         {
-            fm_log_file_info_memory_usage();
+            fm_log_memory_usage();
             //g_print("deferred_load_worker: waiting for wake up\n");
             g_cond_wait(&worker_wake_up_condition, &incomming_list_mutex);
             //g_print("deferred_load_worker: wake up\n");

@@ -489,3 +489,10 @@ const char *fm_get_home_dir(void)
         homedir = g_get_home_dir();
     return homedir;
 }
+
+
+void fm_log_memory_usage(void)
+{
+    fm_log_memory_usage_for_path();
+    fm_log_memory_usage_for_file_info();
+}

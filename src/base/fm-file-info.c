@@ -146,7 +146,7 @@ struct _FmFileInfoList
 
 int file_info_total;
 
-void fm_log_file_info_memory_usage(void)
+void fm_log_memory_usage_for_file_info(void)
 {
     int total = g_atomic_int_get(&file_info_total);
     g_log(G_LOG_DOMAIN, G_LOG_LEVEL_INFO, "memory usage: FmFileInfo: %d bytes * %d items = %lld KiB",

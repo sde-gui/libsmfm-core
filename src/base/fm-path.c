@@ -46,6 +46,7 @@ struct _FmPath
     gint n_ref;
     FmPath* parent;
     guchar flags; /* FmPathFlags flags : 8; */
+    int name_len;
     char name[1]; /* basename: in local encoding if native, uri-escaped otherwise */
 };
 
@@ -74,13 +75,31 @@ static FmPath* computer_root_path = NULL;
 static GSList* roots = NULL;
 G_LOCK_DEFINE(roots);
 
+/*****************************************************************************/
+
+int path_total;
+int path_bytes_total;
+
+void fm_log_memory_usage_for_path(void)
+{
+    g_log(G_LOG_DOMAIN, G_LOG_LEVEL_INFO, "memory usage: FmPath: %d items, %d KiB",
+        g_atomic_int_get(&path_total), g_atomic_int_get(&path_bytes_total) / 1024);
+}
+
+/*****************************************************************************/
+
+
 static FmPath* _fm_path_alloc(FmPath* parent, int name_len, int flags)
 {
+    g_atomic_int_inc(&path_total);
+    g_atomic_int_add(&path_bytes_total, sizeof(FmPath) + name_len);
+
     FmPath* path;
     path = (FmPath*)g_malloc(sizeof(FmPath) + name_len);
     path->n_ref = 1;
     path->flags = flags;
     path->parent = parent ? fm_path_ref(parent) : NULL;
+    path->name_len = name_len;
     return path;
 }
 
@@ -663,6 +682,9 @@ void fm_path_unref(FmPath* path)
     /* g_debug("fm_path_unref: %s, n_ref = %d", fm_path_to_str(path), path->n_ref); */
     if(g_atomic_int_dec_and_test(&path->n_ref))
     {
+        g_atomic_int_add(&path_total, -1);
+        g_atomic_int_add(&path_bytes_total, -(sizeof(FmPath) + path->name_len));
+
         if(G_LIKELY(path->parent))
             fm_path_unref(path->parent);
         G_LOCK(roots);
