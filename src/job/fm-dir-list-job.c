@@ -194,7 +194,7 @@ static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
     fm_file_info_set_path(fi, job->dir_path);
     if( _fm_file_info_job_get_info_for_native_file(fmjob, fi, path_str, NULL) )
     {
-        if(! fm_file_info_is_dir(fi))
+        if(! fm_file_info_is_directory(fi))
         {
             err = g_error_new(G_IO_ERROR, G_IO_ERROR_NOT_DIRECTORY, _("The specified directory is not valid"));
             fm_file_info_unref(fi);

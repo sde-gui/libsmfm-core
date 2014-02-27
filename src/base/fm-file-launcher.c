@@ -241,7 +241,7 @@ gboolean fm_launch_files(GAppLaunchContext* ctx, GList* file_infos, FmFileLaunch
     {
         FmFileInfo* fi = (FmFileInfo*)l->data;
 
-        if (launcher->open_folder && fm_file_info_is_dir(fi))
+        if (launcher->open_folder && fm_file_info_is_directory(fi))
         {
             folders = g_list_prepend(folders, fi);
             continue;
@@ -272,7 +272,7 @@ gboolean fm_launch_files(GAppLaunchContext* ctx, GList* file_infos, FmFileLaunch
               FIXME: it should probably be fm_file_info_is_shortcut(fi) instead of !fm_file_info_is_symlink(fi).
               but check fm_file_info_is_shortcut(fi) does not work properly.
             */
-            if (!fm_file_info_is_symlink(fi) && !fm_file_info_is_dir(fi))
+            if (!fm_file_info_is_symlink(fi) && !fm_file_info_is_directory(fi))
             {
                 const char * target = fm_file_info_get_target(fi);
                 if (target)

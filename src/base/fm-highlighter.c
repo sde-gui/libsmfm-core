@@ -30,7 +30,7 @@ void fm_file_info_highlight(FmFileInfo * fi)
 {
     unsigned long color = FILE_INFO_DEFAULT_COLOR;
 
-    if (fm_file_info_is_dir(fi))
+    if (fm_file_info_is_directory(fi))
         color = 0x000080;
     else if (fm_file_info_is_executable_type(fi))
         color = 0x006000;
