@@ -56,21 +56,36 @@
 
 static FmIcon* icon_locked_folder = NULL;
 
+/*****************************************************************************/
+
+/*
+
+Evaluation of some fields of FmFileInfo deferred until the value actually needed.
+When doing these deferred evaluations we acquire a lock to prevent race condition:
+deferred_icon_load - lock for icon loading
+deferred_mime_type_load - lock for mime type loading
+deferred_fast_update - lock for any other evaluations that are "fast" by nature (i.e. not doing IO)
+
+These locks are global, not per-object. That limits concurency level, but is much easier in implementation.
+
+*/
+
 G_LOCK_DEFINE_STATIC(deferred_icon_load);
 G_LOCK_DEFINE_STATIC(deferred_mime_type_load);
-
-G_LOCK_DEFINE_STATIC(deferred_file_info_fast_update);
+G_LOCK_DEFINE_STATIC(deferred_fast_update);
 
 #define FAST_UPDATE(check, code)\
 if (G_UNLIKELY(check))\
 {\
-    G_LOCK(deferred_file_info_fast_update);\
+    G_LOCK(deferred_fast_update);\
     if (G_LIKELY(check))\
     {\
         code\
     }\
-    G_UNLOCK(deferred_file_info_fast_update);\
+    G_UNLOCK(deferred_fast_update);\
 }
+
+/*****************************************************************************/
 
 struct _FmFileInfo
 {
