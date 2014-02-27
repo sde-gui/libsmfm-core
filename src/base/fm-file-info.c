@@ -60,6 +60,19 @@ static FmIcon* icon_locked_folder = NULL;
 G_LOCK_DEFINE_STATIC(deferred_icon_load);
 G_LOCK_DEFINE_STATIC(deferred_mime_type_load);
 
+G_LOCK_DEFINE_STATIC(deferred_file_info_fast_update);
+
+#define FAST_UPDATE(check, code)\
+if (G_UNLIKELY(check))\
+{\
+    G_LOCK(deferred_file_info_fast_update);\
+    if (G_LIKELY(check))\
+    {\
+        code\
+    }\
+    G_UNLOCK(deferred_file_info_fast_update);\
+}
+
 struct _FmFileInfo
 {
     FmPath* path; /* path of the file */
@@ -804,23 +817,6 @@ void fm_file_info_set_path(FmFileInfo* fi, FmPath* path)
 }
 
 /**
- * fm_file_info_set_disp_name:
- * @fi:  A FmFileInfo struct
- * @name: A UTF-8 display name. (can be NULL).
- *
- * Set the display name used to show the file in the 
- * file manager UI. If NULL is passed for @name,
- * the original display will be freed and the real base name
- * will be used for display.
- */
-/* if disp name is set to NULL, we use the real filename for display. */
-void fm_file_info_set_disp_name(FmFileInfo* fi, const char* name)
-{
-    g_free(fi->disp_name);
-    fi->disp_name = g_strdup(name);
-}
-
-/**
  * fm_file_info_get_size:
  * @fi:  A FmFileInfo struct
  *
@@ -843,14 +839,14 @@ goffset fm_file_info_get_size(FmFileInfo* fi)
  */
 const char* fm_file_info_get_disp_size(FmFileInfo* fi)
 {
-    if (G_UNLIKELY(!fi->disp_size))
+    if (S_ISREG(fi->mode))
     {
-        if(S_ISREG(fi->mode))
+        FAST_UPDATE(!fi->disp_size,
         {
-            char buf[ 64 ];
+            char buf[128];
             fm_file_size_to_str(buf, sizeof(buf), fi->size, fm_config->si_unit);
             fi->disp_size = g_strdup(buf);
-        }
+        })
     }
     return fi->disp_size;
 }
@@ -1126,14 +1122,16 @@ gboolean fm_file_info_can_thumbnail(FmFileInfo* fi)
 const char* fm_file_info_get_collate_key(FmFileInfo* fi)
 {
     /* create a collate key on demand, if we don't have one */
-    if(G_UNLIKELY(!fi->collate_key))
+    FAST_UPDATE(!fi->collate_key,
     {
         const char* disp_name = fm_file_info_get_disp_name(fi);
         char* casefold = g_utf8_casefold(disp_name, -1);
         char* collate = g_utf8_collate_key_for_filename(casefold, -1);
         g_free(casefold);
-        if(strcmp(collate, disp_name))
+        if (strcmp(collate, disp_name))
+        {
             fi->collate_key = collate;
+        }
         else
         {
             /* if the collate key is the same as the display name,
@@ -1142,7 +1140,7 @@ const char* fm_file_info_get_collate_key(FmFileInfo* fi)
             fi->collate_key = COLLATE_USING_DISPLAY_NAME;
             g_free(collate);
         }
-    }
+    })
 
     /* if the collate key is the same as the display name, 
      * just return the display name instead. */
@@ -1169,13 +1167,14 @@ const char* fm_file_info_get_collate_key(FmFileInfo* fi)
  */
 const char* fm_file_info_get_collate_key_nocasefold(FmFileInfo* fi)
 {
-    /* create a collate key on demand, if we don't have one */
-    if(G_UNLIKELY(!fi->collate_key))
+    FAST_UPDATE(!fi->collate_key,
     {
         const char* disp_name = fm_file_info_get_disp_name(fi);
         char* collate = g_utf8_collate_key_for_filename(disp_name, -1);
-        if(strcmp(collate, disp_name))
+        if (strcmp(collate, disp_name))
+        {
             fi->collate_key = collate;
+        }
         else
         {
             /* if the collate key is the same as the display name,
@@ -1184,7 +1183,7 @@ const char* fm_file_info_get_collate_key_nocasefold(FmFileInfo* fi)
             fi->collate_key = COLLATE_USING_DISPLAY_NAME;
             g_free(collate);
         }
-    }
+    })
 
     /* if the collate key is the same as the display name, 
      * just return the display name instead. */
@@ -1236,18 +1235,16 @@ const char* fm_file_info_get_desc(FmFileInfo* fi)
  */
 const char* fm_file_info_get_disp_mtime(FmFileInfo* fi)
 {
-    /* FIXME: This can cause problems if the file really has mtime=0. */
-    /*        We'd better hide mtime for virtual files only. */
-    if(fi->mtime > 0)
+    if (fi->mtime > 0)
     {
-        if (!fi->disp_mtime)
+        FAST_UPDATE(!fi->disp_mtime,
         {
-            char buf[ 128 ];
+            char buf[128];
             strftime(buf, sizeof(buf),
                       "%x %R",
                       localtime(&fi->mtime));
             fi->disp_mtime = g_strdup(buf);
-        }
+        })
     }
     return fi->disp_mtime;
 }
@@ -1413,17 +1410,17 @@ unsigned long fm_file_info_get_color(FmFileInfo* fi)
 {
     g_return_val_if_fail(fi, 0);
 
-    if (!fi->color_loaded)
+    FAST_UPDATE(!fi->color_loaded,
     {
         fm_file_info_highlight(fi);
         fi->color_loaded = TRUE;
-    }
+    })
 
     return fi->color;
 }
 
 void fm_file_info_set_color(FmFileInfo* fi, unsigned long color)
 {
-    fi->color_loaded = TRUE;
     fi->color = color;
+    fi->color_loaded = TRUE;
 }

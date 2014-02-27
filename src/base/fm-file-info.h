@@ -87,7 +87,6 @@ const char* fm_file_info_get_name( FmFileInfo* fi );
 const char* fm_file_info_get_disp_name( FmFileInfo* fi );
 
 void fm_file_info_set_path(FmFileInfo* fi, FmPath* path);
-void fm_file_info_set_disp_name( FmFileInfo* fi, const char* name );
 
 goffset fm_file_info_get_size( FmFileInfo* fi );
 const char* fm_file_info_get_disp_size( FmFileInfo* fi );
