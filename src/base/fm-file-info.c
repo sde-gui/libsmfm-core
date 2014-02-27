@@ -902,7 +902,7 @@ mode_t fm_file_info_get_mode(FmFileInfo* fi)
  * 
  * Returns: TRUE for native UNIX files, FALSE for
  * remote filesystems or other URIs, such as 
- * trahs:///, computer:///, ...etc.
+ * trash:///, computer:///, ...etc.
  */
 gboolean fm_file_info_is_native(FmFileInfo* fi)
 {
