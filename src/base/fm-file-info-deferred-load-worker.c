@@ -51,6 +51,7 @@ static gpointer worker_thread_func(gpointer data)
 
         if (!incomming_list && !working_list)
         {
+            fm_log_file_info_memory_usage();
             //g_print("deferred_load_worker: waiting for wake up\n");
             g_cond_wait(&worker_wake_up_condition, &incomming_list_mutex);
             //g_print("deferred_load_worker: wake up\n");

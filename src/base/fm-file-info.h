@@ -59,6 +59,8 @@ typedef struct _FmFileInfo FmFileInfo;
 void _fm_file_info_init();
 void _fm_file_info_finalize();
 
+void fm_log_file_info_memory_usage(void);
+
 /*****************************************************************************/
 
 FmFileInfo* fm_file_info_new();

@@ -144,6 +144,17 @@ struct _FmFileInfoList
 
 /*****************************************************************************/
 
+int file_info_total;
+
+void fm_log_file_info_memory_usage(void)
+{
+    int total = g_atomic_int_get(&file_info_total);
+    g_log(G_LOG_DOMAIN, G_LOG_LEVEL_INFO, "memory usage: FmFileInfo: %d bytes * %d items = %lld KiB",
+        sizeof(FmFileInfo), total, sizeof(FmFileInfo) * (long long) total / 1024);
+}
+
+/*****************************************************************************/
+
 /* intialize the file info system */
 void _fm_file_info_init(void)
 {
@@ -165,6 +176,7 @@ void _fm_file_info_finalize()
  */
 FmFileInfo* fm_file_info_new ()
 {
+    g_atomic_int_inc(&file_info_total);
     FmFileInfo * fi = g_slice_new0(FmFileInfo);
     fi->n_ref = 1;
     return fi;
@@ -558,6 +570,7 @@ void fm_file_info_unref(FmFileInfo* fi)
     {
         fm_file_info_clear(fi);
         g_slice_free(FmFileInfo, fi);
+        g_atomic_int_add(&file_info_total, -1);
     }
 }
 

@@ -411,6 +411,7 @@ static void on_file_info_job_finished(FmFileInfoJob* job, FmFolder* folder)
     }
     folder->pending_jobs = g_slist_remove(folder->pending_jobs, job);
     g_object_unref(job);
+
 }
 
 static gboolean on_idle(FmFolder* folder)
@@ -711,6 +712,8 @@ static void on_dirlist_job_finished(FmDirListJob* job, FmFolder* folder)
     g_object_ref(folder);
     g_signal_emit(folder, signals[FINISH_LOADING], 0);
     g_object_unref(folder);
+
+    fm_log_file_info_memory_usage();
 }
 
 static void on_dirlist_job_files_found(FmDirListJob* job, GSList* files, gpointer user_data)
