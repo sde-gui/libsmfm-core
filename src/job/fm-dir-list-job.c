@@ -34,18 +34,21 @@
 #include <config.h>
 #endif
 
-#include "fm-dir-list-job.h"
-#include <glib/gi18n-lib.h>
-#include <gio/gio.h>
-#include <string.h>
-#include <glib/gstdio.h>
+#define _BSD_SOURCE
+
 #include <dirent.h>
 #include <errno.h>
-#include "fm-mime-type.h"
+#include <string.h>
+
+#include "fm-dir-list-job.h"
 #include "fm-file-info-job.h"
+#include "fm-mime-type.h"
+#include "fm-file-info.h"
 #include "glib-compat.h"
 
-#include "fm-file-info.h"
+#include <glib/gi18n-lib.h>
+#include <gio/gio.h>
+#include <glib/gstdio.h>
 
 enum {
     FILES_FOUND,
@@ -195,6 +198,16 @@ static DIR * opendir_with_error(const char * path, GError ** error)
     return dir;
 }
 
+#if defined _DIRENT_HAVE_D_TYPE || defined HAVE_STRUCT_DIRENT_D_TYPE
+#define DIRENT_MIGHT_BE_SYMLINK(d) \
+    ((d)->d_type == DT_UNKNOWN || (d)->d_type == DT_LNK)
+#define DIRENT_MIGHT_BE_DIR(d)	 \
+    ((d)->d_type == DT_DIR || DIRENT_MIGHT_BE_SYMLINK (d))
+#else
+#define DIRENT_MIGHT_BE_SYMLINK(d) 1
+#define DIRENT_MIGHT_BE_DIR(d)     1
+#endif
+
 static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
 {
     FmJob* fmjob = FM_JOB(job);
@@ -246,12 +259,18 @@ static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
         {
             const char* name = entry->d_name;
 
+            if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0)
+                continue;
+
             FmPath* new_path;
             g_string_truncate(fpath, dir_len);
             g_string_append(fpath, name);
 
             if (job->dir_only) /* if we only want directories */
             {
+                if (!DIRENT_MIGHT_BE_DIR(entry))
+                    continue;
+
                 struct stat st;
                 /* FIXME: this results in an additional stat() call, which is inefficient */
                 if(stat(fpath->str, &st) == -1 || !S_ISDIR(st.st_mode))
