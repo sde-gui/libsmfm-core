@@ -61,17 +61,23 @@ struct _MenuCacheItem;/* forward declaration for MenuCacheItem */
 void _fm_file_info_init();
 void _fm_file_info_finalize();
 
+/*****************************************************************************/
+
 FmFileInfo* fm_file_info_new();
+
 FmFileInfo* fm_file_info_new_from_gfileinfo(FmPath* path, GFileInfo* inf);
-void fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf);
-
 FmFileInfo* fm_file_info_new_from_menu_cache_item(FmPath* path, struct _MenuCacheItem* item);
-void fm_file_info_set_from_menu_cache_item(FmFileInfo* fi, struct _MenuCacheItem* item);
 
-gboolean fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GError** err);
+void        fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf);
+void        fm_file_info_set_from_menu_cache_item(FmFileInfo* fi, struct _MenuCacheItem* item);
+gboolean    fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GError** err);
+
+/*****************************************************************************/
 
 FmFileInfo* fm_file_info_ref( FmFileInfo* fi );
-void fm_file_info_unref( FmFileInfo* fi );
+void        fm_file_info_unref( FmFileInfo* fi );
+
+/*****************************************************************************/
 
 void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src);
 

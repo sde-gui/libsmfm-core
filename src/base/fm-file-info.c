@@ -115,6 +115,8 @@ struct _FmFileInfoList
     FmList list;
 };
 
+/*****************************************************************************/
+
 /* intialize the file info system */
 void _fm_file_info_init(void)
 {
@@ -125,6 +127,8 @@ void _fm_file_info_finalize()
 {
     fm_icon_unref(icon_locked_folder);
 }
+
+/*****************************************************************************/
 
 /**
  * fm_file_info_new:
@@ -539,6 +543,8 @@ FmFileInfo* fm_file_info_new_from_menu_cache_item(FmPath* path, MenuCacheItem* i
     return fi;
 }
 
+/*****************************************************************************/
+
 static void fm_file_info_clear(FmFileInfo* fi)
 {
     if(fi->collate_key)
@@ -640,6 +646,8 @@ void fm_file_info_unref(FmFileInfo* fi)
         g_slice_free(FmFileInfo, fi);
     }
 }
+
+/*****************************************************************************/
 
 /* To use from fm-file-info-deferred-load.c */
 gboolean fm_file_info_only_one_ref(FmFileInfo* fi)
