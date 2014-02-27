@@ -734,6 +734,8 @@ static void deferred_mime_type_load(FmFileInfo* fi)
  */
 FmIcon* fm_file_info_get_icon(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     deferred_icon_load(fi);
     return fi->icon;
 }
@@ -741,6 +743,8 @@ FmIcon* fm_file_info_get_icon(FmFileInfo* fi)
 /* To use from fm-file-info-deferred-load-worker.c */
 gboolean fm_file_info_icon_loaded(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, FALSE);
+
     return !!fi->icon;
 }
 
@@ -758,7 +762,9 @@ gboolean fm_file_info_icon_loaded(FmFileInfo* fi)
  */
 FmPath* fm_file_info_get_path(FmFileInfo* fi)
 {
-    return fi ? fi->path : NULL;
+    g_return_val_if_fail(fi, 0);
+
+    return fi->path;
 }
 
 /**
@@ -772,6 +778,8 @@ FmPath* fm_file_info_get_path(FmFileInfo* fi)
  */
 const char* fm_file_info_get_name(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     return fm_path_get_basename(fi->path);
 }
 
@@ -790,6 +798,8 @@ const char* fm_file_info_get_name(FmFileInfo* fi)
 /* Get displayed name encoded in UTF-8 */
 const char* fm_file_info_get_disp_name(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     return G_LIKELY(!fi->disp_name) ? fm_path_get_basename(fi->path) : fi->disp_name;
 }
 
@@ -819,6 +829,8 @@ void fm_file_info_set_path(FmFileInfo* fi, FmPath* path)
  */
 goffset fm_file_info_get_size(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     return fi->size;
 }
 
@@ -832,8 +844,10 @@ goffset fm_file_info_get_size(FmFileInfo* fi)
  * Returns: a const string owned by FmFileInfo which should
  * not be freed. (non-NULL)
  */
-const char* fm_file_info_get_disp_size(FmFileInfo* fi)
+const char * fm_file_info_get_disp_size(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     if (S_ISREG(fi->mode))
     {
         FAST_UPDATE(!fi->disp_size,
@@ -854,6 +868,8 @@ const char* fm_file_info_get_disp_size(FmFileInfo* fi)
  */
 goffset fm_file_info_get_blocks(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     return fi->blocks;
 }
 
@@ -870,6 +886,8 @@ goffset fm_file_info_get_blocks(FmFileInfo* fi)
  */
 FmMimeType* fm_file_info_get_mime_type(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     deferred_mime_type_load(fi);
     return fi->mime_type;
 }
@@ -885,6 +903,8 @@ FmMimeType* fm_file_info_get_mime_type(FmFileInfo* fi)
  */
 mode_t fm_file_info_get_mode(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     return fi->mode;
 }
 
@@ -900,6 +920,8 @@ mode_t fm_file_info_get_mode(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_native(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, FALSE);
+
 	return fm_path_is_native(fi->path);
 }
 
@@ -911,6 +933,8 @@ gboolean fm_file_info_is_native(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_directory(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, FALSE);
+
     return (S_ISDIR(fi->mode) ||
         (S_ISLNK(fi->mode) && fm_file_info_get_mime_type(fi) &&
          (0 == strcmp(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), "inode/directory"))));
@@ -933,6 +957,8 @@ gboolean fm_file_info_is_directory(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_symlink(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, FALSE);
+
     return S_ISLNK(fi->mode) ? TRUE : FALSE;
 }
 
@@ -948,11 +974,15 @@ gboolean fm_file_info_is_symlink(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_shortcut(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, FALSE);
+
     return fm_file_info_get_mime_type(fi) == _fm_mime_type_get_inode_x_shortcut();
 }
 
 gboolean fm_file_info_is_mountable(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, FALSE);
+
     return fm_file_info_get_mime_type(fi) == _fm_mime_type_get_inode_x_mountable();
 }
 
@@ -964,6 +994,8 @@ gboolean fm_file_info_is_mountable(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_image(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, FALSE);
+
     /* FIXME: We had better use functions of xdg_mime to check this */
     if (!strncmp("image/", fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), 6))
         return TRUE;
@@ -978,6 +1010,8 @@ gboolean fm_file_info_is_image(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_text(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, FALSE);
+
     if(g_content_type_is_a(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), "text/plain"))
         return TRUE;
     return FALSE;
@@ -991,6 +1025,8 @@ gboolean fm_file_info_is_text(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_desktop_entry(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, FALSE);
+
     if (fi->from_native_file)
     {
         const char * path = fi->target ? fi->target : fi->native_path;
@@ -1009,6 +1045,8 @@ gboolean fm_file_info_is_desktop_entry(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_unknown_type(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, FALSE);
+
     return g_content_type_is_unknown(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)));
 }
 
@@ -1030,6 +1068,8 @@ gboolean fm_file_info_is_unknown_type(FmFileInfo* fi)
 /* full path of the file is required by this function */
 gboolean fm_file_info_is_executable_type(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, FALSE);
+
     if(strncmp(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), "text/", 5) == 0)
     { /* g_content_type_can_be_executable reports text files as executables too */
         /* We don't execute remote files nor files in trash */
@@ -1064,6 +1104,8 @@ gboolean fm_file_info_is_executable_type(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_accessible(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, FALSE);
+
     return fi->accessible;
 }
 
@@ -1078,6 +1120,8 @@ gboolean fm_file_info_is_accessible(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_hidden(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, FALSE);
+
     return (fi->hidden ||
             /* bug #3416724: backup and hidden files should be distinguishable */
             (fm_config->backup_as_hidden && fi->backup));
@@ -1092,6 +1136,8 @@ gboolean fm_file_info_is_hidden(FmFileInfo* fi)
  */
 gboolean fm_file_info_can_thumbnail(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, FALSE);
+
     /* We cannot use S_ISREG here as this exclude all symlinks */
     if( fi->size == 0 || /* don't generate thumbnails for empty files */
         !(fi->mode & S_IFREG) ||
@@ -1113,8 +1159,10 @@ gboolean fm_file_info_can_thumbnail(FmFileInfo* fi)
  * Returns: a const string owned by FmFileInfo which should
  * not be freed.
  */
-const char* fm_file_info_get_collate_key(FmFileInfo* fi)
+const char * fm_file_info_get_collate_key(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     /* create a collate key on demand, if we don't have one */
     FAST_UPDATE(!fi->collate_key,
     {
@@ -1159,8 +1207,10 @@ const char* fm_file_info_get_collate_key(FmFileInfo* fi)
  *
  * Since: 1.0.2
  */
-const char* fm_file_info_get_collate_key_nocasefold(FmFileInfo* fi)
+const char * fm_file_info_get_collate_key_nocasefold(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     FAST_UPDATE(!fi->collate_key,
     {
         const char* disp_name = fm_file_info_get_disp_name(fi);
@@ -1197,8 +1247,10 @@ const char* fm_file_info_get_collate_key_nocasefold(FmFileInfo* fi)
  * not be freed. NULL if the file is not a symlink or
  * shortcut.
  */
-const char* fm_file_info_get_target(FmFileInfo* fi)
+const char * fm_file_info_get_target(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     return fi->target;
 }
 
@@ -1211,8 +1263,10 @@ const char* fm_file_info_get_target(FmFileInfo* fi)
  * Returns: a const string owned by FmFileInfo which should
  * not be freed.
  */
-const char* fm_file_info_get_desc(FmFileInfo* fi)
+const char * fm_file_info_get_desc(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     /* FIXME: how to handle descriptions for virtual files without mime-tyoes? */
     return fm_file_info_get_mime_type(fi) ? fm_mime_type_get_desc(fm_file_info_get_mime_type(fi)) : NULL;
 }
@@ -1227,8 +1281,10 @@ const char* fm_file_info_get_desc(FmFileInfo* fi)
  * Returns: a const string owned by FmFileInfo which should
  * not be freed.
  */
-const char* fm_file_info_get_disp_mtime(FmFileInfo* fi)
+const char * fm_file_info_get_disp_mtime(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     if (fi->mtime > 0)
     {
         FAST_UPDATE(!fi->disp_mtime,
@@ -1251,6 +1307,8 @@ const char* fm_file_info_get_disp_mtime(FmFileInfo* fi)
  */
 time_t fm_file_info_get_mtime(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     return fi->mtime;
 }
 
@@ -1262,6 +1320,8 @@ time_t fm_file_info_get_mtime(FmFileInfo* fi)
  */
 time_t fm_file_info_get_atime(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     return fi->atime;
 }
 
@@ -1273,6 +1333,8 @@ time_t fm_file_info_get_atime(FmFileInfo* fi)
  */
 uid_t fm_file_info_get_uid(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, -1);
+
     return fi->uid;
 }
 
@@ -1284,6 +1346,8 @@ uid_t fm_file_info_get_uid(FmFileInfo* fi)
  */
 gid_t fm_file_info_get_gid(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, -1);
+
     return fi->gid;
 }
 
@@ -1299,8 +1363,10 @@ gid_t fm_file_info_get_gid(FmFileInfo* fi)
  * Returns: a const string owned by FmFileInfo which should
  * not be freed.
  */
-const char* fm_file_info_get_fs_id(FmFileInfo* fi)
+const char * fm_file_info_get_fs_id(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     return fi->fs_id;
 }
 
@@ -1317,6 +1383,8 @@ const char* fm_file_info_get_fs_id(FmFileInfo* fi)
  */
 dev_t fm_file_info_get_dev(FmFileInfo* fi)
 {
+    g_return_val_if_fail(fi, 0);
+
     return fi->dev;
 }
 
