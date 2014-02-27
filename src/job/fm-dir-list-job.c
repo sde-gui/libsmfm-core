@@ -273,48 +273,11 @@ static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
 
 static gboolean fm_dir_list_job_run_gio(FmDirListJob* job)
 {
-    GFileEnumerator *enu;
-    GFileInfo *inf;
-    FmFileInfo* fi;
-    GError *err = NULL;
-    FmJob* fmjob = FM_JOB(job);
-    GFile* gf;
-    const char* query;
+    GError * err = NULL;
+    FmJob * fmjob = FM_JOB(job);
 
-    gf = fm_path_to_gfile(job->dir_path);
-_retry:
-    inf = g_file_query_info(gf, gfile_info_query_attribs, 0, fm_job_get_cancellable(fmjob), &err);
-    if(!inf )
-    {
-        FmJobErrorAction act = fm_job_emit_error(fmjob, err, FM_JOB_ERROR_MODERATE);
-        g_error_free(err);
-        if( act == FM_JOB_RETRY )
-        {
-            err = NULL;
-            goto _retry;
-        }
-        else
-        {
-            g_object_unref(gf);
-            return FALSE;
-        }
-    }
-
-    if( g_file_info_get_file_type(inf) != G_FILE_TYPE_DIRECTORY)
-    {
-        err = g_error_new(G_IO_ERROR, G_IO_ERROR_NOT_DIRECTORY, _("The specified directory is not valid"));
-        fm_job_emit_error(fmjob, err, FM_JOB_ERROR_CRITICAL);
-        g_error_free(err);
-        g_object_unref(gf);
-        g_object_unref(inf);
-        return FALSE;
-    }
-
-    /* FIXME: should we use fm_file_info_new + fm_file_info_set_from_gfileinfo? */
-    job->dir_fi = fm_file_info_new_from_gfileinfo(job->dir_path, inf);
-    g_object_unref(inf);
-
-    if(G_UNLIKELY(job->dir_only))
+    const char * query;
+    if (job->dir_only)
     {
         query = G_FILE_ATTRIBUTE_STANDARD_TYPE","G_FILE_ATTRIBUTE_STANDARD_NAME","
                 G_FILE_ATTRIBUTE_STANDARD_IS_HIDDEN","G_FILE_ATTRIBUTE_STANDARD_IS_BACKUP","
@@ -324,61 +287,125 @@ _retry:
                 "unix::*,time::*,access::*,id::filesystem";
     }
     else
-        query = gfile_info_query_attribs;
-
-    enu = g_file_enumerate_children (gf, query, 0, fm_job_get_cancellable(fmjob), &err);
-    g_object_unref(gf);
-    if(enu)
     {
-        while( ! fm_job_is_cancelled(fmjob) )
-        {
-            inf = g_file_enumerator_next_file(enu, fm_job_get_cancellable(fmjob), &err);
-            if(inf)
-            {
-                FmPath *dir, *sub;
-                if(G_UNLIKELY(job->dir_only))
-                {
-                    /* FIXME: handle symlinks */
-                    if(g_file_info_get_file_type(inf) != G_FILE_TYPE_DIRECTORY)
-                    {
-                        g_object_unref(inf);
-                        continue;
-                    }
-                }
-
-                /* virtual folders may return childs not within them */
-                dir = fm_path_new_for_gfile(g_file_enumerator_get_container(enu));
-                sub = fm_path_new_child(dir, g_file_info_get_name(inf));
-                fi = fm_file_info_new_from_gfileinfo(sub, inf);
-                fm_path_unref(sub);
-                fm_path_unref(dir);
-                fm_dir_list_job_add_found_file(job, fi);
-                fm_file_info_unref(fi);
-            }
-            else
-            {
-                if(err)
-                {
-                    FmJobErrorAction act = fm_job_emit_error(fmjob, err, FM_JOB_ERROR_MILD);
-                    g_error_free(err);
-                    /* FM_JOB_RETRY is not supported. */
-                    if(act == FM_JOB_ABORT)
-                        fm_job_cancel(fmjob);
-                }
-                break; /* FIXME: error handling */
-            }
-            g_object_unref(inf);
-        }
-        g_file_enumerator_close(enu, NULL, &err);
-        g_object_unref(enu);
+        query = gfile_info_query_attribs;
     }
-    else
+
+    GFile * dir_gf = NULL;
+    GFileInfo * dir_ginfo = NULL;
+    GFileEnumerator * dir_enumerator = NULL;
+    GFileInfo * child_ginfo = NULL;
+
+    #define G_ERROR_FREE(object) do { \
+        if (object)\
+        {\
+            g_error_free(object);\
+            object = NULL;\
+        }\
+    } while (0)
+
+    #define UNREF(object) do { \
+        if (object)\
+        {\
+            g_object_unref(object);\
+            object = NULL;\
+        }\
+    } while (0)
+
+    #define CLEANUP() do { \
+        UNREF(dir_gf);\
+        UNREF(dir_ginfo);\
+        UNREF(dir_enumerator);\
+        UNREF(child_ginfo);\
+    } while (0)
+
+_retry:
+
+    CLEANUP();
+
+    dir_gf = fm_path_to_gfile(job->dir_path);
+
+    dir_ginfo = g_file_query_info(dir_gf, gfile_info_query_attribs, 0, fm_job_get_cancellable(fmjob), &err);
+    if (!dir_ginfo)
+    {
+        FmJobErrorAction action = fm_job_emit_error(fmjob, err, FM_JOB_ERROR_MODERATE);
+        G_ERROR_FREE(err);
+        if (action == FM_JOB_RETRY)
+            goto _retry;
+        else
+            goto do_abort;
+    }
+
+    if (g_file_info_get_file_type(dir_ginfo) != G_FILE_TYPE_DIRECTORY)
+    {
+        err = g_error_new(G_IO_ERROR, G_IO_ERROR_NOT_DIRECTORY, _("The specified directory is not valid"));
+        fm_job_emit_error(fmjob, err, FM_JOB_ERROR_CRITICAL);
+        G_ERROR_FREE(err);
+        goto do_abort;
+    }
+
+    job->dir_fi = fm_file_info_new_from_gfileinfo(job->dir_path, dir_ginfo);
+
+    dir_enumerator = g_file_enumerate_children(dir_gf, query, 0, fm_job_get_cancellable(fmjob), &err);
+
+    if (!dir_enumerator)
     {
         fm_job_emit_error(fmjob, err, FM_JOB_ERROR_CRITICAL);
-        g_error_free(err);
-        return FALSE;
+        G_ERROR_FREE(err);
+        goto do_abort;
     }
+
+    while (!fm_job_is_cancelled(fmjob))
+    {
+        child_ginfo = g_file_enumerator_next_file(dir_enumerator, fm_job_get_cancellable(fmjob), &err);
+
+        if (child_ginfo)
+        {
+            if (job->dir_only)
+            {
+                /* FIXME: handle symlinks */
+                if (g_file_info_get_file_type(child_ginfo) != G_FILE_TYPE_DIRECTORY)
+                {
+                    UNREF(child_ginfo);
+                    continue;
+                }
+            }
+
+            /* virtual folders may return childs not within them */
+            FmPath * dir = fm_path_new_for_gfile(g_file_enumerator_get_container(dir_enumerator));
+            FmPath * sub = fm_path_new_child(dir, g_file_info_get_name(child_ginfo));
+            FmFileInfo * fi = fm_file_info_new_from_gfileinfo(sub, child_ginfo);
+            fm_dir_list_job_add_found_file(job, fi);
+            fm_file_info_unref(fi);
+            fm_path_unref(sub);
+            fm_path_unref(dir);
+        }
+        else
+        {
+            if (!err)
+                break;
+
+            FmJobErrorAction action = fm_job_emit_error(fmjob, err, FM_JOB_ERROR_MILD);
+            G_ERROR_FREE(err);
+            if (action == FM_JOB_RETRY)
+                goto _retry;
+            else if (action == FM_JOB_ABORT)
+                goto do_abort;
+        }
+        UNREF(child_ginfo);
+    }
+
+    CLEANUP();
     return TRUE;
+
+do_abort:
+
+    CLEANUP();
+    return FALSE;
+
+    #undef CLEANUP
+    #undef UNREF
+    #undef G_ERROR_FREE
 }
 
 static gboolean fm_dir_list_job_run(FmJob* fmjob)
