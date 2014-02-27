@@ -74,61 +74,67 @@ gboolean    fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, 
 
 /*****************************************************************************/
 
-FmFileInfo* fm_file_info_ref( FmFileInfo* fi );
-void        fm_file_info_unref( FmFileInfo* fi );
+FmFileInfo* fm_file_info_ref(FmFileInfo * fi);
+void        fm_file_info_unref(FmFileInfo * fi);
 
 /*****************************************************************************/
 
 void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src);
 
-FmPath* fm_file_info_get_path( FmFileInfo* fi );
-const char* fm_file_info_get_name( FmFileInfo* fi );
-const char* fm_file_info_get_disp_name( FmFileInfo* fi );
-
 void fm_file_info_set_path(FmFileInfo* fi, FmPath* path);
 
-goffset fm_file_info_get_size( FmFileInfo* fi );
-const char* fm_file_info_get_disp_size( FmFileInfo* fi );
-
-goffset fm_file_info_get_blocks( FmFileInfo* fi );
-
-mode_t fm_file_info_get_mode( FmFileInfo* fi );
-
-gboolean fm_file_info_is_native(FmFileInfo* fi);
-
-FmMimeType* fm_file_info_get_mime_type( FmFileInfo* fi );
-
-gboolean fm_file_info_is_directory( FmFileInfo* fi );
-gboolean fm_file_info_is_symlink( FmFileInfo* fi );
-gboolean fm_file_info_is_shortcut( FmFileInfo* fi );
-gboolean fm_file_info_is_mountable( FmFileInfo* fi );
-gboolean fm_file_info_is_image( FmFileInfo* fi );
-gboolean fm_file_info_is_text( FmFileInfo* fi );
-gboolean fm_file_info_is_desktop_entry( FmFileInfo* fi );
-gboolean fm_file_info_is_unknown_type( FmFileInfo* fi );
-gboolean fm_file_info_is_hidden(FmFileInfo* fi);
-
-gboolean fm_file_info_is_executable_type( FmFileInfo* fi);
-gboolean fm_file_info_is_accessible(FmFileInfo* fi);
-
-const char* fm_file_info_get_target( FmFileInfo* fi );
-
-const char* fm_file_info_get_collate_key( FmFileInfo* fi );
-const char* fm_file_info_get_collate_key_nocasefold(FmFileInfo* fi);
-const char* fm_file_info_get_desc( FmFileInfo* fi );
-const char* fm_file_info_get_disp_mtime( FmFileInfo* fi );
-time_t fm_file_info_get_mtime( FmFileInfo* fi );
-time_t fm_file_info_get_atime( FmFileInfo* fi );
-FmIcon* fm_file_info_get_icon( FmFileInfo* fi );
-uid_t fm_file_info_get_uid( FmFileInfo* fi );
-gid_t fm_file_info_get_gid( FmFileInfo* fi );
-const char* fm_file_info_get_fs_id( FmFileInfo* fi );
-dev_t fm_file_info_get_dev( FmFileInfo* fi );
-
-gboolean fm_file_info_can_thumbnail(FmFileInfo* fi);
-
-unsigned long fm_file_info_get_color(FmFileInfo* fi);
 void fm_file_info_set_color(FmFileInfo* fi, unsigned long color);
+
+/*****************************************************************************/
+
+FmPath *      fm_file_info_get_path(FmFileInfo* fi);
+
+const char *  fm_file_info_get_name(FmFileInfo* fi);
+const char *  fm_file_info_get_disp_name(FmFileInfo* fi);
+
+const char *  fm_file_info_get_desc(FmFileInfo * fi);
+const char *  fm_file_info_get_disp_mtime(FmFileInfo * fi);
+
+goffset       fm_file_info_get_size(FmFileInfo* fi);
+const char *  fm_file_info_get_disp_size(FmFileInfo* fi);
+goffset       fm_file_info_get_blocks(FmFileInfo * fi);
+
+mode_t        fm_file_info_get_mode(FmFileInfo * fi);
+time_t        fm_file_info_get_mtime(FmFileInfo * fi);
+time_t        fm_file_info_get_atime(FmFileInfo * fi);
+FmIcon *      fm_file_info_get_icon(FmFileInfo * fi);
+uid_t         fm_file_info_get_uid(FmFileInfo * fi);
+gid_t         fm_file_info_get_gid(FmFileInfo * fi);
+const char *  fm_file_info_get_fs_id(FmFileInfo * fi);
+dev_t         fm_file_info_get_dev(FmFileInfo * fi);
+
+gboolean      fm_file_info_is_native(FmFileInfo * fi);
+
+FmMimeType *  fm_file_info_get_mime_type(FmFileInfo * fi);
+
+gboolean      fm_file_info_is_directory(FmFileInfo * fi);
+gboolean      fm_file_info_is_symlink(FmFileInfo * fi);
+gboolean      fm_file_info_is_shortcut(FmFileInfo * fi);
+gboolean      fm_file_info_is_mountable(FmFileInfo * fi);
+gboolean      fm_file_info_is_image(FmFileInfo * fi);
+gboolean      fm_file_info_is_text(FmFileInfo * fi);
+gboolean      fm_file_info_is_desktop_entry(FmFileInfo * fi);
+gboolean      fm_file_info_is_unknown_type(FmFileInfo * fi);
+gboolean      fm_file_info_is_hidden(FmFileInfo * fi);
+
+gboolean      fm_file_info_is_executable_type(FmFileInfo * fi);
+gboolean      fm_file_info_is_accessible(FmFileInfo* fi);
+
+const char *  fm_file_info_get_target(FmFileInfo * fi);
+
+const char *  fm_file_info_get_collate_key(FmFileInfo * fi);
+const char *  fm_file_info_get_collate_key_nocasefold(FmFileInfo * fi);
+
+gboolean      fm_file_info_can_thumbnail(FmFileInfo * fi);
+
+unsigned long fm_file_info_get_color(FmFileInfo * fi);
+
+/*****************************************************************************/
 
 #define FM_FILE_INFO(ptr)    ((FmFileInfo*)ptr)
 
