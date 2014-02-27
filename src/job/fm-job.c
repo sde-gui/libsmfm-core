@@ -99,6 +99,8 @@ static void fm_job_emit_cancelled(FmJob* job)
     g_signal_emit(job, signals[CANCELLED], 0);
 }
 
+/*****************************************************************************/
+
 static void fm_job_dispose(GObject *object)
 {
     FmJob *self;
@@ -253,6 +255,8 @@ static void fm_job_finalize(GObject *object)
     }
     G_UNLOCK(thread_pool);
 }
+
+/*****************************************************************************/
 
 static gboolean fm_job_real_run_async(FmJob* job)
 {
