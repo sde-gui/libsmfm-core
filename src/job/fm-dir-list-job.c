@@ -450,7 +450,6 @@ FmFileInfo* fm_dir_list_job_get_dir_info(FmDirListJob* job)
  * only from #FmJob::finished signal handler. Returned data is owned by
  * the @job and should be not freed by caller.
  *
- * Before 1.0.1 this call had name fm_dir_dist_job_get_files due to typo.
  *
  * Returns: (transfer none): list of gathered data.
  *
@@ -460,25 +459,6 @@ FmFileInfoList* fm_dir_list_job_get_files(FmDirListJob* job)
 {
     return job->files;
 }
-
-#ifndef FM_DISABLE_DEPRECATED
-/**
- * fm_dir_dist_job_get_files
- * @job: the job that collected listing
- *
- * There is a typo in the function name. It should have been 
- * fm_dir_list_job_get_files(). The one with typo is kept here for backward
- * compatibility and will be removed later.
- *
- * Since: 0.1.0
- *
- * Deprecated: 1.0.1: Use fm_dir_list_job_get_files() instead.
- */
-FmFileInfoList* fm_dir_dist_job_get_files(FmDirListJob* job)
-{
-    return fm_dir_list_job_get_files(job);
-}
-#endif /* FM_DISABLE_DEPRECATED */
 
 #if 0
 void fm_dir_list_job_set_emit_files_found(FmDirListJob* job, gboolean emit_files_found)
