@@ -167,42 +167,6 @@ libsmfm_core_la_LDFLAGS = \
 	$(NULL)
 
 
-# GIO module implementing some extension points
-# This only works for glib < 2.27
-# Glib >= 2.27 uses x-scheme-handler.
-if !HAVE_SCHEME_HANDLER
-
-giomodules_LTLIBRARIES = libgiosmfm.la
-
-libgiosmfm_la_SOURCES= \
-	$(glib_compat_SOURCES) \
-	gio/module.c \
-	gio/fm-app-lookup.c \
-	gio/fm-app-lookup.h \
-	$(NULL)
-
-libgiosmfm_la_CFLAGS = \
-	$(GIO_CFLAGS) \
-	-DGIO_MODULE_DIR=\"$(giomodulesdir)\"	\
-	-DGVFS_LOCALEDIR=\""$(localedir)"\"	\
-	-DG_DISABLE_DEPRECATED \
-	$(NULL)
-
-libgiosmfm_la_LDFLAGS = 	\
-	-export_dynamic \
-	-avoid-version \
-	-module \
-	-no-undefined \
-	-export-symbols-regex '^g_io_module_(load|unload|query)'
-	$(NULL)
-
-libgiosmfm_la_LIBADD = \
-	$(GIO_LIBS) \
-	$(INTLLIBS) \
-	$(NULL)
-
-endif
-
 
 # GObject marshallers
 base/fm-marshal.h: base/fm-marshal.list
