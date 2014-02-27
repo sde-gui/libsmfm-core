@@ -81,7 +81,6 @@ void        fm_file_info_unref( FmFileInfo* fi );
 
 void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src);
 
-/** returned FmPath shouldn't be unref by caller */
 FmPath* fm_file_info_get_path( FmFileInfo* fi );
 const char* fm_file_info_get_name( FmFileInfo* fi );
 const char* fm_file_info_get_disp_name( FmFileInfo* fi );
@@ -100,24 +99,15 @@ gboolean fm_file_info_is_native(FmFileInfo* fi);
 FmMimeType* fm_file_info_get_mime_type( FmFileInfo* fi );
 
 gboolean fm_file_info_is_directory( FmFileInfo* fi );
-
 gboolean fm_file_info_is_symlink( FmFileInfo* fi );
-
 gboolean fm_file_info_is_shortcut( FmFileInfo* fi );
-
 gboolean fm_file_info_is_mountable( FmFileInfo* fi );
-
 gboolean fm_file_info_is_image( FmFileInfo* fi );
-
 gboolean fm_file_info_is_text( FmFileInfo* fi );
-
 gboolean fm_file_info_is_desktop_entry( FmFileInfo* fi );
-
 gboolean fm_file_info_is_unknown_type( FmFileInfo* fi );
-
 gboolean fm_file_info_is_hidden(FmFileInfo* fi);
 
-/* if the mime-type is executable, such as shell script, python script, ... */
 gboolean fm_file_info_is_executable_type( FmFileInfo* fi);
 gboolean fm_file_info_is_accessible(FmFileInfo* fi);
 
@@ -140,75 +130,10 @@ gboolean fm_file_info_can_thumbnail(FmFileInfo* fi);
 unsigned long fm_file_info_get_color(FmFileInfo* fi);
 void fm_file_info_set_color(FmFileInfo* fi, unsigned long color);
 
-FmFileInfoList* fm_file_info_list_new();
-//FmFileInfoList* fm_file_info_list_new_from_glist();
-
-#ifndef __GTK_DOC_IGNORE__
-static inline FmFileInfoList* fm_file_info_list_ref(FmFileInfoList* list)
-{
-    return list ? (FmFileInfoList*)fm_list_ref((FmList*)list) : NULL;
-}
-static inline void fm_file_info_list_unref(FmFileInfoList* list)
-{
-    if(list == NULL) return;
-    fm_list_unref((FmList*)list);
-}
-
-static inline gboolean fm_file_info_list_is_empty(FmFileInfoList* list)
-{
-    return fm_list_is_empty((FmList*)list);
-}
-static inline guint fm_file_info_list_get_length(FmFileInfoList* list)
-{
-    return fm_list_get_length((FmList*)list);
-}
-static inline FmFileInfo* fm_file_info_list_peek_head(FmFileInfoList* list)
-{
-    return (FmFileInfo*)fm_list_peek_head((FmList*)list);
-}
-static inline GList* fm_file_info_list_peek_head_link(FmFileInfoList* list)
-{
-    return fm_list_peek_head_link((FmList*)list);
-}
-
-static inline void fm_file_info_list_push_tail(FmFileInfoList* list, FmFileInfo* d)
-{
-    fm_list_push_tail((FmList*)list,d);
-}
-static inline void fm_file_info_list_push_tail_link(FmFileInfoList* list, GList* d)
-{
-    fm_list_push_tail_link((FmList*)list,d);
-}
-static inline void fm_file_info_list_push_tail_noref(FmFileInfoList* list, FmFileInfo* d)
-{
-    fm_list_push_tail_noref((FmList*)list,d);
-}
-static inline FmFileInfo* fm_file_info_list_pop_head(FmFileInfoList* list)
-{
-    return (FmFileInfo*)fm_list_pop_head((FmList*)list);
-}
-static inline void fm_file_info_list_delete_link(FmFileInfoList* list, GList* _l)
-{
-    fm_list_delete_link((FmList*)list,_l);
-}
-static inline void fm_file_info_list_delete_link_nounref(FmFileInfoList* list, GList* _l)
-{
-    fm_list_delete_link_nounref((FmList*)list,_l);
-}
-static inline void fm_file_info_list_clear(FmFileInfoList* list)
-{
-    fm_list_clear((FmList*)list);
-}
-#endif /* __GTK_DOC_IGNORE__ */
-
-/* return TRUE if all files in the list are of the same type */
-gboolean fm_file_info_list_is_same_type(FmFileInfoList* list);
-
-/* return TRUE if all files in the list are on the same fs */
-gboolean fm_file_info_list_is_same_fs(FmFileInfoList* list);
-
 #define FM_FILE_INFO(ptr)    ((FmFileInfo*)ptr)
 
 G_END_DECLS
+
+#include "fm-file-info-list.h"
 
 #endif

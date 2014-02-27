@@ -52,6 +52,7 @@ base_SOURCES = \
 	base/fm-path.c \
 	base/fm-folder.c \
 	base/fm-file-info.c \
+	base/fm-file-info-list.c \
 	base/fm-file-info-deferred-load-worker.c \
 	base/fm-highlighter.c \
 	base/fm-highlighter.h \
@@ -104,6 +105,7 @@ libsmfminclude_HEADERS = \
 	base/fm-path.h \
 	base/fm-folder.h \
 	base/fm-file-info.h \
+	base/fm-file-info-list.h \
 	base/fm-file-info-deferred-load-worker.h \
 	base/fm-mime-type.h \
 	base/fm-utils.h \
