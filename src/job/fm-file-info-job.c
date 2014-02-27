@@ -102,20 +102,16 @@ static void fm_file_info_job_init(FmFileInfoJob *self)
  */
 FmFileInfoJob* fm_file_info_job_new(FmPathList* files_to_query, FmFileInfoJobFlags flags)
 {
-    GList* l;
     FmFileInfoJob* job = (FmFileInfoJob*)g_object_new(FM_TYPE_FILE_INFO_JOB, NULL);
-    FmFileInfoList* file_infos;
 
     job->flags = flags;
     if(files_to_query)
     {
-        file_infos = job->file_infos;
+        GList* l;
         for(l = fm_path_list_peek_head_link(files_to_query);l;l=l->next)
         {
             FmPath* path = FM_PATH(l->data);
-            FmFileInfo* fi = fm_file_info_new();
-            fm_file_info_set_path(fi, path);
-            fm_file_info_list_push_tail_noref(file_infos, fi);
+            fm_file_info_job_add(job, path);
         }
     }
     return job;
@@ -234,10 +230,8 @@ void fm_file_info_job_add(FmFileInfoJob* job, FmPath* path)
 void fm_file_info_job_add_gfile(FmFileInfoJob* job, GFile* gf)
 {
     FmPath* path = fm_path_new_for_gfile(gf);
-    FmFileInfo* fi = fm_file_info_new();
-    fm_file_info_set_path(fi, path);
+    fm_file_info_job_add(job, path);
     fm_path_unref(path);
-    fm_file_info_list_push_tail_noref(job->file_infos, fi);
 }
 
 /**
