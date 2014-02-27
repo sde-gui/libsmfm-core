@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <ctype.h>
 
 #ifdef HAVE_MMAP
 #include <sys/mman.h>
@@ -119,6 +120,109 @@ FmMimeType* fm_mime_type_from_file_name(const char* ufile_name)
     return mime_type;
 }
 
+/*****************************************************************************/
+
+#define HAS_PREFIX(buf, prefix) (memcmp(buf, prefix, sizeof(prefix) - 1) == 0)
+
+const char * _fast_content_type_guess_script(const char * base_name, const guchar * buf, guint len, struct stat * st)
+{
+    //const char * _buf = (const char *) buf;
+
+    const char * result = NULL;
+
+    if (buf[0] != '#' || buf[1] != '!')
+        return result;
+    buf += 2;
+
+    while (*buf == ' ')
+        buf++;
+
+    if (HAS_PREFIX(buf, "/bin/sh\n") || HAS_PREFIX(buf, "/bin/bash\n"))
+    {
+        result = "text/x-shellscript";
+    }
+    else
+    {
+        const char * r = NULL;
+
+        int offset = 0;
+        if (HAS_PREFIX(buf, "/usr/bin/env "))
+            offset = sizeof("/usr/bin/env ") - 1;
+        else if (HAS_PREFIX(buf, "/usr/bin/"))
+            offset = sizeof("/usr/bin/") - 1;
+        else if (HAS_PREFIX(buf, "/bin/"))
+            offset = sizeof("/bin/") - 1;
+
+        if (offset)
+        {
+            if (HAS_PREFIX(buf + offset, "perl"))
+            {
+                offset += sizeof("perl") - 1;
+                r = "text/x-perl";
+            }
+            else if (HAS_PREFIX(buf + offset, "python"))
+            {
+                offset += sizeof("python") - 1;
+                r = "text/x-python";
+            }
+            else if (HAS_PREFIX(buf + offset, "ruby"))
+            {
+                offset += sizeof("ruby") - 1;
+                r = "text/x-ruby";
+            }
+        }
+
+        if (r)
+        {
+
+            while (buf[offset] == '.' || isdigit(buf[offset])) {offset++;}
+
+            if (buf[offset] == ' ' || buf[offset] == '\n')
+                result = r;
+        }
+    }
+
+/*
+    if (result)
+    {
+        char * eol = strchr(_buf, '\n');
+        if (eol)
+            *eol = 0;
+        g_print("%s: '%s' => %s (%s)\n", __FUNCTION__, _buf, result, base_name);
+    }
+*/
+
+    return result;
+}
+
+gchar * _fast_content_type_guess(const char * base_name, const guchar * buf, guint len, struct stat * st)
+{
+    const char * result = NULL;
+
+    if (st->st_mode & (S_IXUSR | S_IXGRP | S_IXOTH) && len > 30)
+    {
+        result = _fast_content_type_guess_script(base_name, buf, len, st);
+
+        if (!result && (HAS_PREFIX(buf, "\x7F""ELF")))
+        {
+            if (strcmp(base_name, "core") == 0)
+                result = "application/x-core";
+            if (strstr(base_name, ".so") == 0)
+                result = "application/x-executable";
+        }
+
+    }
+
+    if (result)
+        g_debug("%s: '%s' => %s\n", __FUNCTION__, base_name, result);
+
+    return result ? g_strdup(result) : NULL;
+}
+
+#undef HAS_PREFIX
+
+/*****************************************************************************/
+
 /**
  * fm_mime_type_from_native_file
  * @file_path: full path to file
@@ -156,7 +260,7 @@ FmMimeType* fm_mime_type_from_native_file(const char* file_path,
         char* type = g_content_type_guess(base_name, NULL, 0, &uncertain);
         if(uncertain)
         {
-            int fd, len;
+            int fd;
             if(pstat->st_size == 0) /* empty file = text file with 0 characters in it. */
             {
                 g_free(type);
@@ -186,11 +290,17 @@ FmMimeType* fm_mime_type_from_native_file(const char* file_path,
                 }
             #else
             */
-                char buf[4096];
+
                 //g_print("reading file %s\n", base_name);
-                len = read(fd, buf, MIN(pstat->st_size, 4096));
+                char buf[4097];
+                ssize_t len = read(fd, buf, MIN(pstat->st_size, 4096));
+                buf[len] = 0;
+
                 g_free(type);
-                type = g_content_type_guess(NULL, (guchar*)buf, len, &uncertain);
+                type = _fast_content_type_guess(base_name, (guchar*)buf, len, &st);
+                if (!type)
+                    type = g_content_type_guess(NULL, (guchar*)buf, len, &uncertain);
+
             /* #endif */
                 close(fd);
             }
