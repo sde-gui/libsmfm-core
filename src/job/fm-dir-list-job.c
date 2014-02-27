@@ -39,6 +39,8 @@
 #include <gio/gio.h>
 #include <string.h>
 #include <glib/gstdio.h>
+#include <dirent.h>
+#include <errno.h>
 #include "fm-mime-type.h"
 #include "fm-file-info-job.h"
 #include "glib-compat.h"
@@ -180,13 +182,26 @@ static void fm_dir_list_job_dispose(GObject *object)
         (* G_OBJECT_CLASS(fm_dir_list_job_parent_class)->dispose)(object);
 }
 
+static DIR * opendir_with_error(const char * path, GError ** error)
+{
+    DIR * dir = opendir(path);
+    if (!dir)
+    {
+        gint saved_errno = errno;
+        g_set_error(error, G_FILE_ERROR, g_file_error_from_errno(saved_errno),
+                    _("Error opening directory '%s': %s"), path, g_strerror(saved_errno));
+    }
+
+    return dir;
+}
+
 static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
 {
     FmJob* fmjob = FM_JOB(job);
     FmFileInfo* fi;
     GError *err = NULL;
     char* path_str;
-    GDir* dir;
+    DIR * dir = NULL;
 
     path_str = fm_path_to_str(job->dir_path);
 
@@ -215,10 +230,10 @@ static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
         return FALSE;
     }
 
-    dir = g_dir_open(path_str, 0, &err);
-    if( dir )
+    dir = opendir_with_error(path_str, &err);
+    if (dir)
     {
-        const char* name;
+        struct dirent * entry;
         GString* fpath = g_string_sized_new(4096);
         int dir_len = strlen(path_str);
         g_string_append_len(fpath, path_str, dir_len);
@@ -227,13 +242,15 @@ static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
             g_string_append_c(fpath, '/');
             ++dir_len;
         }
-        while( ! fm_job_is_cancelled(fmjob) && (name = g_dir_read_name(dir)) )
+        while ( !fm_job_is_cancelled(fmjob) && (entry = readdir(dir)) )
         {
+            const char* name = entry->d_name;
+
             FmPath* new_path;
             g_string_truncate(fpath, dir_len);
             g_string_append(fpath, name);
 
-            if(job->dir_only) /* if we only want directories */
+            if (job->dir_only) /* if we only want directories */
             {
                 struct stat st;
                 /* FIXME: this results in an additional stat() call, which is inefficient */
@@ -260,7 +277,7 @@ static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
             fm_file_info_unref(fi);
         }
         g_string_free(fpath, TRUE);
-        g_dir_close(dir);
+        closedir(dir);
     }
     else
     {
