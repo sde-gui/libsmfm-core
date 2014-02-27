@@ -70,6 +70,8 @@ FmFileInfo* fm_file_info_new_from_gfileinfo(FmPath* path, GFileInfo* inf);
 void        fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf);
 gboolean    fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GError** err);
 
+void        fm_file_info_set_path(FmFileInfo* fi, FmPath* path);
+
 /*****************************************************************************/
 
 FmFileInfo* fm_file_info_ref(FmFileInfo * fi);
@@ -78,8 +80,6 @@ void        fm_file_info_unref(FmFileInfo * fi);
 /*****************************************************************************/
 
 void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src);
-
-void fm_file_info_set_path(FmFileInfo* fi, FmPath* path);
 
 void fm_file_info_set_color(FmFileInfo* fi, unsigned long color);
 

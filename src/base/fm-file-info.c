@@ -183,6 +183,25 @@ FmFileInfo* fm_file_info_new ()
 }
 
 /**
+ * fm_file_info_set_path:
+ * @fi:  A FmFileInfo struct
+ * @path: a FmPath struct
+ *
+ * Change the path of the FmFileInfo.
+ */
+void fm_file_info_set_path(FmFileInfo* fi, FmPath* path)
+{
+    if(fi->path)
+        fm_path_unref(fi->path);
+
+    if(path)
+        fi->path = fm_path_ref(path);
+    else
+        fi->path = NULL;
+}
+
+
+/**
  * fm_file_info_set_from_native_file:
  * @fi:  A FmFileInfo struct
  * @path:  full path of the file
@@ -801,24 +820,6 @@ const char* fm_file_info_get_disp_name(FmFileInfo* fi)
     g_return_val_if_fail(fi, 0);
 
     return G_LIKELY(!fi->disp_name) ? fm_path_get_basename(fi->path) : fi->disp_name;
-}
-
-/**
- * fm_file_info_set_path:
- * @fi:  A FmFileInfo struct
- * @path: a FmPath struct
- *
- * Change the path of the FmFileInfo.
- */
-void fm_file_info_set_path(FmFileInfo* fi, FmPath* path)
-{
-    if(fi->path)
-        fm_path_unref(fi->path);
-
-    if(path)
-        fi->path = fm_path_ref(path);
-    else
-        fi->path = NULL;
 }
 
 /**
