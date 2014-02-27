@@ -128,8 +128,8 @@ struct _FmFileInfo
 
     gboolean color_loaded : 1;
     gboolean from_native_file : 1;
-    gboolean deferred_icon_load : 1;
-    gboolean deferred_mime_type_load : 1;
+    gboolean icon_load_done : 1;
+    gboolean mime_type_load_done : 1;
 
     char * native_path;
 
@@ -523,8 +523,8 @@ static void fm_file_info_clear(FmFileInfo* fi)
     }
 
     fi->from_native_file = FALSE;
-    fi->deferred_icon_load = FALSE;
-    fi->deferred_mime_type_load = FALSE;
+    fi->icon_load_done = FALSE;
+    fi->mime_type_load_done = FALSE;
 }
 
 /**
@@ -579,8 +579,6 @@ gboolean fm_file_info_only_one_ref(FmFileInfo* fi)
  */
 void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
 {
-    //g_print("fm_file_info_update\n");
-
     FmPath* tmp_path = fm_path_ref(src->path);
     FmMimeType* tmp_type = fm_mime_type_ref(src->mime_type);
     FmIcon* tmp_icon = fm_icon_ref(src->icon);
@@ -621,8 +619,8 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
     fi->disp_mtime = g_strdup(src->disp_mtime);
 
     fi->from_native_file = src->from_native_file;
-    fi->deferred_icon_load = src->deferred_icon_load;
-    fi->deferred_mime_type_load = src->deferred_mime_type_load;
+    fi->icon_load_done = src->icon_load_done;
+    fi->mime_type_load_done = src->mime_type_load_done;
     fi->native_path = g_strdup(src->native_path);
 }
 
@@ -645,13 +643,13 @@ static void deferred_icon_load(FmFileInfo* fi)
 
     G_LOCK(deferred_icon_load);
 
-    if (fi->icon || fi->deferred_icon_load || !fi->from_native_file)
+    if (fi->icon || fi->icon_load_done || !fi->from_native_file)
     {
         G_UNLOCK(deferred_icon_load);
         return;
     }
 
-    fi->deferred_icon_load = TRUE;
+    fi->icon_load_done = TRUE;
 
     const char * path = fi->native_path;
 
@@ -691,20 +689,17 @@ static void deferred_mime_type_load(FmFileInfo* fi)
 
     G_LOCK(deferred_mime_type_load);
 
-    if (fi->mime_type || fi->deferred_mime_type_load || !fi->from_native_file)
+    if (fi->mime_type || fi->mime_type_load_done || !fi->from_native_file)
     {
         G_UNLOCK(deferred_mime_type_load);
         return;
     }
 
-    fi->deferred_mime_type_load = TRUE;
+    fi->mime_type_load_done = TRUE;
 
-    //g_print("deferred_mime_type_load: %s\n", fi->native_path);
+    g_debug("%s: %s", __FUNCTION__, fi->native_path);
 
     fi->mime_type = fm_mime_type_from_native_file(fi->native_path, fm_file_info_get_disp_name(fi), NULL);
-
-    /*if (!fi->mime_type)
-        g_print("fi->mime_type == NULL\n");*/
 
     G_UNLOCK(deferred_mime_type_load);
 }
