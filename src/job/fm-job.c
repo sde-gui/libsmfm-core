@@ -707,16 +707,23 @@ static gpointer error_in_main_thread(FmJob* job, gpointer input_data)
  */
 FmJobErrorAction fm_job_emit_error(FmJob* job, GError* err, FmJobErrorSeverity severity)
 {
-    FmJobErrorAction ret;
+    if (!err)
+    {
+        g_debug("%s called with err == NULL, aborting FmJob immediately", __FUNCTION__);
+        fm_job_cancel(job);
+        return FM_JOB_ABORT;
+    }
+
     struct ErrData data;
     data.err = err;
     data.severity = severity;
-    ret = GPOINTER_TO_UINT(fm_job_call_main_thread(job, error_in_main_thread, &data));
-    if(severity == FM_JOB_ERROR_CRITICAL || ret == FM_JOB_ABORT)
+
+    FmJobErrorAction ret = GPOINTER_TO_UINT(fm_job_call_main_thread(job, error_in_main_thread, &data));
+
+    if (severity == FM_JOB_ERROR_CRITICAL || ret == FM_JOB_ABORT)
     {
         ret = FM_JOB_ABORT;
         fm_job_cancel(job);
-        /* FIXME: do we need fm_job_is_aborted()? */
     }
 
     /* If the job is already cancelled, retry is not allowed. */
