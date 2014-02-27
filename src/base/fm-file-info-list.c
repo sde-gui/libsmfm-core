@@ -92,17 +92,17 @@ gboolean fm_file_info_list_is_same_fs(FmFileInfoList* list)
         for(;l;l=l->next)
         {
             FmFileInfo* fi2 = (FmFileInfo*)l->data;
-            gboolean is_native = fm_path_is_native(fi->path);
-            if(is_native != fm_path_is_native(fi2->path))
+            gboolean is_native = fm_file_info_is_native(fi);
+            if (is_native != fm_file_info_is_native(fi2))
                 return FALSE;
-            if(is_native)
+            if (is_native)
             {
-                if(fi->dev != fi2->dev)
+                if (fm_file_info_get_dev(fi) != fm_file_info_get_dev(fi2))
                     return FALSE;
             }
             else
             {
-                if(fi->fs_id != fi2->fs_id)
+                if (fm_file_info_get_fs_id(fi) != fm_file_info_get_fs_id(fi2))
                     return FALSE;
             }
         }
