@@ -134,36 +134,20 @@ struct _FmJobClass
 /* Base type of all file I/O jobs.
  * not directly called by applications. */
 
-/* FmJob*    fm_job_new            (void); */
-GType    fm_job_get_type        (void);
+GType    fm_job_get_type(void);
 
-/* return TRUE if the job is already cancelled */
+/*****************************************************************************/
+
 gboolean fm_job_is_cancelled(FmJob* job);
-
-/* return TRUE if the job is still running */
 gboolean fm_job_is_running(FmJob* job);
 
-
-/* Run a job asynchronously in another working thread, and
- * emit 'finished' signal in the main thread after its termination.
- * The default implementation of FmJob::run_async() create a working
- * thread in thread pool, and calls FmJob::run() in it.
- */
 gboolean fm_job_run_async(FmJob* job);
-
-/* Run a job in current thread in a blocking fashion.
- * A job running synchronously with this function should be unrefed
- * later with g_object_unref when no longer needed. */
 gboolean fm_job_run_sync(FmJob* job);
-
-/* Run a job in current thread in a blocking fashion and an additional 
- * mainloop being created to prevent blocking of user interface.
- * A job running synchronously with this function should be unrefed
- * later with g_object_unref when no longer needed. */
 gboolean fm_job_run_sync_with_mainloop(FmJob* job);
 
-/* Cancel the running job. can be called from any thread. */
-void fm_job_cancel(FmJob* job);
+void     fm_job_cancel(FmJob* job);
+
+/*****************************************************************************/
 
 /* Following APIs are private to FmJob and should only be used in the
  * implementation of classes derived from FmJob.
@@ -216,6 +200,8 @@ FmJobErrorAction fm_job_emit_error(FmJob* job, GError* err, FmJobErrorSeverity s
 gint fm_job_ask(FmJob* job, const char* question, ...);
 gint fm_job_askv(FmJob* job, const char* question, gchar* const *options);
 gint fm_job_ask_valist(FmJob* job, const char* question, va_list options);
+
+/*****************************************************************************/
 
 G_END_DECLS
 
