@@ -116,13 +116,8 @@ struct _ThumbnailCache
 /* FIXME: use thread pool */
 
 /* Lock for loader, generator, and ready queues */
-#if GLIB_CHECK_VERSION(2, 32, 0)
+
 static GRecMutex queue_lock;
-#else
-static GStaticRecMutex queue_lock = G_STATIC_REC_MUTEX_INIT;
-#define g_rec_mutex_lock g_static_rec_mutex_lock
-#define g_rec_mutex_unlock g_static_rec_mutex_unlock
-#endif
 
 /* load generated thumbnails */
 static GQueue loader_queue = G_QUEUE_INIT; /* consists of ThumbnailTask */
@@ -502,9 +497,9 @@ static gpointer load_thumbnail_thread(gpointer user_data)
             g_free(normal_path);
             g_free(large_path);
             g_checksum_free(sum);
-#if GLIB_CHECK_VERSION(2, 32, 0)
+
             g_thread_unref(loader_thread_id);
-#endif
+
             loader_thread_id = NULL;
             g_rec_mutex_unlock(&queue_lock);
             return NULL;
@@ -626,15 +621,11 @@ FmThumbnailLoader* fm_thumbnail_loader_load(FmFileInfo* src_file,
 
     task->requests = g_list_append(task->requests, req);
 
-    if(!loader_thread_id)
-#if GLIB_CHECK_VERSION(2, 32, 0)
+    if (!loader_thread_id)
         loader_thread_id = g_thread_new("loader", load_thumbnail_thread, NULL);
         /* we don't use loader_thread_id but Glib 2.32 crashes if we unref
            GThread while it's in creation progress. It is a bug of GLib
            certainly but as workaround we'll unref it in the thread itself */
-#else
-        loader_thread_id = g_thread_create( load_thumbnail_thread, NULL, FALSE, NULL);
-#endif
 
     g_rec_mutex_unlock(&queue_lock);
     return req;
