@@ -68,6 +68,8 @@ deferred_fast_update - lock for any other evaluations that are "fast" by nature 
 
 These locks are global, not per-object. That limits concurency level, but is much easier in implementation.
 
+Locking order: icon-> mime_type -> fast
+
 */
 
 G_LOCK_DEFINE_STATIC(deferred_icon_load);
@@ -665,6 +667,10 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
     if (fi == src)
         return;
 
+    G_LOCK(deferred_icon_load);
+    G_LOCK(deferred_mime_type_load);
+    G_LOCK(deferred_fast_update);
+
     SET_FIELD(path, path, src->path);
     SET_FIELD(mime_type, mime_type, src->mime_type);
     SET_FIELD(icon, icon, src->icon);
@@ -702,6 +708,10 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
     fi->mime_type_load_done = src->mime_type_load_done;
 
     SET_FIELD(native_path, symbol, src->native_path);
+
+    G_UNLOCK(deferred_fast_update);
+    G_UNLOCK(deferred_mime_type_load);
+    G_UNLOCK(deferred_icon_load);
 }
 
 /*****************************************************************************/
