@@ -89,6 +89,7 @@ static gpointer worker_thread_func(gpointer data)
 
             if (fi && !fm_file_info_only_one_ref(fi) && !fm_file_info_icon_loaded(fi) && !stop)
             {
+                fm_file_info_get_mime_type(fi);
                 fm_file_info_get_icon(fi);
                 fm_file_info_unref(fi);
 
