@@ -110,6 +110,7 @@ struct _FmFileInfo
     FmPath* path; /* path of the file */
 
     mode_t mode;
+    gboolean native_directory;
 
     const char * fs_id;
     dev_t dev;
@@ -322,11 +323,16 @@ gboolean fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GEr
         fi->dev = st.st_dev;
         fi->uid = st.st_uid;
         fi->gid = st.st_gid;
+        fi->native_directory = S_ISDIR(st.st_mode);
 
-        /* FIXME: handle symlinks */
-        if(S_ISLNK(st.st_mode))
+        if (S_ISLNK(st.st_mode))
         {
-            stat(path, &st);
+            struct stat _st;
+            if (stat(path, &_st) == 0)
+            {
+                st = _st;
+                fi->native_directory = S_ISDIR(st.st_mode);
+            }
             char * target = g_file_read_link(path, NULL);
             SET_SYMBOL(target, target);
             g_free(target);
@@ -433,6 +439,8 @@ void fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
 
     g_return_if_fail(fi);
     g_return_if_fail(fi->path);
+
+    fi->from_native_file = FALSE;
 
     /* if display name is the same as its name, just use it. */
     tmp = g_file_info_get_display_name(inf);
@@ -996,16 +1004,23 @@ gboolean fm_file_info_is_native(FmFileInfo* fi)
  * fm_file_info_is_directory:
  * @fi:  A FmFileInfo struct
  *
- * Returns: TRUE if the file is a directory.
+ * Returns: TRUE if the file is a directory or a link to a directory.
  */
 gboolean fm_file_info_is_directory(FmFileInfo* fi)
 {
     g_return_val_if_fail(fi, FALSE);
 
-    return (S_ISDIR(fi->mode) ||
-        (S_ISLNK(fi->mode) && fm_file_info_get_mime_type(fi) &&
-         (0 == strcmp(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), "inode/directory"))));
-         /* FIXME: replace strcmp for speedup */
+    if (fi->from_native_file)
+    {
+        return fi->native_directory;
+    }
+
+    if (S_ISDIR(fi->mode))
+        return TRUE;
+
+    return S_ISLNK(fi->mode) &&
+           fm_file_info_get_mime_type(fi) &&
+           (strcmp(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), "inode/directory"));
 }
 
 /**
