@@ -275,11 +275,14 @@ static GObject * scale_from_pix_pair(gint size, GObject * normal_pix, GObject * 
 }
 
 /* in thread */
-static void thumbnail_task_finish(ThumbnailTask* task, GObject* normal_pix, GObject* large_pix)
+static void thumbnail_task_apply_pixmaps_to_requests(ThumbnailTask* task, GObject* normal_pix, GObject* large_pix)
 {
     GObject * current_pix = NULL;
     gint current_pix_size = 0;
     GList* l;
+
+    if (task->cancelled)
+        return;
 
     /* sort the requests by requested size to utilize current_pix in sequential assignments */
     g_rec_mutex_lock(&queue_lock);
@@ -394,8 +397,7 @@ static void load_thumbnails(ThumbnailTask* task)
 
 _out:
     /* thumbnails which don't require re-generation should all be loaded at this point. */
-    if(!task->cancelled && task->requests)
-        thumbnail_task_finish(task, normal_pix, large_pix);
+    thumbnail_task_apply_pixmaps_to_requests(task, normal_pix, large_pix);
 
     if(normal_pix)
         g_object_unref(normal_pix);
@@ -1038,7 +1040,7 @@ static void generate_thumbnails_with_builtin(ThumbnailTask* task)
 
 end:
 
-    thumbnail_task_finish(task, normal_pix, large_pix);
+    thumbnail_task_apply_pixmaps_to_requests(task, normal_pix, large_pix);
 
     if(normal_pix)
         g_object_unref(normal_pix);
@@ -1148,7 +1150,8 @@ static void generate_thumbnails_with_thumbnailers(ThumbnailTask* task)
                 break;
         }
     }
-    thumbnail_task_finish(task, normal_pix, large_pix);
+
+    thumbnail_task_apply_pixmaps_to_requests(task, normal_pix, large_pix);
 
     if(normal_pix)
         g_object_unref(normal_pix);
