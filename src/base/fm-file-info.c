@@ -108,10 +108,10 @@ struct _FmFileInfo
     FmPath* path; /* path of the file */
 
     mode_t mode;
-    union {
-        const char* fs_id;
-        dev_t dev;
-    };
+
+    const char * fs_id;
+    dev_t dev;
+
     uid_t uid;
     gid_t gid;
     goffset size;
@@ -138,14 +138,14 @@ struct _FmFileInfo
 
     unsigned long color;
 
-    gboolean accessible : 1; /* TRUE if can be read by user */
-    gboolean hidden : 1; /* TRUE if file is hidden */
-    gboolean backup : 1; /* TRUE if file is backup */
+    gboolean accessible; /* TRUE if can be read by user */
+    gboolean hidden; /* TRUE if file is hidden */
+    gboolean backup; /* TRUE if file is backup */
 
-    gboolean color_loaded : 1;
-    gboolean from_native_file : 1;
-    gboolean icon_load_done : 1;
-    gboolean mime_type_load_done : 1;
+    gboolean color_loaded;
+    gboolean from_native_file;
+    gboolean icon_load_done;
+    gboolean mime_type_load_done;
 
     FmSymbol * native_path;
 
@@ -191,19 +191,19 @@ static FmListFuncs fm_list_funcs_for_symbol =
 };
 
 #define DEFINE_PUSH_VALUE(Type, type) \
-Fm##Type * _push_value_##type(FmFileInfo * fi, Fm##Type * value)\
+static inline Fm##Type * _push_value_##type(FmFileInfo * fi, Fm##Type * value)\
 {\
     return (Fm##Type *) fm_list_push_head_uniq(fi->type##_bucket, value);\
 }
 
-DEFINE_PUSH_VALUE(Path, path);
-DEFINE_PUSH_VALUE(MimeType, mime_type);
-DEFINE_PUSH_VALUE(Icon, icon);
-DEFINE_PUSH_VALUE(Symbol, symbol);
+DEFINE_PUSH_VALUE(Path, path)
+DEFINE_PUSH_VALUE(MimeType, mime_type)
+DEFINE_PUSH_VALUE(Icon, icon)
+DEFINE_PUSH_VALUE(Symbol, symbol)
 
 #define SET_FIELD(field, type, value)\
 do { \
-    fi->field = _push_value_##type(fi, value);\
+    g_atomic_pointer_set(&fi->field, _push_value_##type(fi, value));\
 } while (0)
 
 #define SET_SYMBOL(field, value)\
@@ -213,6 +213,23 @@ do { \
     fm_symbol_unref(s);\
 } while (0)
 
+
+#define DEFINE_GET_VALUE(Type, type) \
+static inline Fm##Type * _get_value_##type(Fm##Type ** ref)\
+{\
+    return (Fm##Type *) g_atomic_pointer_get(ref);\
+}
+
+DEFINE_GET_VALUE(Path, path)
+DEFINE_GET_VALUE(MimeType, mime_type)
+DEFINE_GET_VALUE(Icon, icon)
+DEFINE_GET_VALUE(Symbol, symbol)
+
+#define GET_FIELD(field, type) \
+    _get_value_##type(&fi->field)
+
+#define GET_CSTR(field) \
+    fm_symbol_get_cstr(GET_FIELD(field, symbol))
 
 /*****************************************************************************/
 
@@ -411,6 +428,7 @@ void fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
     FmIcon * icon = NULL;
     char * target = NULL;
 
+    g_return_if_fail(fi);
     g_return_if_fail(fi->path);
 
     /* if display name is the same as its name, just use it. */
@@ -540,7 +558,7 @@ void fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
     else
         icon = fm_icon_ref(fm_mime_type_get_icon(mime_type));
 
-    if(fm_path_is_native(fi->path))
+    if (fm_path_is_native(fi->path))
     {
         fi->dev = g_file_info_get_attribute_uint32(inf, G_FILE_ATTRIBUTE_UNIX_DEVICE);
     }
@@ -652,10 +670,9 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
     SET_FIELD(icon, icon, src->icon);
 
     fi->mode = src->mode;
-    if(fm_path_is_native(fi->path))
-        fi->dev = src->dev;
-    else
-        fi->fs_id = src->fs_id;
+    fi->dev = src->dev;
+    fi->fs_id = src->fs_id;
+
     fi->uid = src->uid;
     fi->gid = src->gid;
     fi->size = src->size;
@@ -714,7 +731,7 @@ static void deferred_icon_load(FmFileInfo* fi)
 
     fi->icon_load_done = TRUE;
 
-    const char * path = fm_symbol_get_cstr(fi->native_path);
+    const char * path = GET_CSTR(native_path);
 
     FmIcon * icon = NULL;
 
@@ -765,10 +782,10 @@ static void deferred_mime_type_load(FmFileInfo* fi)
 
     fi->mime_type_load_done = TRUE;
 
-    /*g_debug("%s: %s", __FUNCTION__, fm_symbol_get_cstr(fi->native_path));*/
+    /*g_debug("%s: %s", __FUNCTION__, GET_CSTR(native_path);*/
 
     FmMimeType * mime_type = fm_mime_type_from_native_file(
-        fm_symbol_get_cstr(fi->native_path),
+        GET_CSTR(native_path),
         fm_file_info_get_disp_name(fi), NULL);
     SET_FIELD(mime_type, mime_type, mime_type);
     fm_mime_type_unref(mime_type);
@@ -796,7 +813,7 @@ FmIcon* fm_file_info_get_icon(FmFileInfo* fi)
     g_return_val_if_fail(fi, 0);
 
     deferred_icon_load(fi);
-    return fi->icon;
+    return GET_FIELD(icon, icon);
 }
 
 /* To use from fm-file-info-deferred-load-worker.c */
@@ -804,7 +821,7 @@ gboolean fm_file_info_icon_loaded(FmFileInfo* fi)
 {
     g_return_val_if_fail(fi, FALSE);
 
-    return !!fi->icon;
+    return GET_FIELD(icon, icon) != NULL;
 }
 
 
@@ -823,7 +840,7 @@ FmPath* fm_file_info_get_path(FmFileInfo* fi)
 {
     g_return_val_if_fail(fi, 0);
 
-    return fi->path;
+    return GET_FIELD(path, path);
 }
 
 /**
@@ -839,7 +856,7 @@ const char* fm_file_info_get_name(FmFileInfo* fi)
 {
     g_return_val_if_fail(fi, 0);
 
-    return fm_path_get_basename(fi->path);
+    return fm_path_get_basename(fm_file_info_get_path(fi));
 }
 
 /**
@@ -858,7 +875,7 @@ const char* fm_file_info_get_name(FmFileInfo* fi)
 const char* fm_file_info_get_disp_name(FmFileInfo* fi)
 {
     g_return_val_if_fail(fi, 0);
-    return (fi->disp_name) ? fm_symbol_get_cstr(fi->disp_name) : fm_path_get_basename(fi->path);
+    return (fi->disp_name) ? GET_CSTR(disp_name) : fm_file_info_get_name(fi);
 }
 
 /**
@@ -897,7 +914,7 @@ const char * fm_file_info_get_disp_size(FmFileInfo* fi)
             SET_SYMBOL(disp_size, buf);
         })
     }
-    return fm_symbol_get_cstr(fi->disp_size);
+    return GET_CSTR(disp_size);
 }
 
 /**
@@ -929,7 +946,7 @@ FmMimeType* fm_file_info_get_mime_type(FmFileInfo* fi)
     g_return_val_if_fail(fi, 0);
 
     deferred_mime_type_load(fi);
-    return fi->mime_type;
+    return GET_FIELD(mime_type, mime_type);
 }
 
 /**
@@ -962,7 +979,7 @@ gboolean fm_file_info_is_native(FmFileInfo* fi)
 {
     g_return_val_if_fail(fi, FALSE);
 
-	return fm_path_is_native(fi->path);
+	return fm_path_is_native(GET_FIELD(path, path));
 }
 
 /**
@@ -1069,7 +1086,8 @@ gboolean fm_file_info_is_desktop_entry(FmFileInfo* fi)
 
     if (fi->from_native_file)
     {
-        const char * path = fi->target ? fm_symbol_get_cstr(fi->target) : fm_symbol_get_cstr(fi->native_path);
+        const char * target = GET_CSTR(target);
+        const char * path = target ? target : GET_CSTR(native_path);
         if (!g_str_has_suffix(path, ".desktop"))
             return FALSE;
     }
@@ -1222,7 +1240,7 @@ const char * fm_file_info_get_collate_key(FmFileInfo* fi)
     if (fi->collate_key_casefold == COLLATE_USING_DISPLAY_NAME)
         return fm_file_info_get_disp_name(fi);
 
-    return fm_symbol_get_cstr(fi->collate_key_casefold);
+    return GET_CSTR(collate_key_casefold);
 }
 
 /**
@@ -1260,7 +1278,7 @@ const char * fm_file_info_get_collate_key_nocasefold(FmFileInfo* fi)
     if (fi->collate_key_nocasefold == COLLATE_USING_DISPLAY_NAME)
         return fm_file_info_get_disp_name(fi);
 
-    return fm_symbol_get_cstr(fi->collate_key_nocasefold);
+    return GET_CSTR(collate_key_nocasefold);
 }
 
 /**
@@ -1277,7 +1295,7 @@ const char * fm_file_info_get_target(FmFileInfo* fi)
 {
     g_return_val_if_fail(fi, 0);
 
-    return fm_symbol_get_cstr(fi->target);
+    return GET_CSTR(target);
 }
 
 /**
@@ -1322,7 +1340,7 @@ const char * fm_file_info_get_disp_mtime(FmFileInfo* fi)
             SET_SYMBOL(disp_mtime, buf);
         })
     }
-    return fm_symbol_get_cstr(fi->disp_mtime);
+    return GET_CSTR(disp_mtime);
 }
 
 /**
