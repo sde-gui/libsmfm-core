@@ -284,6 +284,9 @@ static void thumbnail_task_apply_pixmaps_to_requests(ThumbnailTask* task, GObjec
     if (task->cancelled)
         return;
 
+    if (!normal_pix && !large_pix)
+        return;
+
     /* sort the requests by requested size to utilize current_pix in sequential assignments */
     g_rec_mutex_lock(&queue_lock);
     task->requests = g_list_sort(task->requests, comp_request);
@@ -321,7 +324,7 @@ static void thumbnail_task_apply_pixmaps_to_requests(ThumbnailTask* task, GObjec
 /* in thread */
 static gboolean is_thumbnail_outdated(GObject* thumb_pix, const char* thumbnail_path, time_t mtime)
 {
-    char* thumb_mtime = backend.get_image_text(thumb_pix, "tEXt::Thumb::MTime");
+    char * thumb_mtime = backend.get_image_text(thumb_pix, "tEXt::Thumb::MTime");
     gboolean outdated = FALSE;
     if(thumb_mtime)
     {
@@ -341,11 +344,9 @@ static gboolean is_thumbnail_outdated(GObject* thumb_pix, const char* thumbnail_
         }
     }
 
-    /* out of date, delete it */
     if(outdated)
     {
         unlink(thumbnail_path); /* delete the out-dated thumbnail. */
-        g_object_unref(thumb_pix);
     }
     return outdated;
 }
@@ -353,46 +354,43 @@ static gboolean is_thumbnail_outdated(GObject* thumb_pix, const char* thumbnail_
 /* in thread */
 static void load_thumbnails(ThumbnailTask* task)
 {
-    GObject* normal_pix = NULL;
-    GObject* large_pix = NULL;
-    const char* normal_path = task->normal_path;
-    const char* large_path = task->large_path;
+    GObject * normal_pix = NULL;
+    GObject * large_pix = NULL;
+    const char * normal_path = task->normal_path;
+    const char * large_path = task->large_path;
 
-    if( task->cancelled )
+    if (task->cancelled)
         goto _out;
 
     DEBUG("loading: %s, %s", fm_file_info_get_name(task->fi), normal_path);
 
-    if(task->flags & LOAD_NORMAL)
+    if (task->flags & LOAD_NORMAL)
     {
         normal_pix = backend.read_image_from_file(normal_path);
-        if(!normal_pix || is_thumbnail_outdated(normal_pix, normal_path, fm_file_info_get_mtime(task->fi)))
+        if (normal_pix && is_thumbnail_outdated(normal_pix, normal_path, fm_file_info_get_mtime(task->fi)))
         {
-            /* normal_pix is freed in is_thumbnail_outdated() if it's out of date. */
-            /* generate normal size thumbnail */
-            task->flags |= GENERATE_NORMAL;
+            g_object_unref(normal_pix);
             normal_pix = NULL;
-            /* DEBUG("need to generate normal thumbnail"); */
         }
-        else
-        {
-            DEBUG("normal thumbnail loaded: %p", normal_pix);
-        }
+
+        if (!normal_pix)
+            task->flags |= GENERATE_NORMAL;
     }
 
-    if( task->cancelled )
+    if (task->cancelled)
         goto _out;
 
-    if(task->flags & LOAD_LARGE)
+    if (task->flags & LOAD_LARGE)
     {
         large_pix = backend.read_image_from_file(large_path);
-        if(!large_pix || is_thumbnail_outdated(large_pix, large_path, fm_file_info_get_mtime(task->fi)))
+        if (large_pix && is_thumbnail_outdated(large_pix, large_path, fm_file_info_get_mtime(task->fi)))
         {
-            /* large_pix is freed in is_thumbnail_outdated() if it's out of date. */
-            /* generate large size thumbnail */
-            task->flags |= GENERATE_LARGE;
+            g_object_unref(large_pix);
             large_pix = NULL;
         }
+
+        if (!large_pix)
+            task->flags |= GENERATE_LARGE;
     }
 
 _out:
