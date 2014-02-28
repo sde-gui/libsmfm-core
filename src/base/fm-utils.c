@@ -42,6 +42,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "fm-utils.h"
+#include "fm-symbol.h"
 #include "fm-file-info-job.h"
 
 #define BI_KiB  ((gdouble)1024.0)
@@ -493,6 +494,7 @@ const char *fm_get_home_dir(void)
 
 void fm_log_memory_usage(void)
 {
+    fm_log_memory_usage_for_symbol();
     fm_log_memory_usage_for_path();
     fm_log_memory_usage_for_file_info();
 }

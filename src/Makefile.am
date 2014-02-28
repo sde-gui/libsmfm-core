@@ -49,6 +49,7 @@ endif
 base_SOURCES = \
 	base/fm-config.c \
 	base/fm-list.c \
+	base/fm-symbol.c \
 	base/fm-path.c \
 	base/fm-folder.c \
 	base/fm-file-info.c \
@@ -102,6 +103,7 @@ libsmfminclude_HEADERS = \
 	fm.h \
 	base/fm-config.h \
 	base/fm-list.h \
+	base/fm-symbol.h \
 	base/fm-path.h \
 	base/fm-folder.h \
 	base/fm-file-info.h \

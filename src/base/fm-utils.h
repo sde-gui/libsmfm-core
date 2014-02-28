@@ -76,6 +76,18 @@ const char *fm_get_home_dir(void);
 
 void fm_log_memory_usage(void);
 
+#define fm_return_val_if_fail(expr, val)\
+do {\
+    if (!(expr))\
+        return (val);\
+} while (0)
+
+#define fm_return_if_fail(expr)\
+do {\
+    if (!(expr))\
+        return;\
+} while (0)
+
 G_END_DECLS
 
 #endif
