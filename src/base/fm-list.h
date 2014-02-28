@@ -48,6 +48,7 @@ struct _FmListFuncs
 {
     gpointer (*item_ref)(gpointer item);
     void     (*item_unref)(gpointer item);
+    GCompareFunc item_compare;
 };
 
 FmList* fm_list_new(FmListFuncs* funcs);
@@ -82,15 +83,8 @@ static inline void fm_list_foreach(FmList* list, GFunc f, gpointer d)
     g_queue_foreach((GQueue*)list,f,d);
 }
 
-static inline GList* fm_list_find(FmList* list, gpointer d)
-{
-    return g_queue_find((GQueue*)list,d);
-}
-
-static inline GList* fm_list_find_custom(FmList* list, gconstpointer d, GCompareFunc f)
-{
-    return g_queue_find_custom((GQueue*)list,d,f);
-}
+GList * fm_list_find(FmList * list, gpointer d);
+GList * fm_list_find_custom(FmList * list, gconstpointer d, GCompareFunc f);
 
 static inline void fm_list_sort(FmList* list, GCompareDataFunc f, gpointer d)
 {
@@ -106,6 +100,9 @@ static inline void fm_list_push_tail(FmList* list, gpointer d)
 {
     g_queue_push_tail((GQueue*)list,(list)->funcs->item_ref(d));
 }
+
+gpointer fm_list_push_head_uniq(FmList* list, gpointer d);
+gpointer fm_list_push_tail_uniq(FmList* list, gpointer d);
 
 static inline void fm_list_push_nth(FmList* list, gpointer d, guint n)
 {

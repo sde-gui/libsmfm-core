@@ -83,3 +83,38 @@ void fm_list_delete_link(FmList * list, GList * l_)
     list->funcs->item_unref(l_->data);	
     g_queue_delete_link((GQueue *) list, l_);
 }
+
+
+GList * fm_list_find_custom(FmList * list, gconstpointer d, GCompareFunc f)
+{
+    return g_queue_find_custom(&list->list, d, f);
+}
+
+GList * fm_list_find(FmList * list, gpointer d)
+{
+    if (list->funcs->item_compare)
+        return fm_list_find_custom(list, d, list->funcs->item_compare);
+    else
+        return g_queue_find(&list->list, d);
+}
+
+
+gpointer fm_list_push_head_uniq(FmList* list, gpointer d)
+{
+    GList * l = fm_list_find(list, d);
+    if (l)
+        return l->data;
+
+    fm_list_push_head(list, d);
+    return fm_list_peek_head(list);
+}
+
+gpointer fm_list_push_tail_uniq(FmList* list, gpointer d)
+{
+    GList * l = fm_list_find(list, d);
+    if (l)
+        return l->data;
+
+    fm_list_push_tail(list, d);
+    return fm_list_peek_head(list);
+}
