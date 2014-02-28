@@ -826,7 +826,6 @@ FmIcon* fm_file_info_get_icon(FmFileInfo* fi)
     return GET_FIELD(icon, icon);
 }
 
-/* To use from fm-file-info-deferred-load-worker.c */
 gboolean fm_file_info_icon_loaded(FmFileInfo* fi)
 {
     g_return_val_if_fail(fi, FALSE);

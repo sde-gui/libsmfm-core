@@ -35,6 +35,11 @@
 
 G_BEGIN_DECLS
 
+typedef enum _FmThumbnailIconType {
+    FM_THUMBNAIL_ICON_SIMPLE,
+    FM_THUMBNAIL_ICON_CONTENT
+} FmThumbnailIconType;
+
 typedef struct _FmThumbnailLoader FmThumbnailLoader;
 
 /**
@@ -57,6 +62,7 @@ void _fm_thumbnail_loader_finalize();
 
 FmThumbnailLoader* fm_thumbnail_loader_load(FmFileInfo* src_file,
                                             guint size,
+                                            FmThumbnailIconType icon_type,
                                             FmThumbnailLoaderCallback callback,
                                             gpointer user_data);
 
@@ -67,6 +73,7 @@ GObject* fm_thumbnail_loader_get_data(FmThumbnailLoader* req);
 FmFileInfo* fm_thumbnail_loader_get_file_info(FmThumbnailLoader* req);
 
 guint fm_thumbnail_loader_get_size(FmThumbnailLoader* req);
+FmThumbnailIconType fm_thumbnail_loader_get_icon_type(FmThumbnailLoader* req);
 
 /* for toolkit-specific image loading code */
 
@@ -96,6 +103,7 @@ struct _FmThumbnailLoaderBackend {
     char* (*get_image_text)(GObject* image, const char* key);
     // const char* (*get_image_orientation)(GObject* image);
     // GObject* (*apply_orientation)(GObject* image);
+    GObject* (*read_simple_icon)(FmFileInfo * fi, guint size);
 };
 
 gboolean fm_thumbnail_loader_set_backend(FmThumbnailLoaderBackend* _backend)

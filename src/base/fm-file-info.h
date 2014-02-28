@@ -106,6 +106,8 @@ gid_t         fm_file_info_get_gid(FmFileInfo * fi);
 const char *  fm_file_info_get_fs_id(FmFileInfo * fi);
 dev_t         fm_file_info_get_dev(FmFileInfo * fi);
 
+gboolean      fm_file_info_icon_loaded(FmFileInfo * fi);
+
 gboolean      fm_file_info_is_native(FmFileInfo * fi);
 
 FmMimeType *  fm_file_info_get_mime_type(FmFileInfo * fi);

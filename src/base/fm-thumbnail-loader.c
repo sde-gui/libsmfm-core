@@ -66,10 +66,11 @@ static FmThumbnailLoaderBackend backend = {NULL};
 
 typedef enum
 {
-    LOAD_NORMAL = 1 << 0, /* need to load normal thumbnail */
-    LOAD_LARGE = 1 << 1, /* need to load large thumbnail */
-    GENERATE_NORMAL = 1 << 2, /* need to regenerated normal thumbnail */
-    GENERATE_LARGE = 1 << 3, /* need to regenerated large thumbnail */
+    LOAD_NORMAL      = 1 << 0, /* need to load normal thumbnail */
+    LOAD_LARGE       = 1 << 1, /* need to load large thumbnail */
+    GENERATE_NORMAL  = 1 << 2, /* need to regenerated normal thumbnail */
+    GENERATE_LARGE   = 1 << 3, /* need to regenerated large thumbnail */
+    LOAD_SIMPLE_ICON = 1 << 4,
 }ThumbnailTaskFlags;
 
 typedef struct _ThumbnailTask ThumbnailTask;
@@ -95,7 +96,8 @@ struct _FmThumbnailLoader
     gpointer user_data;
     GObject* pix;
     sig_atomic_t cancelled;
-    gshort size;
+    guint size;
+    FmThumbnailIconType icon_type;
     gboolean done : 1; /* it has pix set so will be pushed into ready queue */
 };
 
@@ -278,7 +280,7 @@ static GObject * scale_from_pix_pair(gint size, GObject * normal_pix, GObject * 
 static void thumbnail_task_apply_pixmaps_to_requests(ThumbnailTask* task, GObject* normal_pix, GObject* large_pix)
 {
     GObject * current_pix = NULL;
-    gint current_pix_size = 0;
+    guint current_pix_size = 0;
     GList* l;
 
     if (task->cancelled)
@@ -296,6 +298,8 @@ static void thumbnail_task_apply_pixmaps_to_requests(ThumbnailTask* task, GObjec
         if (req->done)
             continue;
         if (req->cancelled)
+            continue;
+        if (req->icon_type != FM_THUMBNAIL_ICON_CONTENT)
             continue;
 
         if (req->size != current_pix_size)
@@ -406,6 +410,59 @@ _out:
 }
 
 /* in thread */
+static void load_simple_icon(ThumbnailTask * task)
+{
+    GObject * current_pix = NULL;
+    guint current_pix_size = 0;
+    GList * l;
+
+    if (task->cancelled)
+        return;
+
+    if (!(task->flags & LOAD_SIMPLE_ICON))
+        return;
+
+    if (!backend.read_simple_icon)
+        return;
+
+    task->flags &= ~LOAD_SIMPLE_ICON;
+
+    /* sort the requests by requested size to utilize current_pix in sequential assignments */
+    g_rec_mutex_lock(&queue_lock);
+    task->requests = g_list_sort(task->requests, comp_request);
+    for (l = task->requests; l; l = l->next)
+    {
+        FmThumbnailLoader * req = (FmThumbnailLoader *)l->data;
+        if (req->done)
+            continue;
+        if (req->cancelled)
+            continue;
+        if (req->icon_type != FM_THUMBNAIL_ICON_SIMPLE)
+            continue;
+
+        if (req->size != current_pix_size)
+        {
+            g_rec_mutex_unlock(&queue_lock);
+            if (current_pix)
+                g_object_unref(current_pix);
+            current_pix = backend.read_simple_icon(task->fi, req->size);
+            current_pix_size = req->size;
+            g_rec_mutex_lock(&queue_lock);
+        }
+
+        if (current_pix)
+        {
+            req->pix = g_object_ref(current_pix);
+            req->done = TRUE;
+        }
+    }
+    g_rec_mutex_unlock(&queue_lock);
+
+    if (current_pix)
+        g_object_unref(current_pix);
+}
+
+/* in thread */
 static gpointer load_thumbnail_thread(gpointer user_data)
 {
     ThumbnailTask* task;
@@ -451,6 +508,8 @@ static gpointer load_thumbnail_thread(gpointer user_data)
                 memcpy( large_basename, md5, 32 );
                 task->large_path = large_path;
             }
+
+            load_simple_icon(task);
 
             if(task->flags & (GENERATE_NORMAL|GENERATE_LARGE))
                 generate_thumbnails(task); /* second cycle */
@@ -549,6 +608,7 @@ static ThumbnailTask* find_queued_task(GQueue* queue, FmFileInfo* fi)
 /* in main loop */
 FmThumbnailLoader* fm_thumbnail_loader_load(FmFileInfo* src_file,
                                             guint size,
+                                            FmThumbnailIconType icon_type,
                                             FmThumbnailLoaderCallback callback,
                                             gpointer user_data)
 {
@@ -562,6 +622,7 @@ FmThumbnailLoader* fm_thumbnail_loader_load(FmFileInfo* src_file,
     req = g_slice_new(FmThumbnailLoader);
     req->fi = fm_file_info_ref(src_file);
     req->size = size;
+    req->icon_type = icon_type;
     req->callback = callback;
     req->user_data = user_data;
     req->pix = NULL;
@@ -590,7 +651,7 @@ FmThumbnailLoader* fm_thumbnail_loader_load(FmFileInfo* src_file,
     /* if it's not cached, add it to the loader_queue for loading. */
     task = find_queued_task(&loader_queue, src_file);
 
-    if(!task)
+    if (!task)
     {
         task = g_slice_new0(ThumbnailTask);
         task->fi = fm_file_info_ref(src_file);
@@ -602,10 +663,17 @@ FmThumbnailLoader* fm_thumbnail_loader_load(FmFileInfo* src_file,
     }
     req->task = task;
 
-    if(size > 128)
-        task->flags |= LOAD_LARGE;
+    if (icon_type == FM_THUMBNAIL_ICON_SIMPLE)
+    {
+        task->flags |= LOAD_SIMPLE_ICON;
+    }
     else
-        task->flags |= LOAD_NORMAL;
+    {
+        if (size > 128)
+            task->flags |= LOAD_LARGE;
+        else
+            task->flags |= LOAD_NORMAL;
+    }
 
     task->requests = g_list_append(task->requests, req);
 
@@ -717,6 +785,11 @@ FmFileInfo* fm_thumbnail_loader_get_file_info(FmThumbnailLoader* req)
 guint fm_thumbnail_loader_get_size(FmThumbnailLoader* req)
 {
     return req->size;
+}
+
+FmThumbnailIconType fm_thumbnail_loader_get_icon_type(FmThumbnailLoader* req)
+{
+    return req->icon_type;
 }
 
 /* in main loop */
