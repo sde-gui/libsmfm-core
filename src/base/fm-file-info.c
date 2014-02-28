@@ -341,6 +341,7 @@ gboolean fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GEr
         else
         {
             fm_file_info_deferred_load_add(fi);
+            fm_file_info_deferred_load_start();
         }
 
         fi->accessible = (g_access(path, R_OK) == 0);
