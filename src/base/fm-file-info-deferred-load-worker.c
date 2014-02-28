@@ -44,6 +44,12 @@ static GCond worker_wake_up_condition;
 
 static gpointer worker_thread_func(gpointer data)
 {
+    const gint64 max_time_slice = G_USEC_PER_SEC * 0.05;
+    gint64 time_slice_begin = g_get_monotonic_time();
+
+    long n_items_handled_from_cond_wake_up = 0;
+    long n_items_handled_from_timed_wake_up = 0;
+
     gint stop = g_atomic_int_get(&worker_stop);
     while (!stop)
     {
@@ -52,10 +58,16 @@ static gpointer worker_thread_func(gpointer data)
 
         if (!incomming_list && !working_list)
         {
+            g_debug("deferred_load_worker: %4ld items handled and incomming list is empty; going to sleep...",
+                n_items_handled_from_cond_wake_up);
+
             fm_log_memory_usage();
-            //g_print("deferred_load_worker: waiting for wake up\n");
+
             g_cond_wait(&worker_wake_up_condition, &incomming_list_mutex);
-            //g_print("deferred_load_worker: wake up\n");
+
+            time_slice_begin = g_get_monotonic_time();
+            n_items_handled_from_cond_wake_up = 0;
+            n_items_handled_from_timed_wake_up = 0;
         }
 
         if (incomming_list)
@@ -75,14 +87,29 @@ static gpointer worker_thread_func(gpointer data)
             FmFileInfo * fi = list_item->data;
             g_slist_free_1(list_item);
 
-            //g_print("deferred_load_worker: fi %s\n", fm_file_info_get_disp_name(fi));
-
             if (fi && !fm_file_info_only_one_ref(fi) && !fm_file_info_icon_loaded(fi) && !stop)
             {
                 fm_file_info_get_icon(fi);
-                g_usleep(10000);
+                fm_file_info_unref(fi);
+
+                n_items_handled_from_cond_wake_up++;
+                n_items_handled_from_timed_wake_up++;
+
+                long long time_slice = g_get_monotonic_time() - time_slice_begin;
+                if (time_slice > max_time_slice)
+                {
+                    g_debug("deferred_load_worker: %4ld items handled in %lld µs",
+                        n_items_handled_from_timed_wake_up,
+                        time_slice);
+                    g_usleep(G_USEC_PER_SEC * 0.1);
+                    time_slice_begin = g_get_monotonic_time();
+                    n_items_handled_from_timed_wake_up = 0;
+                }
             }
-            fm_file_info_unref(fi);
+            else
+            {
+                fm_file_info_unref(fi);
+            }
         }
 
         stop |= g_atomic_int_get(&worker_stop);
