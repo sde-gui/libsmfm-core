@@ -268,65 +268,51 @@ inline static void cache_thumbnail_in_hash(FmPath* path, GObject* pix, guint siz
 }
 
 /* in thread */
+static GObject * scale_from_pix_pair(gint size, GObject * normal_pix, GObject * large_pix)
+{
+    GObject * source_pix = (size <= 128) ? normal_pix : large_pix;
+    return source_pix ? scale_pix(source_pix, size) : NULL;
+}
+
+/* in thread */
 static void thumbnail_task_finish(ThumbnailTask* task, GObject* normal_pix, GObject* large_pix)
 {
-    GObject* cached_pix = NULL;
-    gint cached_size = 0;
+    GObject * current_pix = NULL;
+    gint current_pix_size = 0;
     GList* l;
 
-    /* sort the requests by requested size to utilize cached scaled pixbuf */
+    /* sort the requests by requested size to utilize current_pix in sequential assignments */
     g_rec_mutex_lock(&queue_lock);
     task->requests = g_list_sort(task->requests, comp_request);
-    for(l=task->requests; l; l=l->next)
+    for (l=task->requests; l; l=l->next)
     {
-        FmThumbnailLoader* req = (FmThumbnailLoader*)l->data;
-        /* the thumbnail is ready, queue the request in ready queue. */
-        /* later, the ready callbacks will be called in idle handler of main thread. */
-        if(req->done)
+        FmThumbnailLoader * req = (FmThumbnailLoader *)l->data;
+        if (req->done)
             continue;
-        if(req->cancelled)
-            continue;
-        if(req->size == cached_size)
-        {
-            req->pix = cached_pix ? (GObject*)g_object_ref(cached_pix) : NULL;
-            DEBUG("cache hit!");
-            goto push_it;
-        }
-
-        g_rec_mutex_unlock(&queue_lock);
-        if(G_LIKELY(req->size <= 128)) /* normal */
-        {
-            if(normal_pix)
-                req->pix = scale_pix(normal_pix, req->size);
-            else
-                req->pix = NULL;
-        }
-        else /* large */
-        {
-            if(large_pix)
-                req->pix = scale_pix(large_pix, req->size);
-            else
-                req->pix = NULL;
-        }
-
-        if(cached_pix)
-            g_object_unref(cached_pix);
-        cached_pix = req->pix ? g_object_ref(req->pix) : NULL;
-        cached_size = req->size;
-
-        g_rec_mutex_lock(&queue_lock);
-        /* cache this in hash table */
-        if(cached_pix)
-            cache_thumbnail_in_hash(fm_file_info_get_path(req->fi), cached_pix, cached_size);
-        else
+        if (req->cancelled)
             continue;
 
-push_it:
-        req->done = TRUE;
+        if (req->size != current_pix_size)
+        {
+            g_rec_mutex_unlock(&queue_lock);
+            if (current_pix)
+                g_object_unref(current_pix);
+            current_pix = scale_from_pix_pair(req->size, normal_pix, large_pix);
+            current_pix_size = req->size;
+            g_rec_mutex_lock(&queue_lock);
+        }
+
+        if (current_pix)
+        {
+            req->pix = g_object_ref(current_pix);
+            req->done = TRUE;
+            cache_thumbnail_in_hash(fm_file_info_get_path(req->fi), current_pix, current_pix_size);
+        }
     }
     g_rec_mutex_unlock(&queue_lock);
-    if(cached_pix)
-        g_object_unref(cached_pix);
+
+    if (current_pix)
+        g_object_unref(current_pix);
 }
 
 /* in thread */
@@ -436,8 +422,10 @@ static gpointer load_thumbnail_thread(gpointer user_data)
     for(;;)
     {
         g_rec_mutex_lock(&queue_lock);
+
         task = g_queue_pop_head(&loader_queue);
         cur_loading = task;
+
         if(G_LIKELY(task))
         {
             char* uri;
