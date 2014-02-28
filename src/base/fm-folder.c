@@ -84,6 +84,8 @@ struct _FmFolder
     GCancellable* fs_size_cancellable;
     gboolean has_fs_info : 1;
     gboolean fs_info_not_avail : 1;
+
+    gint64 start_time;
 };
 
 static FmFolder* fm_folder_new_internal(FmPath* path, GFile* gf);
@@ -710,6 +712,10 @@ static void on_dirlist_job_finished(FmDirListJob* job, FmFolder* folder)
     g_object_unref(folder->dirlist_job);
     folder->dirlist_job = NULL;
 
+    long long time_taken = g_get_monotonic_time() - folder->start_time;
+    g_log(G_LOG_DOMAIN, G_LOG_LEVEL_INFO, "FmFolder: %s: loaded in %lld µs",
+        fm_file_info_get_name(folder->dir_fi), time_taken);
+
     g_object_ref(folder);
     g_signal_emit(folder, signals[FINISH_LOADING], 0);
     g_object_unref(folder);
@@ -976,6 +982,8 @@ void fm_folder_reload(FmFolder* folder)
      * the folder complete the loading. This might reduce some
      * unnecessary signal handling and UI updates. */
     g_signal_emit(folder, signals[START_LOADING], 0);
+
+    folder->start_time = g_get_monotonic_time();
 
     if(folder->dir_fi)
     {
