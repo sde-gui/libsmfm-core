@@ -212,10 +212,10 @@ gchar * _fast_content_type_guess(const char * base_name, const guchar * buf, gui
         }
 
     }
-
+/*
     if (result)
-        g_debug("%s: '%s' => %s\n", __FUNCTION__, base_name, result);
-
+        g_debug("%s: '%s' => %s", __FUNCTION__, base_name, result);
+*/
     return result ? g_strdup(result) : NULL;
 }
 
