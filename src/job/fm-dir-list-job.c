@@ -442,9 +442,7 @@ _retry: ;
 
             FmJobErrorAction action = fm_job_emit_error(fmjob, err, FM_JOB_ERROR_MILD);
             G_ERROR_FREE(err);
-            if (action == FM_JOB_RETRY)
-                goto _retry;
-            else if (action == FM_JOB_ABORT)
+            if (action != FM_JOB_CONTINUE) /* FIXME: retry not supported */
                 goto do_abort;
         }
         UNREF(child_ginfo);
