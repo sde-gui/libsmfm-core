@@ -216,6 +216,9 @@ static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
     char* path_str;
     DIR * dir = NULL;
 
+    long item_count = 0;
+    long long start_time = g_get_monotonic_time();
+
     path_str = fm_path_to_str(job->dir_path);
 
     fi = fm_file_info_new();
@@ -294,6 +297,16 @@ static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
                     goto _retry;
             }
             fm_file_info_unref(fi);
+
+            item_count++;
+            long long interval = g_get_monotonic_time() - start_time;
+            if (interval > G_USEC_PER_SEC * 0.25)
+            {
+                start_time += interval;
+                fm_job_report_status(fmjob, _("reading folder listing... (%ld items read)"), item_count);
+                g_debug("FmDirListJob: %s: %ld items read", fm_file_info_get_name(job->dir_fi), item_count);
+            }
+
         }
         g_string_free(fpath, TRUE);
         closedir(dir);

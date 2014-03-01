@@ -121,6 +121,8 @@ struct _FmJobClass
     void (*cancelled)(FmJob* job);
     gint (*ask)(FmJob* job, const gchar* question, gchar* const *options);
 
+    void (*report_status)(FmJob* job, const char * message);
+
     /* routines used by methods */
     gboolean (*run_async)(FmJob* job); /* for fm_job_run_async() */
     gboolean (*run)(FmJob* job); /* for any fm_job_run_*() */
@@ -200,6 +202,8 @@ FmJobErrorAction fm_job_emit_error(FmJob* job, GError* err, FmJobErrorSeverity s
 gint fm_job_ask(FmJob* job, const char* question, ...);
 gint fm_job_askv(FmJob* job, const char* question, gchar* const *options);
 gint fm_job_ask_valist(FmJob* job, const char* question, va_list options);
+
+void fm_job_report_status(FmJob * job, const char * format, ...);
 
 /*****************************************************************************/
 

@@ -52,6 +52,7 @@ enum {
     CONTENT_CHANGED,
     FS_INFO,
     ERROR,
+    REPORT_STATUS,
     N_SIGNALS
 };
 
@@ -328,6 +329,15 @@ static void fm_folder_class_init(FmFolderClass *klass)
                       fm_marshal_INT__POINTER_INT,
                       G_TYPE_INT, 2, G_TYPE_POINTER, G_TYPE_INT );
 #endif
+
+    signals[ REPORT_STATUS ] =
+        g_signal_new ( "report-status",
+                       G_TYPE_FROM_CLASS ( klass ),
+                       G_SIGNAL_RUN_FIRST,
+                       G_STRUCT_OFFSET ( FmFolderClass, report_status ),
+                       NULL, NULL,
+                       g_cclosure_marshal_VOID__VOID,
+                       G_TYPE_NONE, 1, G_TYPE_STRING);
 }
 
 
@@ -747,6 +757,11 @@ static FmJobErrorAction on_dirlist_job_error(FmDirListJob* job, GError* err, FmJ
     return ret;
 }
 
+static void on_dirlist_job_report_status(FmDirListJob * job, const char * message, FmFolder * folder)
+{
+    g_signal_emit(folder, signals[REPORT_STATUS], 0, message);
+}
+
 static FmFolder* fm_folder_new_internal(FmPath* path, GFile* gf)
 {
     FmFolder* folder = (FmFolder*)g_object_new(FM_TYPE_FOLDER, NULL);
@@ -1038,6 +1053,7 @@ void fm_folder_reload(FmFolder* folder)
     folder->dirlist_job = fm_dir_list_job_new(folder->dir_path, FALSE);
 
     g_signal_connect(folder->dirlist_job, "finished", G_CALLBACK(on_dirlist_job_finished), folder);
+    g_signal_connect(folder->dirlist_job, "report_status", G_CALLBACK(on_dirlist_job_report_status), folder);
     if(folder->wants_incremental)
         g_signal_connect(folder->dirlist_job, "files-found", G_CALLBACK(on_dirlist_job_files_found), folder);
     fm_dir_list_job_set_incremental(folder->dirlist_job, folder->wants_incremental);

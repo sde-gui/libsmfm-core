@@ -51,6 +51,7 @@ enum {
     ERROR,
     CANCELLED,
     ASK,
+    REPORT_STATUS,
     N_SIGNALS
 };
 
@@ -216,6 +217,15 @@ static void fm_job_class_init(FmJobClass *klass)
                       g_signal_accumulator_first_wins, NULL,
                       fm_marshal_INT__POINTER_POINTER,
                       G_TYPE_INT, 2, G_TYPE_POINTER, G_TYPE_POINTER );
+
+    signals[ REPORT_STATUS ] =
+        g_signal_new ( "report-status",
+                       G_TYPE_FROM_CLASS ( klass ),
+                       G_SIGNAL_RUN_FIRST,
+                       G_STRUCT_OFFSET ( FmJobClass, report_status ),
+                       NULL, NULL,
+                       g_cclosure_marshal_VOID__VOID,
+                       G_TYPE_NONE, 1, G_TYPE_STRING);
 }
 
 static void fm_job_init(FmJob *self)
@@ -254,6 +264,19 @@ static void fm_job_finalize(GObject *object)
         thread_pool = NULL;
     }
     G_UNLOCK(thread_pool);
+}
+
+/*****************************************************************************/
+
+void fm_job_report_status(FmJob * job, const char * format, ...)
+{
+    va_list ap;
+    va_start(ap, format);
+    char * message = g_strdup_vprintf(format, ap);
+    va_end(ap);
+
+    g_signal_emit(job, signals[REPORT_STATUS], 0, message);
+    g_free(message);
 }
 
 /*****************************************************************************/

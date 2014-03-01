@@ -76,6 +76,7 @@ struct _FmFolderClass
     void (*content_changed)(FmFolder* dir);
     void (*fs_info)(FmFolder* dir);
     guint (*error)(FmFolder* dir, GError* err, guint severity);
+    void (*report_status)(FmFolder* dir, const char * message);
     /*< private >*/
     gpointer _reserved1;
     gpointer _reserved2;
