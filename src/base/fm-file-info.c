@@ -1078,6 +1078,9 @@ gboolean fm_file_info_is_image(FmFileInfo* fi)
 {
     g_return_val_if_fail(fi, FALSE);
 
+    if (!(fm_file_info_get_mode(fi) & S_IFREG))
+        return FALSE;
+
     /* FIXME: We had better use functions of xdg_mime to check this */
     if (!strncmp("image/", fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), 6))
         return TRUE;
@@ -1221,12 +1224,18 @@ gboolean fm_file_info_can_thumbnail(FmFileInfo* fi)
 {
     g_return_val_if_fail(fi, FALSE);
 
-    /* We cannot use S_ISREG here as this exclude all symlinks */
-    if( fi->size == 0 || /* don't generate thumbnails for empty files */
-        !(fi->mode & S_IFREG) ||
-        fm_file_info_is_desktop_entry(fi) ||
-        fm_file_info_is_unknown_type(fi))
+    if (fi->size == 0)
         return FALSE;
+
+    if (!(fi->mode & S_IFREG)) /* We cannot use S_ISREG here as this exclude all symlinks */
+        return FALSE;
+
+    if (!fi->mime_type) /* If mime type not loaded yet, assume it can have thumbnail. */
+        return TRUE;
+
+    if (fm_file_info_is_desktop_entry(fi) || fm_file_info_is_unknown_type(fi))
+        return FALSE;
+
     return TRUE;
 }
 
