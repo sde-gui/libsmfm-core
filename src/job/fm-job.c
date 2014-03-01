@@ -268,6 +268,12 @@ static void fm_job_finalize(GObject *object)
 
 /*****************************************************************************/
 
+static gpointer report_status_in_main_thread(FmJob* job, gpointer message)
+{
+    g_signal_emit(job, signals[REPORT_STATUS], 0, message);
+    return NULL;
+}
+
 void fm_job_report_status(FmJob * job, const char * format, ...)
 {
     va_list ap;
@@ -275,7 +281,8 @@ void fm_job_report_status(FmJob * job, const char * format, ...)
     char * message = g_strdup_vprintf(format, ap);
     va_end(ap);
 
-    g_signal_emit(job, signals[REPORT_STATUS], 0, message);
+    fm_job_call_main_thread(job, report_status_in_main_thread, message);
+
     g_free(message);
 }
 
