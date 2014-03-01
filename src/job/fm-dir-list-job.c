@@ -303,7 +303,10 @@ static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
             if (interval > G_USEC_PER_SEC * 0.25)
             {
                 start_time += interval;
-                fm_job_report_status(fmjob, _("reading folder listing... (%ld items read)"), item_count);
+                const char * format = ngettext(
+                    "reading folder listing... (%ld items read)",
+                    "reading folder listing... (%ld items read)", item_count);
+                fm_job_report_status(fmjob, format, item_count);
                 g_debug("FmDirListJob: %s: %ld items read", fm_file_info_get_name(job->dir_fi), item_count);
             }
 
@@ -368,7 +371,10 @@ static gboolean fm_dir_list_job_run_gio(FmDirListJob* job)
         UNREF(child_ginfo);\
     } while (0)
 
-_retry:
+_retry: ;
+
+    long item_count = 0;
+    long long start_time = g_get_monotonic_time();
 
     CLEANUP();
 
@@ -442,6 +448,19 @@ _retry:
                 goto do_abort;
         }
         UNREF(child_ginfo);
+
+        item_count++;
+        long long interval = g_get_monotonic_time() - start_time;
+        if (interval > G_USEC_PER_SEC * 0.25)
+        {
+            start_time += interval;
+            const char * format = ngettext(
+                "reading folder listing... (%ld items read)",
+                "reading folder listing... (%ld items read)", item_count);
+            fm_job_report_status(fmjob, format, item_count);
+            g_debug("FmDirListJob: %s: %ld items read", fm_file_info_get_name(job->dir_fi), item_count);
+        }
+
     }
 
     CLEANUP();
