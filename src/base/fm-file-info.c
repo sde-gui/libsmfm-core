@@ -107,58 +107,58 @@ So as far as a caller folds a reference to FmFileInfo, it can be sure any pointe
 
 struct _FmFileInfo
 {
-    FmPath* path; /* path of the file */
+    FmPath * volatile path; /* path of the file */
 
-    mode_t mode;
-    gboolean native_directory;
+    volatile mode_t mode;
+    volatile gboolean native_directory;
 
-    const char * fs_id;
-    dev_t dev;
+    const char * volatile fs_id;
+    volatile dev_t dev;
 
-    uid_t uid;
-    gid_t gid;
-    goffset size;
+    volatile uid_t uid;
+    volatile gid_t gid;
+    volatile goffset size;
     time_t mtime;
     time_t atime;
 
-    gulong blksize;
-    goffset blocks;
+    volatile gulong blksize;
+    volatile goffset blocks;
 
-    FmSymbol * disp_name;  /* displayed name (in UTF-8) */
+    FmSymbol * volatile disp_name;  /* displayed name (in UTF-8) */
 
     /* FIXME: caching the collate key can greatly speed up sorting.
      *        However, memory usage is greatly increased!.
      *        Is there a better alternative solution?
      */
-    FmSymbol * collate_key_casefold; /* used to sort files by name */
-    FmSymbol * collate_key_nocasefold; /* the same but case-sensitive */
-    FmSymbol * disp_size;  /* displayed human-readable file size */
-    FmSymbol * disp_mtime; /* displayed last modification time */
-    FmMimeType * mime_type;
-    FmIcon * icon;
+    FmSymbol * volatile collate_key_casefold; /* used to sort files by name */
+    FmSymbol * volatile collate_key_nocasefold; /* the same but case-sensitive */
+    FmSymbol * volatile disp_size;  /* displayed human-readable file size */
+    FmSymbol * volatile disp_mtime; /* displayed last modification time */
+    FmMimeType * volatile mime_type;
+    FmIcon * volatile icon;
 
-    FmSymbol * target; /* target of shortcut or mountable. */
+    FmSymbol * volatile target; /* target of shortcut or mountable. */
 
-    unsigned long color;
+    volatile unsigned long color;
 
-    gboolean accessible; /* TRUE if can be read by user */
-    gboolean hidden; /* TRUE if file is hidden */
-    gboolean backup; /* TRUE if file is backup */
+    volatile gboolean accessible; /* TRUE if can be read by user */
+    volatile gboolean hidden; /* TRUE if file is hidden */
+    volatile gboolean backup; /* TRUE if file is backup */
 
-    gboolean color_loaded;
-    gboolean from_native_file;
-    gboolean icon_load_done;
-    gboolean mime_type_load_done;
+    volatile gboolean color_loaded;
+    volatile gboolean from_native_file;
+    //volatile gboolean icon_load_done;
+    volatile gboolean mime_type_load_done;
 
-    FmSymbol * native_path;
+    FmSymbol * volatile native_path;
 
     /*<private>*/
-    int n_ref;
+    volatile int n_ref;
 
-    FmList * path_bucket;
-    FmList * mime_type_bucket;
-    FmList * icon_bucket;
-    FmList * symbol_bucket;
+    FmList * volatile path_bucket;
+    FmList * volatile mime_type_bucket;
+    FmList * volatile icon_bucket;
+    FmList * volatile symbol_bucket;
 };
 
 struct _FmFileInfoList
@@ -218,7 +218,7 @@ do { \
 
 
 #define DEFINE_GET_VALUE(Type, type) \
-static inline Fm##Type * _get_value_##type(Fm##Type ** ref)\
+static inline Fm##Type * _get_value_##type(Fm##Type * volatile * ref)\
 {\
     return (Fm##Type *) g_atomic_pointer_get(ref);\
 }
@@ -713,7 +713,7 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
     SET_FIELD(disp_mtime, symbol, src->disp_mtime);
 
     fi->from_native_file = src->from_native_file;
-    fi->icon_load_done = src->icon_load_done;
+    //fi->icon_load_done = src->icon_load_done;
     fi->mime_type_load_done = src->mime_type_load_done;
 
     SET_FIELD(native_path, symbol, src->native_path);
@@ -742,13 +742,12 @@ static void deferred_icon_load(FmFileInfo* fi)
 
     G_LOCK(deferred_icon_load);
 
-    if (fi->icon || fi->icon_load_done || !fi->from_native_file)
+//    if (fi->icon || fi->icon_load_done || !fi->from_native_file)
+    if (fi->icon || !fi->from_native_file)
     {
         G_UNLOCK(deferred_icon_load);
         return;
     }
-
-    fi->icon_load_done = TRUE;
 
     const char * path = GET_CSTR(native_path);
 
@@ -783,6 +782,8 @@ static void deferred_icon_load(FmFileInfo* fi)
     SET_FIELD(icon, icon, icon);
     fm_icon_unref(icon);
 
+    //fi->icon_load_done = TRUE;
+
     G_UNLOCK(deferred_icon_load);
 }
 
@@ -799,8 +800,6 @@ static void deferred_mime_type_load(FmFileInfo* fi)
         return;
     }
 
-    fi->mime_type_load_done = TRUE;
-
     /*g_debug("%s: %s", __FUNCTION__, GET_CSTR(native_path);*/
 
     FmMimeType * mime_type = fm_mime_type_from_native_file(
@@ -808,6 +807,8 @@ static void deferred_mime_type_load(FmFileInfo* fi)
         fm_file_info_get_disp_name(fi), NULL);
     SET_FIELD(mime_type, mime_type, mime_type);
     fm_mime_type_unref(mime_type);
+
+    fi->mime_type_load_done = TRUE;
 
     G_UNLOCK(deferred_mime_type_load);
 }

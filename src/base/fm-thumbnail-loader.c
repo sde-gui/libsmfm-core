@@ -443,10 +443,15 @@ static void load_simple_icon(ThumbnailTask * task)
         if (req->size != current_pix_size)
         {
             g_rec_mutex_unlock(&queue_lock);
+
             if (current_pix)
                 g_object_unref(current_pix);
             current_pix = backend.read_simple_icon(task->fi, req->size);
             current_pix_size = req->size;
+
+            /*g_debug("%s: %s: %d %s", __FUNCTION__, fm_file_info_get_name(task->fi),
+                current_pix_size, current_pix ? "OK" : "NULL");*/
+
             g_rec_mutex_lock(&queue_lock);
         }
 
@@ -532,7 +537,7 @@ static gpointer load_thumbnail_thread(gpointer user_data)
             }
 
             if(task->cancelled /* task is done */
-               || (task->flags & (GENERATE_NORMAL|GENERATE_LARGE)) == 0)
+               || (task->flags & (GENERATE_NORMAL|GENERATE_LARGE|LOAD_SIMPLE_ICON)) == 0)
                 thumbnail_task_free(task);
             else
                 g_queue_push_tail(&loader_queue, task); /* return it to regen */
