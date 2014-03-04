@@ -44,7 +44,7 @@ static GCond worker_wake_up_condition;
 
 static gpointer worker_thread_func(gpointer data)
 {
-    const gint64 max_time_slice = G_USEC_PER_SEC * 0.05;
+    const gint64 max_time_slice = G_USEC_PER_SEC * 0.2;
     gint64 time_slice_begin = g_get_monotonic_time();
 
     long n_items_handled_from_cond_wake_up = 0;
@@ -102,7 +102,7 @@ static gpointer worker_thread_func(gpointer data)
                     g_debug("deferred_load_worker: %4ld items handled in %lld µs",
                         n_items_handled_from_timed_wake_up,
                         time_slice);
-                    g_usleep(G_USEC_PER_SEC * 0.1);
+                    g_usleep(G_USEC_PER_SEC * 0.2);
                     time_slice_begin = g_get_monotonic_time();
                     n_items_handled_from_timed_wake_up = 0;
                 }
