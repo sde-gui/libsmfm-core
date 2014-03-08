@@ -52,6 +52,7 @@ base_SOURCES = \
 	basekit/fm-symbol.c \
 	base/fm-config.c \
 	base/fm-path.c \
+	base/fm-path-list.c \
 	base/fm-folder.c \
 	base/fm-file-info.c \
 	base/fm-file-info-list.c \
@@ -106,6 +107,7 @@ libsmfminclude_HEADERS = \
 	basekit/fm-symbol.h \
 	base/fm-config.h \
 	base/fm-path.h \
+	base/fm-path-list.h \
 	base/fm-folder.h \
 	base/fm-file-info.h \
 	base/fm-file-info-list.h \

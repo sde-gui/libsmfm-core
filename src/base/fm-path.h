@@ -129,53 +129,9 @@ gboolean fm_path_equal_str(FmPath *path, const gchar *str, int n);
 /* calculate how many elements are in this path. */
 int fm_path_depth(FmPath* path);
 
-/* path list */
-FmPathList* fm_path_list_new(void);
-FmPathList* fm_path_list_new_from_uri_list(const char* uri_list);
-FmPathList* fm_path_list_new_from_uris(char* const* uris);
-FmPathList* fm_path_list_new_from_file_info_list(FmFileInfoList* fis);
-FmPathList* fm_path_list_new_from_file_info_glist(GList* fis);
-FmPathList* fm_path_list_new_from_file_info_gslist(GSList* fis);
-
-#ifndef __GTK_DOC_IGNORE__
-static inline FmPathList* fm_path_list_ref(FmPathList* list)
-{
-    return list ? (FmPathList*)fm_list_ref((FmList*)list) : NULL;
-}
-static inline void fm_path_list_unref(FmPathList* list)
-{
-    g_return_if_fail(list);
-    fm_list_unref((FmList*)list);
-}
-
-static inline guint fm_path_list_get_length(FmPathList* list)
-{
-    return fm_list_get_length((FmList*)list);
-}
-static inline gboolean fm_path_list_is_empty(FmPathList* list)
-{
-    return fm_list_is_empty((FmList*)list);
-}
-static inline FmPath* fm_path_list_peek_head(FmPathList* list)
-{
-    return (FmPath*)fm_list_peek_head((FmList*)list);
-}
-static inline GList* fm_path_list_peek_head_link(FmPathList* list)
-{
-    return fm_list_peek_head_link((FmList*)list);
-}
-
-static inline void fm_path_list_push_tail(FmPathList* list, FmPath* d)
-{
-    fm_list_push_tail((FmList*)list,d);
-}
-#endif /* __GTK_DOC_IGNORE__ */
-
-char* fm_path_list_to_uri_list(FmPathList* pl);
-/* char** fm_path_list_to_uris(FmPathList* pl); */
-void fm_path_list_write_uri_list(FmPathList* pl, GString* buf);
-
 void fm_log_memory_usage_for_path(void);
+
+#include "fm-path-list.h"
 
 G_END_DECLS
 
