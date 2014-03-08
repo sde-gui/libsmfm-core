@@ -12,6 +12,7 @@ SUBDIRS= \
 
 AM_CPPFLAGS = \
 	-I$(srcdir) \
+	-I$(srcdir)/basekit \
 	-I$(srcdir)/base \
 	-I$(srcdir)/actions \
 	-I$(srcdir)/job \
@@ -47,9 +48,9 @@ udisks_SOURCES=
 endif
 
 base_SOURCES = \
+	basekit/fm-list.c \
+	basekit/fm-symbol.c \
 	base/fm-config.c \
-	base/fm-list.c \
-	base/fm-symbol.c \
 	base/fm-path.c \
 	base/fm-folder.c \
 	base/fm-file-info.c \
@@ -101,9 +102,9 @@ libsmfm_core_SOURCES = \
 libsmfmincludedir = $(includedir)/libsmfm-@FMLIBVER@/libsmfm-core
 libsmfminclude_HEADERS = \
 	fm.h \
+	basekit/fm-list.h \
+	basekit/fm-symbol.h \
 	base/fm-config.h \
-	base/fm-list.h \
-	base/fm-symbol.h \
 	base/fm-path.h \
 	base/fm-folder.h \
 	base/fm-file-info.h \
