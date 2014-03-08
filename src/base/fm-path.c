@@ -561,47 +561,6 @@ FmPath* fm_path_new_for_uri(const char* uri)
     return path;
 }
 
-#ifndef FM_DISABLE_DEPRECATED
-/**
- * fm_path_new_for_display_name
- * @path_name: a UTF-8 encoded display name for the path
- * It can either be a POSIX path in UTF-8 encoding, or an unescaped URI
- * (can contain non-ASCII characters and spaces)
- *
- * You can call fm_path_display_name() to convert a FmPath to a
- * UTF-8 encoded name ready for being displayed in the GUI.
- *
- * Returns: a newly created FmPath for the path. You have to call
- * fm_path_unref() when it's no longer needed.
- */
-/* FIXME: this is completely invalid way to do this. Display name may be
-   fully unrelated to it's path name.
-   The only correct way is to use g_file_get_child_for_display_name() */
-FmPath* fm_path_new_for_display_name(const char* path_name)
-{
-    FmPath* path;
-    if(!path_name || !*path_name || (path_name[0]=='/' && path_name[1] == '\0') )
-        return fm_path_ref(root_path);
-    if(path_name[0] == '/') /* native path */
-    {
-        char* filename = g_filename_from_utf8(path_name, -1, NULL, NULL, NULL);
-        if(filename) /* convert from utf-8 to local encoding */
-        {
-            path = fm_path_new_for_path(filename);
-            g_free(filename);
-        }
-        else
-            path = fm_path_ref(root_path);
-    }
-    else /* this is an URI */
-    {
-        /* UTF-8 should be allowed, I think. */
-        path = fm_path_new_for_uri(path_name);
-    }
-    return path;
-}
-#endif /* FM_DISABLE_DEPRECATED */
-
 /**
  * fm_path_new_for_str
  * @path_str: (allow-none): a string representing the file path in its native
