@@ -287,7 +287,7 @@ FmFileInfo* fm_file_info_new ()
  */
 void fm_file_info_set_path(FmFileInfo* fi, FmPath* path)
 {
-    g_return_if_fail(fi);
+    fm_return_if_fail(fi);
     SET_FIELD(path, path, path);
 }
 
@@ -437,8 +437,8 @@ void fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
     FmIcon * icon = NULL;
     char * target = NULL;
 
-    g_return_if_fail(fi);
-    g_return_if_fail(fi->path);
+    fm_return_if_fail(fi);
+    fm_return_if_fail(fi->path);
 
     fi->from_native_file = FALSE;
 
@@ -626,7 +626,7 @@ FmFileInfo* fm_file_info_new_from_gfileinfo(FmPath* path, GFileInfo* inf)
  */
 FmFileInfo* fm_file_info_ref(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi != NULL, NULL);
+    fm_return_val_if_fail(fi != NULL, NULL);
     g_atomic_int_inc(&fi->n_ref);
     return fi;
 }
@@ -641,7 +641,7 @@ FmFileInfo* fm_file_info_ref(FmFileInfo* fi)
  */
 void fm_file_info_unref(FmFileInfo* fi)
 {
-    g_return_if_fail(fi != NULL);
+    fm_return_if_fail(fi != NULL);
     /* g_debug("unref file info: %d", fi->n_ref); */
     if (g_atomic_int_dec_and_test(&fi->n_ref))
     {
@@ -830,7 +830,7 @@ static void deferred_mime_type_load(FmFileInfo* fi)
  */
 FmIcon* fm_file_info_get_icon(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     deferred_icon_load(fi);
     return GET_FIELD(icon, icon);
@@ -838,7 +838,7 @@ FmIcon* fm_file_info_get_icon(FmFileInfo* fi)
 
 gboolean fm_file_info_icon_loaded(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, FALSE);
+    fm_return_val_if_fail(fi, FALSE);
 
     return GET_FIELD(icon, icon) != NULL;
 }
@@ -857,7 +857,7 @@ gboolean fm_file_info_icon_loaded(FmFileInfo* fi)
  */
 FmPath* fm_file_info_get_path(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     return GET_FIELD(path, path);
 }
@@ -873,7 +873,7 @@ FmPath* fm_file_info_get_path(FmFileInfo* fi)
  */
 const char* fm_file_info_get_name(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     return fm_path_get_basename(fm_file_info_get_path(fi));
 }
@@ -893,7 +893,7 @@ const char* fm_file_info_get_name(FmFileInfo* fi)
 /* Get displayed name encoded in UTF-8 */
 const char* fm_file_info_get_disp_name(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
     return (fi->disp_name) ? GET_CSTR(disp_name) : fm_file_info_get_name(fi);
 }
 
@@ -905,7 +905,7 @@ const char* fm_file_info_get_disp_name(FmFileInfo* fi)
  */
 goffset fm_file_info_get_size(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     return fi->size;
 }
@@ -922,7 +922,7 @@ goffset fm_file_info_get_size(FmFileInfo* fi)
  */
 const char * fm_file_info_get_disp_size(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     if (S_ISREG(fi->mode))
     {
@@ -944,7 +944,7 @@ const char * fm_file_info_get_disp_size(FmFileInfo* fi)
  */
 goffset fm_file_info_get_blocks(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     return fi->blocks;
 }
@@ -962,7 +962,7 @@ goffset fm_file_info_get_blocks(FmFileInfo* fi)
  */
 FmMimeType* fm_file_info_get_mime_type(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     deferred_mime_type_load(fi);
     return GET_FIELD(mime_type, mime_type);
@@ -979,7 +979,7 @@ FmMimeType* fm_file_info_get_mime_type(FmFileInfo* fi)
  */
 mode_t fm_file_info_get_mode(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     return fi->mode;
 }
@@ -996,7 +996,7 @@ mode_t fm_file_info_get_mode(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_native(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, FALSE);
+    fm_return_val_if_fail(fi, FALSE);
 
 	return fm_path_is_native(GET_FIELD(path, path));
 }
@@ -1009,7 +1009,7 @@ gboolean fm_file_info_is_native(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_directory(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, FALSE);
+    fm_return_val_if_fail(fi, FALSE);
 
     if (fi->from_native_file)
     {
@@ -1040,7 +1040,7 @@ gboolean fm_file_info_is_directory(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_symlink(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, FALSE);
+    fm_return_val_if_fail(fi, FALSE);
 
     return S_ISLNK(fi->mode) ? TRUE : FALSE;
 }
@@ -1057,14 +1057,14 @@ gboolean fm_file_info_is_symlink(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_shortcut(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, FALSE);
+    fm_return_val_if_fail(fi, FALSE);
 
     return fm_file_info_get_mime_type(fi) == _fm_mime_type_get_inode_x_shortcut();
 }
 
 gboolean fm_file_info_is_mountable(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, FALSE);
+    fm_return_val_if_fail(fi, FALSE);
 
     return fm_file_info_get_mime_type(fi) == _fm_mime_type_get_inode_x_mountable();
 }
@@ -1077,7 +1077,7 @@ gboolean fm_file_info_is_mountable(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_image(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, FALSE);
+    fm_return_val_if_fail(fi, FALSE);
 
     if (!(fm_file_info_get_mode(fi) & S_IFREG))
         return FALSE;
@@ -1096,7 +1096,7 @@ gboolean fm_file_info_is_image(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_text(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, FALSE);
+    fm_return_val_if_fail(fi, FALSE);
 
     if(g_content_type_is_a(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), "text/plain"))
         return TRUE;
@@ -1111,7 +1111,7 @@ gboolean fm_file_info_is_text(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_desktop_entry(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, FALSE);
+    fm_return_val_if_fail(fi, FALSE);
 
     if (fi->from_native_file)
     {
@@ -1132,7 +1132,7 @@ gboolean fm_file_info_is_desktop_entry(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_unknown_type(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, FALSE);
+    fm_return_val_if_fail(fi, FALSE);
 
     return g_content_type_is_unknown(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)));
 }
@@ -1155,7 +1155,7 @@ gboolean fm_file_info_is_unknown_type(FmFileInfo* fi)
 /* full path of the file is required by this function */
 gboolean fm_file_info_is_executable_type(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, FALSE);
+    fm_return_val_if_fail(fi, FALSE);
 
     if(strncmp(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), "text/", 5) == 0)
     { /* g_content_type_can_be_executable reports text files as executables too */
@@ -1191,7 +1191,7 @@ gboolean fm_file_info_is_executable_type(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_accessible(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, FALSE);
+    fm_return_val_if_fail(fi, FALSE);
 
     return fi->accessible;
 }
@@ -1207,7 +1207,7 @@ gboolean fm_file_info_is_accessible(FmFileInfo* fi)
  */
 gboolean fm_file_info_is_hidden(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, FALSE);
+    fm_return_val_if_fail(fi, FALSE);
 
     return (fi->hidden ||
             /* bug #3416724: backup and hidden files should be distinguishable */
@@ -1223,7 +1223,7 @@ gboolean fm_file_info_is_hidden(FmFileInfo* fi)
  */
 gboolean fm_file_info_can_thumbnail(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, FALSE);
+    fm_return_val_if_fail(fi, FALSE);
 
     if (fi->size == 0)
         return FALSE;
@@ -1254,7 +1254,7 @@ gboolean fm_file_info_can_thumbnail(FmFileInfo* fi)
  */
 const char * fm_file_info_get_collate_key(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     /* create a collate key on demand, if we don't have one */
     FAST_UPDATE(!fi->collate_key_casefold,
@@ -1295,7 +1295,7 @@ const char * fm_file_info_get_collate_key(FmFileInfo* fi)
  */
 const char * fm_file_info_get_collate_key_nocasefold(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     FAST_UPDATE(!fi->collate_key_nocasefold,
     {
@@ -1328,7 +1328,7 @@ const char * fm_file_info_get_collate_key_nocasefold(FmFileInfo* fi)
  */
 const char * fm_file_info_get_target(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     return GET_CSTR(target);
 }
@@ -1344,7 +1344,7 @@ const char * fm_file_info_get_target(FmFileInfo* fi)
  */
 const char * fm_file_info_get_desc(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     /* FIXME: how to handle descriptions for virtual files without mime-tyoes? */
     return fm_file_info_get_mime_type(fi) ? fm_mime_type_get_desc(fm_file_info_get_mime_type(fi)) : NULL;
@@ -1362,7 +1362,7 @@ const char * fm_file_info_get_desc(FmFileInfo* fi)
  */
 const char * fm_file_info_get_disp_mtime(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     if (fi->mtime > 0)
     {
@@ -1386,7 +1386,7 @@ const char * fm_file_info_get_disp_mtime(FmFileInfo* fi)
  */
 time_t fm_file_info_get_mtime(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     return fi->mtime;
 }
@@ -1399,7 +1399,7 @@ time_t fm_file_info_get_mtime(FmFileInfo* fi)
  */
 time_t fm_file_info_get_atime(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     return fi->atime;
 }
@@ -1412,7 +1412,7 @@ time_t fm_file_info_get_atime(FmFileInfo* fi)
  */
 uid_t fm_file_info_get_uid(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, -1);
+    fm_return_val_if_fail(fi, -1);
 
     return fi->uid;
 }
@@ -1425,7 +1425,7 @@ uid_t fm_file_info_get_uid(FmFileInfo* fi)
  */
 gid_t fm_file_info_get_gid(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, -1);
+    fm_return_val_if_fail(fi, -1);
 
     return fi->gid;
 }
@@ -1444,7 +1444,7 @@ gid_t fm_file_info_get_gid(FmFileInfo* fi)
  */
 const char * fm_file_info_get_fs_id(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     return fi->fs_id;
 }
@@ -1462,14 +1462,14 @@ const char * fm_file_info_get_fs_id(FmFileInfo* fi)
  */
 dev_t fm_file_info_get_dev(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     return fi->dev;
 }
 
 unsigned long fm_file_info_get_color(FmFileInfo* fi)
 {
-    g_return_val_if_fail(fi, 0);
+    fm_return_val_if_fail(fi, 0);
 
     FAST_UPDATE(!fi->color_loaded,
     {
