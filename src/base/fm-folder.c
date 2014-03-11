@@ -679,6 +679,11 @@ static void on_dirlist_job_finished(FmDirListJob* job, FmFolder* folder)
      * object will be distroyed very soon. */
     /* g_signal_handlers_disconnect_by_func(job, on_dirlist_job_finished, folder); */
 
+    fm_file_info_unref(folder->dir_fi);
+    folder->dir_fi = NULL;
+    if (job->dir_fi)
+        folder->dir_fi = fm_file_info_ref(job->dir_fi);
+
     if(!fm_job_is_cancelled(FM_JOB(job)) && !folder->wants_incremental)
     {
         GList* l;
@@ -693,9 +698,6 @@ static void on_dirlist_job_finished(FmDirListJob* job, FmFolder* folder)
             g_signal_emit(folder, signals[FILES_ADDED], 0, files);
             g_slist_free(files);
         }
-
-        if(job->dir_fi)
-            folder->dir_fi = fm_file_info_ref(job->dir_fi);
 
         /* Some new files are created while FmDirListJob is loading the folder. */
         if(G_UNLIKELY(folder->files_to_add))
