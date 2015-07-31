@@ -527,23 +527,23 @@ static void on_folder_changed(GFileMonitor* mon, GFile* gf, GFile* other, GFileM
 {
     GList* l;
     GSList* sl;
-    char* name;
 
-    /* const char* names[]={
-        "G_FILE_MONITOR_EVENT_CHANGED",
-        "G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT",
-        "G_FILE_MONITOR_EVENT_DELETED",
-        "G_FILE_MONITOR_EVENT_CREATED",
-        "G_FILE_MONITOR_EVENT_ATTRIBUTE_CHANGED",
-        "G_FILE_MONITOR_EVENT_PRE_UNMOUNT",
-        "G_FILE_MONITOR_EVENT_UNMOUNTED"
-    }; */
-    
-    /*
-    name = g_file_get_basename(gf);
-    g_debug("folder: %p, file %s event: %s", folder, name, names[evt]);
-    g_free(name);
-    */
+    if (0)
+    {
+        const char* names[]={
+            "G_FILE_MONITOR_EVENT_CHANGED",
+            "G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT",
+            "G_FILE_MONITOR_EVENT_DELETED",
+            "G_FILE_MONITOR_EVENT_CREATED",
+            "G_FILE_MONITOR_EVENT_ATTRIBUTE_CHANGED",
+            "G_FILE_MONITOR_EVENT_PRE_UNMOUNT",
+            "G_FILE_MONITOR_EVENT_UNMOUNTED"
+        };
+
+        gchar * name = g_file_get_basename(gf);
+        g_debug("folder: %p, file %s event: %s", folder, name, names[evt]);
+        g_free(name);
+    }
 
     if(g_file_equal(gf, folder->gf))
     {
@@ -589,7 +589,7 @@ static void on_folder_changed(GFileMonitor* mon, GFile* gf, GFile* other, GFileM
         return;
     }
 
-    name = g_file_get_basename(gf);
+    gchar * name = g_file_get_basename(gf);
 
     /* NOTE: sometimes, for unknown reasons, GFileMonitor gives us the
      * same event of the same file for multiple times. So we need to 
