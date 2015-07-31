@@ -3,10 +3,13 @@ include $(top_srcdir)/Makefile.decl
 NULL=
 
 AM_CPPFLAGS = \
-	-I../ \
-	-I../basekit \
-	-I../base \
-	-I../job \
+	-I$(srcdir)/.. \
+	-I$(srcdir)/../basekit \
+	-I$(srcdir)/../base \
+	-I$(srcdir)/../actions \
+	-I$(srcdir)/../job \
+	-I$(abs_builddir)/.. \
+	-I$(abs_builddir)/../base \
 	$(GIO_CFLAGS) \
 	$(MENU_CACHE_CFLAGS) \
 	$(DBUS_CFLAGS) \

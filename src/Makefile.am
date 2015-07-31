@@ -16,6 +16,8 @@ AM_CPPFLAGS = \
 	-I$(srcdir)/base \
 	-I$(srcdir)/actions \
 	-I$(srcdir)/job \
+	-I$(abs_builddir) \
+	-I$(abs_builddir)/base \
 	-DPACKAGE_DATA_DIR=\""$(datadir)/libsmfm"\" \
 	-DPACKAGE_LIB_DIR=\""$(libdir)/libsmfm"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
