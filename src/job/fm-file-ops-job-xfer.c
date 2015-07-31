@@ -25,6 +25,7 @@
 
 #include "fm-file-ops-job-xfer.h"
 #include "fm-file-ops-job-delete.h"
+#include "fm-utils.h"
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -92,7 +93,7 @@ static gboolean _fm_file_ops_job_copy_file(FmFileOpsJob* job, GFile* src, GFileI
     gboolean skip_dir_content = FALSE;
 
     /* FIXME: g_file_get_child() failed? generate error! */
-    g_return_val_if_fail(dest != NULL, FALSE);
+    fm_return_val_if_fail(dest != NULL, FALSE);
 
     if( G_LIKELY(inf) )
         g_object_ref(inf);
@@ -711,7 +712,7 @@ gboolean _fm_file_ops_job_move_run(FmFileOpsJob* job)
     FmDeepCountJob* dc;
 
     /* get information of destination folder */
-    g_return_val_if_fail(job->dest, FALSE);
+    fm_return_val_if_fail(job->dest, FALSE);
     dest_dir = fm_path_to_gfile(job->dest);
 _retry_query_dest_info:
     inf = g_file_query_info(dest_dir, G_FILE_ATTRIBUTE_STANDARD_IS_VIRTUAL","

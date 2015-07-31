@@ -29,6 +29,7 @@
 
 #include "fm-list.h"
 #include "fm-path.h"
+#include "fm-utils.h"
 
 G_BEGIN_DECLS
 
@@ -46,7 +47,7 @@ static inline FmPathList* fm_path_list_ref(FmPathList* list)
 
 static inline void fm_path_list_unref(FmPathList* list)
 {
-    g_return_if_fail(list);
+    fm_return_if_fail(list);
     fm_list_unref((FmList*)list);
 }
 

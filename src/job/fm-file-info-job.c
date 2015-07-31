@@ -38,6 +38,7 @@
 #include <errno.h>
 
 #include "fm-file-info.h"
+#include "fm-utils.h"
 
 static void fm_file_info_job_dispose              (GObject *object);
 static gboolean fm_file_info_job_run(FmJob* fmjob);
@@ -64,8 +65,8 @@ static void fm_file_info_job_dispose(GObject *object)
 {
     FmFileInfoJob *self;
 
-    g_return_if_fail(object != NULL);
-    g_return_if_fail(FM_IS_FILE_INFO_JOB(object));
+    fm_return_if_fail(object != NULL);
+    fm_return_if_fail(FM_IS_FILE_INFO_JOB(object));
 
     self = (FmFileInfoJob*)object;
     if(self->file_infos)

@@ -19,12 +19,12 @@
  *      MA 02110-1301, USA.
  */
 
-#ifndef __FM_UTILS_H__
-#define __FM_UTILS_H__
-
 #include <glib.h>
 #include <gio/gio.h>
 #include "fm-file-info.h"
+
+#ifndef __FM_UTILS_H__
+#define __FM_UTILS_H__
 
 G_BEGIN_DECLS
 

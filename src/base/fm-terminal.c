@@ -41,6 +41,7 @@
 
 #include "fm-terminal.h"
 #include "fm-config.h"
+#include "fm-utils.h"
 
 struct _FmTerminalClass
 {
@@ -62,8 +63,8 @@ static void fm_terminal_class_init(FmTerminalClass *klass)
 static void fm_terminal_finalize(GObject *object)
 {
     FmTerminal* self;
-    g_return_if_fail(object != NULL);
-    g_return_if_fail(FM_IS_TERMINAL(object));
+    fm_return_if_fail(object != NULL);
+    fm_return_if_fail(FM_IS_TERMINAL(object));
 
     self = (FmTerminal*)object;
     g_free(self->program);

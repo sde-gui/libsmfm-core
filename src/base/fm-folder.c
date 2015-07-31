@@ -813,8 +813,8 @@ static void free_dirlist_job(FmFolder* folder)
 static void fm_folder_dispose(GObject *object)
 {
     FmFolder *folder;
-    g_return_if_fail(object != NULL);
-    g_return_if_fail(FM_IS_FOLDER(object));
+    fm_return_if_fail(object != NULL);
+    fm_return_if_fail(FM_IS_FOLDER(object));
 
     /* g_debug("fm_folder_dispose"); */
 

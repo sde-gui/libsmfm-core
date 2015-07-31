@@ -31,6 +31,7 @@
  */
 
 #include "fm-nav-history.h"
+#include "fm-utils.h"
 
 struct _FmNavHistory
 {
@@ -71,8 +72,8 @@ static void fm_nav_history_finalize(GObject *object)
 {
     FmNavHistory *self;
 
-    g_return_if_fail(object != NULL);
-    g_return_if_fail(FM_IS_NAV_HISTORY(object));
+    fm_return_if_fail(object != NULL);
+    fm_return_if_fail(FM_IS_NAV_HISTORY(object));
 
     self = FM_NAV_HISTORY(object);
     g_queue_foreach(&self->items, (GFunc)fm_nav_history_item_free, NULL);
@@ -214,7 +215,7 @@ void fm_nav_history_forward(FmNavHistory* nh, int old_scroll_pos)
  */
 gboolean fm_nav_history_can_back(FmNavHistory* nh)
 {
-    g_return_val_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh), FALSE);
+    fm_return_val_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh), FALSE);
 
     return nh->cur ? (nh->cur->next != NULL) : FALSE;
 }
@@ -302,7 +303,7 @@ gboolean fm_nav_history_chdir(FmNavHistory* nh, FmPath* path, gint old_scroll_po
 {
     FmNavHistoryItem* tmp;
 
-    g_return_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh));
+    fm_return_val_if_fail(nh && FM_IS_NAV_HISTORY(nh), FALSE);
 
     /* now we're at the top of the queue. */
     tmp = nh->cur ? (FmNavHistoryItem*)nh->cur->data : NULL;
@@ -363,7 +364,7 @@ void fm_nav_history_jump(FmNavHistory* nh, GList* l, int old_scroll_pos)
  */
 void fm_nav_history_clear(FmNavHistory* nh)
 {
-    g_return_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh));
+    fm_return_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh));
     g_queue_foreach(&nh->items, (GFunc)fm_nav_history_item_free, NULL);
     g_queue_clear(&nh->items);
     nh->cur = NULL;
@@ -381,7 +382,7 @@ void fm_nav_history_clear(FmNavHistory* nh)
  */
 void fm_nav_history_set_max(FmNavHistory* nh, guint num)
 {
-    g_return_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh));
+    fm_return_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh));
     if(num <= nh->n_cur)
     {
         nh->cur = NULL;
@@ -406,7 +407,7 @@ void fm_nav_history_set_max(FmNavHistory* nh, guint num)
  */
 guint fm_nav_history_get_cur_index(FmNavHistory* nh)
 {
-    g_return_val_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh), 0);
+    fm_return_val_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh), 0);
     return nh->n_cur;
 }
 
@@ -426,7 +427,7 @@ FmPath* fm_nav_history_get_nth_path(FmNavHistory* nh, guint n)
     FmNavHistoryItem *item;
 
     g_debug("fm_nav_history_get_nth_path %u", n);
-    g_return_val_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh), NULL);
+    fm_return_val_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh), NULL);
     if(n == nh->n_cur)
         item = nh->cur->data;
     else
@@ -453,7 +454,7 @@ FmPath* fm_nav_history_go_to(FmNavHistory* nh, guint n, gint old_scroll_pos)
 {
     GList *link;
 
-    g_return_val_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh), NULL);
+    fm_return_val_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh), NULL);
     if(nh->cur)
         ((FmNavHistoryItem*)nh->cur->data)->scroll_pos = old_scroll_pos;
     if(n == nh->n_cur)
@@ -478,7 +479,7 @@ FmPath* fm_nav_history_go_to(FmNavHistory* nh, guint n, gint old_scroll_pos)
  */
 gint fm_nav_history_get_scroll_pos(FmNavHistory* nh)
 {
-    g_return_val_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh), -1);
+    fm_return_val_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh), -1);
     return ((FmNavHistoryItem*)nh->cur->data)->scroll_pos;
 }
 

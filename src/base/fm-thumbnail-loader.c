@@ -622,7 +622,7 @@ FmThumbnailLoader* fm_thumbnail_loader_load(FmFileInfo* src_file,
     GObject* pix;
     FmPath* src_path = fm_file_info_get_path(src_file);
 
-    g_return_val_if_fail(hash != NULL, NULL);
+    fm_return_val_if_fail(hash != NULL, NULL);
     g_assert(callback != NULL);
     req = g_slice_new(FmThumbnailLoader);
     req->fi = fm_file_info_ref(src_file);
@@ -707,7 +707,7 @@ void fm_thumbnail_loader_cancel(FmThumbnailLoader* req)
 {
     GList* l;
 
-    g_return_if_fail(req != NULL);
+    fm_return_if_fail(req != NULL);
 
     req->cancelled = TRUE;
     g_rec_mutex_lock(&queue_lock);

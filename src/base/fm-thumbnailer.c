@@ -30,6 +30,7 @@
 
 #include "fm-thumbnailer.h"
 #include "fm-mime-type.h"
+#include "fm-utils.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -67,7 +68,7 @@ FmThumbnailer* fm_thumbnailer_ref(FmThumbnailer* thumbnailer)
  */
 void fm_thumbnailer_free(FmThumbnailer* thumbnailer)
 {
-	g_return_if_fail(thumbnailer);
+	fm_return_if_fail(thumbnailer);
 	GList* l;
 	g_free(thumbnailer->id);
 	g_free(thumbnailer->try_exec);

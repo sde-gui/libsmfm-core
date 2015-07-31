@@ -41,6 +41,7 @@
 #include "fm-file-ops-job-change-attr.h"
 #include "fm-marshal.h"
 #include "fm-file-info-job.h"
+#include "fm-utils.h"
 #include "glib-compat.h"
 
 enum
@@ -69,8 +70,8 @@ static void fm_file_ops_job_dispose(GObject *object)
 {
     FmFileOpsJob *self;
 
-    g_return_if_fail(object != NULL);
-    g_return_if_fail(FM_IS_FILE_OPS_JOB(object));
+    fm_return_if_fail(object != NULL);
+    fm_return_if_fail(FM_IS_FILE_OPS_JOB(object));
 
     self = (FmFileOpsJob*)object;
 
@@ -189,8 +190,8 @@ static void fm_file_ops_job_finalize(GObject *object)
 {
     FmFileOpsJob *self;
 
-    g_return_if_fail(object != NULL);
-    g_return_if_fail(FM_IS_FILE_OPS_JOB(object));
+    fm_return_if_fail(object != NULL);
+    fm_return_if_fail(FM_IS_FILE_OPS_JOB(object));
 
     self = (FmFileOpsJob*)object;
 

@@ -41,6 +41,7 @@
 #include <glib-compat.h>
 
 #include "fm-file.h"
+#include "fm-utils.h"
 
 #include <string.h>
 
@@ -100,7 +101,7 @@ gboolean fm_file_wants_incremental(GFile* file)
 {
     FmFileInterface *iface;
 
-    g_return_val_if_fail(file != NULL, FALSE);
+    fm_return_val_if_fail(file != NULL, FALSE);
     if(!FM_IS_FILE(file))
         return FALSE;
     iface = FM_FILE_GET_IFACE(file);

@@ -623,7 +623,7 @@ FmPath* fm_path_new_for_commandline_arg(const char* arg)
  */
 FmPath* fm_path_ref(FmPath* path)
 {
-    g_return_val_if_fail(path != NULL, NULL);
+    fm_return_val_if_fail(path != NULL, NULL);
     g_atomic_int_inc(&path->n_ref);
     return path;
 }
@@ -637,7 +637,7 @@ FmPath* fm_path_ref(FmPath* path)
  */
 void fm_path_unref(FmPath* path)
 {
-    g_return_if_fail(path != NULL);
+    fm_return_if_fail(path != NULL);
     /* g_debug("fm_path_unref: %s, n_ref = %d", fm_path_to_str(path), path->n_ref); */
     if(g_atomic_int_dec_and_test(&path->n_ref))
     {
@@ -683,7 +683,7 @@ FmPath* fm_path_get_parent(FmPath* path)
  */
 FmPath* fm_path_get_scheme_path(FmPath* path)
 {
-    g_return_val_if_fail(path != NULL, NULL);
+    fm_return_val_if_fail(path != NULL, NULL);
     while(path->parent != NULL)
         path = path->parent;
     return path;

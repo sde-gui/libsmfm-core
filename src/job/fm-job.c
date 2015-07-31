@@ -24,6 +24,7 @@
 #endif
 
 #include "fm-job.h"
+#include "fm-utils.h"
 #include "fm-marshal.h"
 #include "glib-compat.h"
 
@@ -106,8 +107,8 @@ static void fm_job_dispose(GObject *object)
 {
     FmJob *self;
 
-    g_return_if_fail(object != NULL);
-    g_return_if_fail(FM_IS_JOB(object));
+    fm_return_if_fail(object != NULL);
+    fm_return_if_fail(FM_IS_JOB(object));
 
     self = (FmJob*)object;
 
@@ -245,8 +246,8 @@ static void fm_job_finalize(GObject *object)
 {
     FmJob *self;
 
-    g_return_if_fail(object != NULL);
-    g_return_if_fail(FM_IS_JOB(object));
+    fm_return_if_fail(object != NULL);
+    fm_return_if_fail(FM_IS_JOB(object));
 
     self = (FmJob*)object;
 

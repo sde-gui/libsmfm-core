@@ -31,6 +31,7 @@
  */
 
 #include "fm-simple-job.h"
+#include "fm-utils.h"
 
 #define FM_TYPE_SIMPLE_JOB              (fm_simple_job_get_type())
 #define FM_SIMPLE_JOB(obj)              (G_TYPE_CHECK_INSTANCE_CAST((obj),\
@@ -79,8 +80,8 @@ static void fm_simple_job_finalize(GObject *object)
 {
     FmSimpleJob *self;
 
-    g_return_if_fail(object != NULL);
-    g_return_if_fail(FM_IS_SIMPLE_JOB(object));
+    fm_return_if_fail(object != NULL);
+    fm_return_if_fail(FM_IS_SIMPLE_JOB(object));
 
     self = (FmSimpleJob*)object;
     if(self->user_data && self->destroy_data)

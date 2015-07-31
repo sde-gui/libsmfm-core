@@ -27,6 +27,7 @@
 #endif
 
 #include "fm-vfs-search.h"
+#include "fm-utils.h"
 
 #include <glib/gi18n-lib.h>
 
@@ -1020,7 +1021,7 @@ static GFile *_fm_vfs_search_resolve_relative_path(GFile *file, const char *rela
     FmSearchVFile *new_item;
 
     g_debug("_fm_vfs_search_resolve_relative_path: '%s'/'%s'", FM_SEARCH_VFILE(file)->path, relative_path);
-    g_return_val_if_fail(file != NULL && relative_path != NULL && *relative_path == '\0', NULL);
+    fm_return_val_if_fail(file != NULL && relative_path != NULL && *relative_path == '\0', NULL);
 
     new_item = _fm_search_vfile_new();
     new_item->path = g_strdup(FM_SEARCH_VFILE(file)->path);
@@ -1337,7 +1338,7 @@ static GFile *_fm_vfs_search_new_for_uri(const char *uri)
 {
     FmSearchVFile *item;
 
-    g_return_val_if_fail(uri != NULL, NULL);
+    fm_return_val_if_fail(uri != NULL, NULL);
     item = _fm_search_vfile_new();
     item->path = g_strdup(uri);
     return (GFile*)item;

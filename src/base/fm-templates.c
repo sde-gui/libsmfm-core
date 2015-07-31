@@ -43,6 +43,7 @@
 #include "fm-monitor.h"
 #include "fm-dir-list-job.h"
 #include "fm-config.h"
+#include "fm-utils.h"
 
 typedef struct _FmTemplateFile  FmTemplateFile;
 typedef struct _FmTemplateDir   FmTemplateDir;
@@ -84,7 +85,7 @@ static void fm_template_finalize(GObject *object)
 {
     FmTemplate *self;
 
-    g_return_if_fail(FM_IS_TEMPLATE(object));
+    fm_return_if_fail(FM_IS_TEMPLATE(object));
     self = (FmTemplate*)object;
     if(self->files)
         g_error("template reference failure");

@@ -86,8 +86,8 @@ static void fm_bookmarks_finalize(GObject *object)
 {
     FmBookmarks *self;
 
-    g_return_if_fail(object != NULL);
-    g_return_if_fail(FM_IS_BOOKMARKS(object));
+    fm_return_if_fail(object != NULL);
+    fm_return_if_fail(FM_IS_BOOKMARKS(object));
 
     self = FM_BOOKMARKS(object);
 
@@ -240,7 +240,7 @@ const GList* fm_bookmarks_list_all(FmBookmarks* bookmarks)
  */
 FmBookmarkItem* fm_bookmark_item_ref(FmBookmarkItem* item)
 {
-    g_return_val_if_fail(item != NULL, NULL);
+    fm_return_val_if_fail(item != NULL, NULL);
     g_atomic_int_inc(&item->n_ref);
     return item;
 }
@@ -255,7 +255,7 @@ FmBookmarkItem* fm_bookmark_item_ref(FmBookmarkItem* item)
  */
 void fm_bookmark_item_unref(FmBookmarkItem *item)
 {
-    g_return_if_fail(item != NULL);
+    fm_return_if_fail(item != NULL);
     if(g_atomic_int_dec_and_test(&item->n_ref))
     {
         g_free(item->name);

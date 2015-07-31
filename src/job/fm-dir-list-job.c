@@ -44,6 +44,7 @@
 #include "fm-file-info-job.h"
 #include "fm-mime-type.h"
 #include "fm-file-info.h"
+#include "fm-utils.h"
 #include "glib-compat.h"
 
 #include <glib/gi18n-lib.h>
@@ -150,8 +151,8 @@ static void fm_dir_list_job_dispose(GObject *object)
 {
     FmDirListJob *job;
 
-    g_return_if_fail(object != NULL);
-    g_return_if_fail(FM_IS_DIR_LIST_JOB(object));
+    fm_return_if_fail(object != NULL);
+    fm_return_if_fail(FM_IS_DIR_LIST_JOB(object));
 
     job = (FmDirListJob*)object;
 
@@ -490,7 +491,7 @@ static gboolean fm_dir_list_job_run(FmJob* fmjob)
 {
     gboolean ret;
     FmDirListJob* job = FM_DIR_LIST_JOB(fmjob);
-    g_return_val_if_fail(job->dir_path != NULL, FALSE);
+    fm_return_val_if_fail(job->dir_path != NULL, FALSE);
     if(fm_path_is_native(job->dir_path)) /* if this is a native file on real file system */
         ret = fm_dir_list_job_run_posix(job);
     else /* this is a virtual path or remote file system path */
