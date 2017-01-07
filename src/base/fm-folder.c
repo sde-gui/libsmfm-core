@@ -336,7 +336,7 @@ static void fm_folder_class_init(FmFolderClass *klass)
                        G_SIGNAL_RUN_FIRST,
                        G_STRUCT_OFFSET ( FmFolderClass, report_status ),
                        NULL, NULL,
-                       g_cclosure_marshal_VOID__VOID,
+                       g_cclosure_marshal_VOID__POINTER,
                        G_TYPE_NONE, 1, G_TYPE_STRING);
 }
 

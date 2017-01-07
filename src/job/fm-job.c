@@ -225,7 +225,7 @@ static void fm_job_class_init(FmJobClass *klass)
                        G_SIGNAL_RUN_FIRST,
                        G_STRUCT_OFFSET ( FmJobClass, report_status ),
                        NULL, NULL,
-                       g_cclosure_marshal_VOID__VOID,
+                       g_cclosure_marshal_VOID__POINTER,
                        G_TYPE_NONE, 1, G_TYPE_STRING);
 }
 
