@@ -735,6 +735,9 @@ static void on_once_type_changed(FmConfig *cfg, gpointer unused)
 
 void _fm_templates_init(void)
 {
+    if(templates_dirs)
+        return; /* someone called us again? */
+
     const gchar * const *data_dirs = g_get_system_data_dirs();
     const gchar * const *data_dir;
     const gchar *dir_name;
@@ -742,8 +745,6 @@ void _fm_templates_init(void)
     FmTemplateDir *dir = NULL;
     GFile *gfile;
 
-    if(templates_dirs)
-        return; /* someone called us again? */
     /* prepare list of system template directories */
     for(data_dir = data_dirs; *data_dir; ++data_dir)
     {
@@ -770,6 +771,7 @@ void _fm_templates_init(void)
     }
     if(G_LIKELY(dir))
         dir->next = NULL;
+
     /* add templates dir in user data */
     dir = g_slice_new(FmTemplateDir);
     dir->next = templates_dirs;
@@ -782,6 +784,7 @@ void _fm_templates_init(void)
     /* FIXME: create it if it doesn't exist? */
     _template_dir_init(dir, gfile);
     g_object_unref(gfile);
+
     /* add XDG_TEMPLATES_DIR at last */
     dir = g_slice_new(FmTemplateDir);
     dir->next = templates_dirs;
@@ -798,6 +801,7 @@ void _fm_templates_init(void)
         g_file_make_directory(gfile, NULL, NULL);
     _template_dir_init(dir, gfile);
     g_object_unref(gfile);
+
     /* jobs will fill list of files async */
     g_signal_connect(fm_config, "changed::template_type_once",
                      G_CALLBACK(on_once_type_changed), NULL);
