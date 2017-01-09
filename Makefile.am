@@ -37,3 +37,6 @@ pkgconfig_DATA = \
 	$(NULL)
 
 DISTCHECK_CONFIGURE_FLAGS=--enable-gtk-doc
+
+cppcheck cppcheck-inconclusive:
+	make -C src $@

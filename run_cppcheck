@@ -1,0 +1,53 @@
+#!/bin/sh
+
+fnmatch() {
+	case "$2" in ($1) return 0; break ;; esac
+	return 1
+}
+
+fnfilter() {
+	local m="$1"; shift
+	for f in $@ ; do
+		if fnmatch "$m" "$f" ; then
+			printf "%s " "$f"
+		fi
+	done
+}
+
+fnfilter_out() {
+	local m="$1"; shift
+	for f in $@ ; do
+		if ! fnmatch "$m" "$f" ; then
+			printf "%s ""$f"
+		fi
+	done
+}
+
+CPPCHECK=${CPPCHECK:-cppcheck}
+
+while [ "x$1" != "x" ] && [ "x$1" != "x--" ] ; do
+	f="$1"
+	case "$f" in
+		cppcheck) f="" ;;
+		cppcheck-inconclusive) f="--inconclusive" ;;
+		cppcheck-check-config) f="--check-config" ;;
+	esac
+	CPPCHECK_FLAGS="$CPPCHECK_FLAGS $f"
+	shift
+done
+
+if [ "x$1" = "x--" ] ; then
+	shift
+fi
+
+shift # the 1st one is a compiler name
+
+COMPILE_INCLUDES="$(fnfilter '-[IDU]*' "$@")"
+COMPILE_SOURCES="$(fnfilter_out '-*' "$@")"
+COMPILE_SOURCES="$(fnfilter_out '*.h' "$COMPILE_SOURCES")"
+
+echo
+echo ${CPPCHECK} ${CPPCHECK_FLAGS} ${COMPILE_INCLUDES} ${COMPILE_SOURCES}
+echo
+     ${CPPCHECK} ${CPPCHECK_FLAGS} ${COMPILE_INCLUDES} ${COMPILE_SOURCES}
+
