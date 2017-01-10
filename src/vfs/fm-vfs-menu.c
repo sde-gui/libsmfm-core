@@ -148,7 +148,7 @@ static GFileInfo *_g_file_info_from_menu_cache_item(MenuCacheItem *item)
     g_file_info_set_name(fileinfo, menu_cache_item_get_id(item));
     g_file_info_set_display_name(fileinfo, menu_cache_item_get_name(item));
 
-    /* the setup below was in fm_file_info_set_from_menu_cache_item()
+    /* the setup below was in fm_file_info_fill_from_menu_cache_item()
        so this setup makes latter API deprecated */
     icon_name = menu_cache_item_get_icon(item);
     if(icon_name)

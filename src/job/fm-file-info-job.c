@@ -175,7 +175,7 @@ static gboolean fm_file_info_job_run(FmJob* fmjob)
                 g_file_info_set_file_type(inf, G_FILE_TYPE_DIRECTORY);
                 g_file_info_set_name(inf, fm_path_get_basename(path));
                 g_file_info_set_display_name(inf, fm_path_get_basename(path));
-                fm_file_info_set_from_gfileinfo(fi, inf);
+                fm_file_info_fill_from_gfileinfo(fi, inf);
                 g_object_unref(inf);
               }
               else

@@ -54,8 +54,8 @@
 
 /*****************************************************************************/
 
-static gboolean _fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GError** err);
-static void _fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf);
+static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path, GError** err);
+static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf);
 
 /*****************************************************************************/
 
@@ -324,21 +324,21 @@ void fm_file_info_set_path(FmFileInfo* fi, FmPath* path)
 
 
 /**
- * fm_file_info_set_from_native_file:
+ * fm_file_info_fill_from_native_file:
  * @fi:  A FmFileInfo struct
  * @path:  full path of the file
  * @err: a GError** to retrive errors
  *
  * Get file info of the specified native file and store it in
- * the FmFileInfo struct.
+ * the #FmFileInfo struct.
  *
- * This function is not thread-safe. You should not call it on a FmFileInfo
+ * This function is not thread-safe. You should not call it on a #FmFileInfo
  * struct that is accessible from another thread. You also should not call any
- * of fm_file_info_set_from_* functions more than once for each FmFileInfo struct.
+ * of fm_file_info_fill_from_* functions more than once for each #FmFileInfo struct.
  *
  * Returns: TRUE if no error happens.
  */
-gboolean fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path_str, GError** err)
+gboolean fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path_str, GError** err)
 {
     /*
         We are trying to detect and report a misuse of the API.
@@ -363,11 +363,11 @@ gboolean fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path_str,
     }
     else
     {
-        return _fm_file_info_set_from_native_file(fi, path_str, err);
+        return _fm_file_info_fill_from_native_file(fi, path_str, err);
     }
 }
 
-static gboolean _fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GError** err)
+static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path, GError** err)
 {
     struct stat st;
     char *dname;
@@ -484,18 +484,18 @@ static gboolean _fm_file_info_set_from_native_file(FmFileInfo* fi, const char* p
 }
 
 /**
- * fm_file_info_set_from_gfileinfo:
+ * fm_file_info_fill_from_gfileinfo:
  * @fi:  A FmFileInfo struct
  * @inf: a GFileInfo object
  *
  * Get file info from the GFileInfo object and store it in
  * the FmFileInfo struct.
  *
- * This function is not thread-safe. You should not call it on a FmFileInfo
+ * This function is not thread-safe. You should not call it on a #FmFileInfo
  * struct that is accessible from another thread. You also should not call any
- * of fm_file_info_set_from_* functions more than once for each FmFileInfo struct.
+ * of fm_file_info_fill_from_* functions more than once for each #FmFileInfo struct.
  */
-void fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
+void fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
 {
     /*
         We are trying to detect and report a misuse of the API.
@@ -516,11 +516,11 @@ void fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
     }
     else
     {
-        _fm_file_info_set_from_gfileinfo(fi, inf);
+        _fm_file_info_fill_from_gfileinfo(fi, inf);
     }
 }
 
-static void _fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
+static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
 {
     const char *tmp, *uri;
     GIcon* gicon;
@@ -711,7 +711,7 @@ FmFileInfo* fm_file_info_new_from_gfileinfo(FmPath* path, GFileInfo* inf)
 {
     FmFileInfo* fi = fm_file_info_new();
     fm_file_info_set_path(fi, path);
-    fm_file_info_set_from_gfileinfo(fi, inf);
+    fm_file_info_fill_from_gfileinfo(fi, inf);
     return fi;
 }
 
@@ -752,7 +752,7 @@ FmFileInfo* fm_file_info_new_from_native_file(FmPath* path, const char* path_str
 
     fm_file_info_set_path(fi, path);
 
-    if (!fm_file_info_set_from_native_file(fi, path_str, err))
+    if (!fm_file_info_fill_from_native_file(fi, path_str, err))
     {
         fm_file_info_unref(fi);
         fi = NULL;

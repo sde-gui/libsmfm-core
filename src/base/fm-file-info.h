@@ -69,12 +69,10 @@ FmFileInfo * fm_file_info_new_from_path_unfilled(FmPath * path);
 FmFileInfo * fm_file_info_new_from_gfileinfo(FmPath * path, GFileInfo * inf);
 FmFileInfo * fm_file_info_new_from_native_file(FmPath * path, const char * path_str, GError ** err);
 
+void         fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf);
+gboolean     fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path_str, GError** err);
+
 void         fm_file_info_set_path(FmFileInfo * fi, FmPath * path);
-
-void         fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf);
-gboolean     fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path_str, GError** err);
-
-/*****************************************************************************/
 
 gboolean     fm_file_info_is_filled(FmFileInfo * fi);
 
