@@ -361,6 +361,69 @@ gboolean fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path_str
     }
 }
 
+static void _fill_from_desktop_entry(FmFileInfo * fi, const char * path)
+{
+    GKeyFile * kf = g_key_file_new();
+
+    gchar * type = NULL;
+    gchar * icon_name = NULL;
+    gchar * title = NULL;
+
+    if(!g_key_file_load_from_file(kf, path, 0, NULL))
+        goto end;
+
+    type = g_key_file_get_string(kf, "Desktop Entry", "Type", NULL);
+    title = g_key_file_get_locale_string(kf, "Desktop Entry", "Name", NULL, NULL);
+    icon_name = g_key_file_get_locale_string(kf, "Desktop Entry", "Icon", NULL, NULL);
+
+    if (!type)
+        goto end;
+
+    if (g_strcmp0(type, "Application") == 0)
+    {
+        /* nothing to do */
+    }
+    else if (g_strcmp0(type, "Link") == 0)
+    {
+        /* FIXME: not implemented */
+    }
+    else /* unknown type - ignore it */
+    {
+        goto end;
+    }
+
+    if (icon_name)
+    {
+        if (icon_name[0] != '/') /* this is a icon name, not a full path to icon file. */
+        {
+            char * dot = strrchr(icon_name, '.');
+            /* remove file extension */
+            if(dot)
+            {
+                ++dot;
+                if(strcmp(dot, "png") == 0 ||
+                   strcmp(dot, "svg") == 0 ||
+                   strcmp(dot, "xpm") == 0)
+                    *(dot-1) = '\0';
+            }
+        }
+        FmIcon * icon = fm_icon_from_name(icon_name);
+        SET_FIELD(icon, icon, icon);
+        fm_icon_unref(icon);
+    }
+
+    if (title)
+    {
+        SET_SYMBOL(disp_name, title);
+    }
+
+end:
+    g_free(type);
+    g_free(title);
+    g_free(icon_name);
+    g_key_file_free(kf);
+}
+
 static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path, GError** err)
 {
     struct stat st;
@@ -371,8 +434,6 @@ static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* 
                     "%s: %s", path, g_strerror(errno));
         return FALSE;
     }
-
-    FmIcon * icon = NULL;
 
     fi->from_native_file = TRUE;
     SET_SYMBOL(native_path, path);
@@ -419,39 +480,7 @@ static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* 
 
     /* special handling for desktop entry files */
     if(G_UNLIKELY(fm_file_info_is_desktop_entry(fi)))
-    {
-        GKeyFile* kf = g_key_file_new();
-        if(g_key_file_load_from_file(kf, path, 0, NULL))
-        {
-            char* icon_name = g_key_file_get_locale_string(kf, "Desktop Entry", "Icon", NULL, NULL);
-            char* title = g_key_file_get_locale_string(kf, "Desktop Entry", "Name", NULL, NULL);
-            if (icon_name)
-            {
-                if(icon_name[0] != '/') /* this is a icon name, not a full path to icon file. */
-                {
-                    char* dot = strrchr(icon_name, '.');
-                    /* remove file extension */
-                    if(dot)
-                    {
-                        ++dot;
-                        if(strcmp(dot, "png") == 0 ||
-                           strcmp(dot, "svg") == 0 ||
-                           strcmp(dot, "xpm") == 0)
-                           *(dot-1) = '\0';
-                    }
-                }
-                icon = fm_icon_from_name(icon_name);
-                g_free(icon_name);
-            }
-
-            if (title)
-            {
-                SET_SYMBOL(disp_name, title);
-                g_free(title);
-            }
-        }
-        g_key_file_free(kf);
-    }
+        _fill_from_desktop_entry(fi, path);
 
     /* By default we use the real file base name for display.
      * if the base name is not in UTF-8 encoding, we
@@ -474,9 +503,6 @@ static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* 
         fi->hidden = (basename[0] == '.');
         fi->backup = (!S_ISDIR(st.st_mode) && g_str_has_suffix(basename, "~"));
     }
-
-    SET_FIELD(icon, icon, icon);
-    fm_icon_unref(icon);
 
     return TRUE;
 }
