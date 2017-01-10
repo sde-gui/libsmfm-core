@@ -148,8 +148,6 @@ FmMimeType* fm_mime_type_from_file_name(const char* ufile_name)
 static
 const char * _fast_content_type_guess_script(const char * base_name, const guchar * buf, guint len, struct stat * st)
 {
-    //const char * _buf = (const char *) buf;
-
     const char * result = NULL;
 
     if (buf[0] != '#' || buf[1] != '!')
@@ -204,16 +202,6 @@ const char * _fast_content_type_guess_script(const char * base_name, const gucha
         }
     }
 
-/*
-    if (result)
-    {
-        char * eol = strchr(_buf, '\n');
-        if (eol)
-            *eol = 0;
-        g_print("%s: '%s' => %s (%s)\n", __FUNCTION__, _buf, result, base_name);
-    }
-*/
-
     return result;
 }
 
@@ -235,10 +223,7 @@ gchar * _fast_content_type_guess(const char * base_name, const guchar * buf, gui
         }
 
     }
-/*
-    if (result)
-        g_debug("%s: '%s' => %s", __FUNCTION__, base_name, result);
-*/
+
     return result ? g_strdup(result) : NULL;
 }
 
@@ -300,21 +285,7 @@ FmMimeType* fm_mime_type_from_native_file(const char* file_path,
                  * to I/O errors. If the mapped file is truncated by other
                  * processes or I/O errors happen, we may receive SIGBUS.
                  * It's a pity that we cannot use mmap for speed up here. */
-            /*
-            #ifdef HAVE_MMAP
-                const char* buf;
-                len = pstat->st_size > 4096 ? 4096 : pstat->st_size;
-                buf = (const char*)mmap(NULL, len, PROT_READ, MAP_PRIVATE, fd, 0);
-                if(G_LIKELY(buf != MAP_FAILED))
-                {
-                    g_free(type);
-                    type = g_content_type_guess(NULL, buf, len, &uncertain);
-                    munmap(buf, len);
-                }
-            #else
-            */
 
-                //g_print("reading file %s\n", base_name);
                 char buf[4097];
                 ssize_t len = read(fd, buf, MIN(pstat->st_size, 4096));
                 buf[len] = 0;
@@ -324,7 +295,6 @@ FmMimeType* fm_mime_type_from_native_file(const char* file_path,
                 if (!type)
                     type = g_content_type_guess(NULL, (guchar*)buf, len, &uncertain);
 
-            /* #endif */
                 close(fd);
             }
         }
