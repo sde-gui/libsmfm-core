@@ -896,30 +896,33 @@ static void deferred_icon_load(FmFileInfo* fi)
 
     FmIcon * icon = NULL;
 
-    /* set "locked" icon on unaccesible folder */
-    if(!fi->accessible && S_ISDIR(fi->mode))
-        icon = fm_icon_ref(icon_locked_folder);
-    else if(strcmp(path, fm_get_home_dir()) == 0)
-        icon = fm_icon_from_name("user-home");
-    else if(strcmp(path, g_get_user_special_dir(G_USER_DIRECTORY_DESKTOP)) == 0)
-        icon = fm_icon_from_name("user-desktop");
-    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS)) == 0)
-        icon = fm_icon_from_name("folder-documents");
-    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD)) == 0)
-        icon = fm_icon_from_name("folder-download");
-    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_MUSIC)) == 0)
-        icon = fm_icon_from_name("folder-music");
-    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_PICTURES)) == 0)
-        icon = fm_icon_from_name("folder-pictures");
-    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_PUBLIC_SHARE)) == 0)
-        icon = fm_icon_from_name("folder-publicshare");
-    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_TEMPLATES)) == 0)
-        icon = fm_icon_from_name("folder-templates");
-    else if(g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_VIDEOS)) == 0)
-        icon = fm_icon_from_name("folder-videos");
-    else if(strcmp(path, "/") == 0)
-        icon = fm_icon_from_name("gtk-harddisk");
-    else
+    if (fi->native_directory)
+    {
+        if (!fi->accessible)
+            icon = fm_icon_ref(icon_locked_folder);
+        else if (g_strcmp0(path, fm_get_home_dir()) == 0)
+            icon = fm_icon_from_name("user-home");
+        else if (g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_DESKTOP)) == 0)
+            icon = fm_icon_from_name("user-desktop");
+        else if (g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_DOCUMENTS)) == 0)
+            icon = fm_icon_from_name("folder-documents");
+        else if (g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_DOWNLOAD)) == 0)
+            icon = fm_icon_from_name("folder-download");
+        else if (g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_MUSIC)) == 0)
+            icon = fm_icon_from_name("folder-music");
+        else if (g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_PICTURES)) == 0)
+            icon = fm_icon_from_name("folder-pictures");
+        else if (g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_PUBLIC_SHARE)) == 0)
+            icon = fm_icon_from_name("folder-publicshare");
+        else if (g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_TEMPLATES)) == 0)
+            icon = fm_icon_from_name("folder-templates");
+        else if (g_strcmp0(path, g_get_user_special_dir(G_USER_DIRECTORY_VIDEOS)) == 0)
+            icon = fm_icon_from_name("folder-videos");
+        else if(g_strcmp0(path, "/") == 0)
+            icon = fm_icon_from_name("gtk-harddisk");
+    }
+
+    if (!icon)
         icon = fm_icon_ref(fm_mime_type_get_icon(fm_file_info_get_mime_type(fi)));
 
     SET_FIELD(icon, icon, icon);
