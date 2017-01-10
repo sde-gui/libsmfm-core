@@ -364,116 +364,117 @@ gboolean fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path_str
 static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path, GError** err)
 {
     struct stat st;
-    char *dname;
 
-    if(lstat(path, &st) == 0)
-    {
-        FmIcon * icon = NULL;
-
-        fi->from_native_file = TRUE;
-        SET_SYMBOL(native_path, path);
-
-        fi->disp_name = NULL;
-        fi->mode = st.st_mode;
-        fi->mtime = st.st_mtime;
-        fi->atime = st.st_atime;
-        fi->size = st.st_size;
-        fi->dev = st.st_dev;
-        fi->uid = st.st_uid;
-        fi->gid = st.st_gid;
-        fi->native_directory = S_ISDIR(st.st_mode);
-
-        if (S_ISLNK(st.st_mode))
-        {
-            struct stat _st;
-            if (stat(path, &_st) == 0)
-            {
-                st = _st;
-                fi->native_directory = S_ISDIR(st.st_mode);
-            }
-            char * target = g_file_read_link(path, NULL);
-            SET_SYMBOL(target, target);
-            g_free(target);
-        }
-
-        if (!fm_config->deferred_mime_type_loading)
-        {
-            FmMimeType * mime_type = fm_mime_type_from_native_file(path, fm_file_info_get_disp_name(fi), &st);
-            SET_FIELD(mime_type, mime_type, mime_type);
-            fm_mime_type_unref(mime_type);
-        }
-        else
-        {
-            fm_file_info_deferred_load_add(fi);
-            fm_file_info_deferred_load_start();
-        }
-
-        fi->accessible = (g_access(path, R_OK) == 0);
-
-        /* special handling for desktop entry files */
-        if(G_UNLIKELY(fm_file_info_is_desktop_entry(fi)))
-        {
-            GKeyFile* kf = g_key_file_new();
-            if(g_key_file_load_from_file(kf, path, 0, NULL))
-            {
-                char* icon_name = g_key_file_get_locale_string(kf, "Desktop Entry", "Icon", NULL, NULL);
-                char* title = g_key_file_get_locale_string(kf, "Desktop Entry", "Name", NULL, NULL);
-                if (icon_name)
-                {
-                    if(icon_name[0] != '/') /* this is a icon name, not a full path to icon file. */
-                    {
-                        char* dot = strrchr(icon_name, '.');
-                        /* remove file extension */
-                        if(dot)
-                        {
-                            ++dot;
-                            if(strcmp(dot, "png") == 0 ||
-                               strcmp(dot, "svg") == 0 ||
-                               strcmp(dot, "xpm") == 0)
-                               *(dot-1) = '\0';
-                        }
-                    }
-                    icon = fm_icon_from_name(icon_name);
-                    g_free(icon_name);
-                }
-
-                if (title)
-                {
-                    SET_SYMBOL(disp_name, title);
-                    g_free(title);
-                }
-            }
-            g_key_file_free(kf);
-        }
-
-        /* By default we use the real file base name for display.
-         * if the base name is not in UTF-8 encoding, we
-         * need to convert it to UTF-8 for display and save its
-         * UTF-8 version in fi->disp_name */
-        if(!fi->disp_name)
-        {
-            dname = g_filename_display_basename(path);
-            if (g_strcmp0(dname, fm_path_get_basename(fi->path)) != 0)
-            {
-                SET_SYMBOL(disp_name, dname);
-            }
-            g_free(dname);
-        }
-        /* files with . prefix or ~ suffix are regarded as hidden files.
-         * dirs with . prefix are regarded as hidden dirs. */
-        dname = (char*)fm_path_get_basename(fi->path);
-        fi->hidden = (dname[0] == '.');
-        fi->backup = (!S_ISDIR(st.st_mode) && g_str_has_suffix(dname, "~"));
-
-        SET_FIELD(icon, icon, icon);
-        fm_icon_unref(icon);
-    }
-    else
+    if (lstat(path, &st) != 0)
     {
         g_set_error(err, G_IO_ERROR, g_io_error_from_errno(errno),
                     "%s: %s", path, g_strerror(errno));
         return FALSE;
     }
+
+    FmIcon * icon = NULL;
+
+    fi->from_native_file = TRUE;
+    SET_SYMBOL(native_path, path);
+
+    fi->disp_name = NULL;
+    fi->mode = st.st_mode;
+    fi->mtime = st.st_mtime;
+    fi->atime = st.st_atime;
+    fi->size = st.st_size;
+    fi->dev = st.st_dev;
+    fi->uid = st.st_uid;
+    fi->gid = st.st_gid;
+    fi->native_directory = S_ISDIR(st.st_mode);
+
+    if (S_ISLNK(st.st_mode))
+    {
+        struct stat _st;
+        if (stat(path, &_st) == 0)
+        {
+            st = _st;
+            fi->native_directory = S_ISDIR(st.st_mode);
+        }
+        char * target = g_file_read_link(path, NULL);
+        SET_SYMBOL(target, target);
+        g_free(target);
+    }
+
+    fi->accessible = (g_access(path, R_OK) == 0);
+
+    if (!fm_config->deferred_mime_type_loading)
+    {
+        FmMimeType * mime_type = fm_mime_type_from_native_file(path, fm_file_info_get_disp_name(fi), &st);
+        SET_FIELD(mime_type, mime_type, mime_type);
+        fm_mime_type_unref(mime_type);
+    }
+    else
+    {
+        fm_file_info_deferred_load_add(fi);
+        fm_file_info_deferred_load_start();
+    }
+
+    /* special handling for desktop entry files */
+    if(G_UNLIKELY(fm_file_info_is_desktop_entry(fi)))
+    {
+        GKeyFile* kf = g_key_file_new();
+        if(g_key_file_load_from_file(kf, path, 0, NULL))
+        {
+            char* icon_name = g_key_file_get_locale_string(kf, "Desktop Entry", "Icon", NULL, NULL);
+            char* title = g_key_file_get_locale_string(kf, "Desktop Entry", "Name", NULL, NULL);
+            if (icon_name)
+            {
+                if(icon_name[0] != '/') /* this is a icon name, not a full path to icon file. */
+                {
+                    char* dot = strrchr(icon_name, '.');
+                    /* remove file extension */
+                    if(dot)
+                    {
+                        ++dot;
+                        if(strcmp(dot, "png") == 0 ||
+                           strcmp(dot, "svg") == 0 ||
+                           strcmp(dot, "xpm") == 0)
+                           *(dot-1) = '\0';
+                    }
+                }
+                icon = fm_icon_from_name(icon_name);
+                g_free(icon_name);
+            }
+
+            if (title)
+            {
+                SET_SYMBOL(disp_name, title);
+                g_free(title);
+            }
+        }
+        g_key_file_free(kf);
+    }
+
+    /* By default we use the real file base name for display.
+     * if the base name is not in UTF-8 encoding, we
+     * need to convert it to UTF-8 for display and save its
+     * UTF-8 version in fi->disp_name */
+    if (!fi->disp_name)
+    {
+        char * dname = g_filename_display_basename(path);
+        if (g_strcmp0(dname, fm_path_get_basename(fi->path)) != 0)
+        {
+            SET_SYMBOL(disp_name, dname);
+        }
+        g_free(dname);
+    }
+
+    /* files with . prefix or ~ suffix are regarded as hidden files.
+     * dirs with . prefix are regarded as hidden dirs. */
+    {
+        const char * basename = (char*)fm_path_get_basename(fi->path);
+        fi->hidden = (basename[0] == '.');
+        fi->backup = (!S_ISDIR(st.st_mode) && g_str_has_suffix(basename, "~"));
+    }
+
+    SET_FIELD(icon, icon, icon);
+    fm_icon_unref(icon);
+
     return TRUE;
 }
 
