@@ -229,6 +229,60 @@ gchar * _fast_content_type_guess(const char * base_name, const guchar * buf, gui
 
 #undef HAS_PREFIX
 
+static
+gchar * _guess_content_for_regular_file(const char* file_path, const char* base_name, struct stat* pstat)
+{
+    gchar * type1 = NULL;
+    gchar * type2 = NULL;
+
+    { /* guess by name */
+        gboolean uncertain;
+        type1 = g_content_type_guess(base_name, NULL, 0, &uncertain);
+        if(!uncertain)
+            goto end;
+    }
+
+    /* treat an empty file as text/plain  */
+    if (pstat->st_size == 0)
+    {
+        type2 = g_strdup("text/plain");
+        goto end;
+    }
+
+    int fd = open(file_path, O_RDONLY);
+    if(fd >= 0)
+    {
+        /* #3086703 - PCManFM crashes on non existent directories.
+         * http://sourceforge.net/tracker/?func=detail&aid=3086703&group_id=156956&atid=801864
+         *
+         * NOTE: do not use mmap here. Though we can get little
+         * performance gain, this makes our program more vulnerable
+         * to I/O errors. If the mapped file is truncated by other
+         * processes or I/O errors happen, we may receive SIGBUS.
+         * It's a pity that we cannot use mmap for speed up here. */
+
+        char buf[4097];
+        ssize_t len = read(fd, buf, MIN(pstat->st_size, 4096));
+        buf[len] = 0;
+
+        type2 = _fast_content_type_guess(base_name, (guchar*)buf, len, pstat);
+        if (!type2)
+            type2 = g_content_type_guess(NULL, (guchar*)buf, len, NULL);
+
+        close(fd);
+    }
+
+end:
+    if (type2)
+    {
+        g_free(type1);
+        type1 = type2;
+    }
+
+    return type1;
+}
+
+
 /*****************************************************************************/
 
 /**
@@ -249,7 +303,6 @@ FmMimeType* fm_mime_type_from_native_file(const char* file_path,
                                         const char* base_name,
                                         struct stat* pstat)
 {
-    FmMimeType* mime_type;
     struct stat st;
 
     if(!pstat)
@@ -262,43 +315,10 @@ FmMimeType* fm_mime_type_from_native_file(const char* file_path,
         }
     }
 
-    if(S_ISREG(pstat->st_mode))
+    if (S_ISREG(pstat->st_mode))
     {
-        gboolean uncertain;
-        char* type = g_content_type_guess(base_name, NULL, 0, &uncertain);
-        if(uncertain)
-        {
-            int fd;
-            if(pstat->st_size == 0) /* empty file = text file with 0 characters in it. */
-            {
-                g_free(type);
-                return fm_mime_type_from_name("text/plain");
-            }
-            fd = open(file_path, O_RDONLY);
-            if(fd >= 0)
-            {
-                /* #3086703 - PCManFM crashes on non existent directories.
-                 * http://sourceforge.net/tracker/?func=detail&aid=3086703&group_id=156956&atid=801864
-                 *
-                 * NOTE: do not use mmap here. Though we can get little
-                 * performance gain, this makes our program more vulnerable
-                 * to I/O errors. If the mapped file is truncated by other
-                 * processes or I/O errors happen, we may receive SIGBUS.
-                 * It's a pity that we cannot use mmap for speed up here. */
-
-                char buf[4097];
-                ssize_t len = read(fd, buf, MIN(pstat->st_size, 4096));
-                buf[len] = 0;
-
-                g_free(type);
-                type = _fast_content_type_guess(base_name, (guchar*)buf, len, &st);
-                if (!type)
-                    type = g_content_type_guess(NULL, (guchar*)buf, len, &uncertain);
-
-                close(fd);
-            }
-        }
-        mime_type = fm_mime_type_from_name(type);
+        gchar * type = _guess_content_for_regular_file(file_path, base_name, pstat);
+        FmMimeType * mime_type = fm_mime_type_from_name(type);
         g_free(type);
         return mime_type;
     }
