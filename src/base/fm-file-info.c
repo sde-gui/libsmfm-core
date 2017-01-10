@@ -117,7 +117,8 @@ struct _FmFileInfo
     FmPath * volatile path; /* path of the file */
 
     volatile mode_t mode;
-    volatile gboolean native_directory;
+    volatile gboolean native_directory; /* set when it is a native directory or a symlink to a directory */
+    volatile gboolean native_regular_file; /* set when it is a native regular file or a symlink to a native regular file */
 
     const char * volatile fs_id;
     volatile dev_t dev;
@@ -384,7 +385,9 @@ static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* 
     fi->dev = st.st_dev;
     fi->uid = st.st_uid;
     fi->gid = st.st_gid;
+
     fi->native_directory = S_ISDIR(st.st_mode);
+    fi->native_regular_file = S_ISREG(st.st_mode);
 
     if (S_ISLNK(st.st_mode))
     {
@@ -393,6 +396,7 @@ static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* 
         {
             st = _st;
             fi->native_directory = S_ISDIR(st.st_mode);
+            fi->native_regular_file = S_ISREG(st.st_mode);
         }
         char * target = g_file_read_link(path, NULL);
         SET_SYMBOL(target, target);
@@ -857,6 +861,7 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
     SET_FIELD(disp_mtime, symbol, src->disp_mtime);
 
     fi->native_directory = src->native_directory;
+    fi->native_regular_file = src->native_regular_file;
     fi->from_native_file = src->from_native_file;
     fi->mime_type_load_done = src->mime_type_load_done;
 
@@ -1259,6 +1264,8 @@ gboolean fm_file_info_is_desktop_entry(FmFileInfo* fi)
 
     if (fi->from_native_file)
     {
+        if (!fi->native_regular_file)
+            return FALSE;
         const char * target = GET_CSTR(target);
         const char * path = target ? target : GET_CSTR(native_path);
         if (!g_str_has_suffix(path, ".desktop"))
