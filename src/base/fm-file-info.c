@@ -170,11 +170,6 @@ struct _FmFileInfo
     FmList * volatile symbol_bucket;
 };
 
-struct _FmFileInfoList
-{
-    FmList list;
-};
-
 /*****************************************************************************/
 
 static FmListFuncs fm_list_funcs_for_path =

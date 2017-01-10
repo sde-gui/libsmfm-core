@@ -38,7 +38,6 @@
 G_BEGIN_DECLS
 
 typedef struct _FmFileInfo FmFileInfo;
-//typedef struct _FmFileInfoList FmFileInfoList; // defined in fm-path.h
 
 #define FILE_INFO_DEFAULT_COLOR 0xFF00FF
 
@@ -131,6 +130,6 @@ unsigned long fm_file_info_get_color(FmFileInfo * fi);
 
 G_END_DECLS
 
-#include "fm-file-info-list.h"
-
 #endif
+
+#include "fm-file-info-list.h"

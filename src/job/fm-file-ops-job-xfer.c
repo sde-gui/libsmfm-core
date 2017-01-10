@@ -26,6 +26,7 @@
 #include "fm-file-ops-job-xfer.h"
 #include "fm-file-ops-job-delete.h"
 #include "fm-utils.h"
+#include "fm-path-list.h"
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>

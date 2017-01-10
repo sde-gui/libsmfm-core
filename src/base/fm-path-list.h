@@ -30,6 +30,7 @@
 #include "fm-list.h"
 #include "fm-path.h"
 #include "fm-utils.h"
+#include "fm-file-info-list.h"
 
 G_BEGIN_DECLS
 

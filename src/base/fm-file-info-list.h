@@ -27,6 +27,13 @@
 
 G_BEGIN_DECLS
 
+typedef struct _FmFileInfoList FmFileInfoList;
+
+/*struct _FmFileInfoList
+{
+    FmList list;
+};*/
+
 FmFileInfoList* fm_file_info_list_new();
 
 static inline FmFileInfoList* fm_file_info_list_ref(FmFileInfoList* list)

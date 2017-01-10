@@ -67,8 +67,6 @@ typedef enum
     FM_PATH_IS_RESERVED3 = 1<<7,
 } FmPathFlags;
 
-typedef struct _FmFileInfoList FmFileInfoList; /* fm-file-info.h includes this too */
-
 void _fm_path_init(void);
 void _fm_path_finalize(void);
 
@@ -130,8 +128,6 @@ gboolean fm_path_equal_str(FmPath *path, const gchar *str, int n);
 int fm_path_depth(FmPath* path);
 
 void fm_log_memory_usage_for_path(void);
-
-#include "fm-path-list.h"
 
 G_END_DECLS
 

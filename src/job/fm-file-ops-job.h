@@ -26,6 +26,7 @@
 #include "fm-job.h"
 #include "fm-deep-count-job.h"
 #include "fm-file-info.h"
+#include "fm-path-list.h"
 
 G_BEGIN_DECLS
 
