@@ -29,6 +29,7 @@
  */
 
 #include "fm-icon.h"
+#include <string.h>
 
 static GHashTable* hash = NULL;
 G_LOCK_DEFINE_STATIC(hash);
@@ -92,11 +93,23 @@ FmIcon* fm_icon_from_name(const char* name)
     {
         FmIcon* icon;
         GIcon* gicon;
+        gchar *dot;
         if(g_path_is_absolute(name))
         {
             GFile* gicon_file = g_file_new_for_path(name);
             gicon = g_file_icon_new(gicon_file);
             g_object_unref(gicon_file);
+        }
+        else if(G_UNLIKELY((dot = strrchr(name, '.')) != NULL && dot > name &&
+                (g_ascii_strcasecmp(&dot[1], "png") == 0
+                 || g_ascii_strcasecmp(&dot[1], "svg") == 0
+                 || g_ascii_strcasecmp(&dot[1], "xpm") == 0)))
+        {
+            /* some desktop entries have invalid icon name which contains
+               suffix so let strip the suffix from such invalid name */
+            dot = g_strndup(name, dot - name);
+            gicon = g_themed_icon_new_with_default_fallbacks(dot);
+            g_free(dot);
         }
         else
             gicon = g_themed_icon_new_with_default_fallbacks(name);

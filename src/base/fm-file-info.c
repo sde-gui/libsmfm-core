@@ -394,19 +394,6 @@ static void _fill_from_desktop_entry(FmFileInfo * fi, const char * path)
 
     if (icon_name)
     {
-        if (icon_name[0] != '/') /* this is a icon name, not a full path to icon file. */
-        {
-            char * dot = strrchr(icon_name, '.');
-            /* remove file extension */
-            if(dot)
-            {
-                ++dot;
-                if(strcmp(dot, "png") == 0 ||
-                   strcmp(dot, "svg") == 0 ||
-                   strcmp(dot, "xpm") == 0)
-                    *(dot-1) = '\0';
-            }
-        }
         FmIcon * icon = fm_icon_from_name(icon_name);
         SET_FIELD(icon, icon, icon);
         fm_icon_unref(icon);
