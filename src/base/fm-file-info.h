@@ -63,19 +63,20 @@ void fm_log_memory_usage_for_file_info(void);
 
 /*****************************************************************************/
 
-FmFileInfo* fm_file_info_new();
+FmFileInfo * fm_file_info_new();
 
-FmFileInfo* fm_file_info_new_from_gfileinfo(FmPath* path, GFileInfo* inf);
+FmFileInfo * fm_file_info_new_from_gfileinfo(FmPath * path, GFileInfo * inf);
+FmFileInfo * fm_file_info_new_from_native_file(FmPath * path, const char * path_str, GError ** err);
 
-void        fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf);
-gboolean    fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GError** err);
+void         fm_file_info_set_path(FmFileInfo * fi, FmPath * path);
 
-void        fm_file_info_set_path(FmFileInfo* fi, FmPath* path);
+void         fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf);
+gboolean     fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GError** err);
 
 /*****************************************************************************/
 
-FmFileInfo* fm_file_info_ref(FmFileInfo * fi);
-void        fm_file_info_unref(FmFileInfo * fi);
+FmFileInfo * fm_file_info_ref(FmFileInfo * fi);
+void         fm_file_info_unref(FmFileInfo * fi);
 
 /*****************************************************************************/
 

@@ -594,6 +594,7 @@ void fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
     g_free(target);
 }
 
+/*****************************************************************************/
 
 /**
  * fm_file_info_new_from_gfileinfo:
@@ -611,6 +612,54 @@ FmFileInfo* fm_file_info_new_from_gfileinfo(FmPath* path, GFileInfo* inf)
     FmFileInfo* fi = fm_file_info_new();
     fm_file_info_set_path(fi, path);
     fm_file_info_set_from_gfileinfo(fi, inf);
+    return fi;
+}
+
+
+/**
+ * fm_file_info_new_from_native_file
+ * @path: (allow-none): path descriptor
+ * @path_str (allow-none): full path to the file
+ * @err: (allow-none) (out): pointer to receive error
+ *
+ * Create a new #FmFileInfo for file pointed by @path. Returned data
+ * should be freed with fm_file_info_unref() after usage.
+ *
+ * Either @path or @path_str must not be %NULL.
+ *
+ * Returns: (transfer full): new file info or %NULL in case of error.
+ *
+ */
+FmFileInfo* fm_file_info_new_from_native_file(FmPath* path, const char* path_str, GError** err)
+{
+    if (!path && !path_str)
+    {
+        /* FIXME: set err */
+        return NULL;
+    }
+
+    FmFileInfo* fi = fm_file_info_new();
+    char * should_be_freed = NULL;
+
+    if (!path)
+        path = fm_path_new_for_path(path_str);
+
+    if (!path_str)
+    {
+        should_be_freed = fm_path_to_str(path);
+        path_str = should_be_freed;
+    }
+
+    fm_file_info_set_path(fi, path);
+
+    if (!fm_file_info_set_from_native_file(fi, path_str, err))
+    {
+        fm_file_info_unref(fi);
+        fi = NULL;
+    }
+
+    g_free(should_be_freed);
+
     return fi;
 }
 
