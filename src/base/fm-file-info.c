@@ -857,6 +857,7 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
     SET_FIELD(disp_size, symbol, src->disp_size);
     SET_FIELD(disp_mtime, symbol, src->disp_mtime);
 
+    fi->native_directory = src->native_directory;
     fi->from_native_file = src->from_native_file;
     //fi->icon_load_done = src->icon_load_done;
     fi->mime_type_load_done = src->mime_type_load_done;
