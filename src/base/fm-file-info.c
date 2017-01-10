@@ -350,7 +350,6 @@ gboolean fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path_str
     if (fm_file_info_is_filled(fi))
     {
         g_warning("%s is called more than once", __FUNCTION__);
-        fi->filled = TRUE;
         FmFileInfo * fi_src = fm_file_info_new_from_native_file(
             fm_file_info_get_path(fi), path_str, err);
         if (fi_src)
@@ -507,7 +506,6 @@ void fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
     if (fm_file_info_is_filled(fi))
     {
         g_warning("%s is called more than once", __FUNCTION__);
-        fi->filled = TRUE;
         FmFileInfo * fi_src = fm_file_info_new_from_gfileinfo(
             fm_file_info_get_path(fi), inf);
         g_assert(fi_src != NULL);
@@ -832,6 +830,8 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
     SET_FIELD(path, path, src->path);
     SET_FIELD(mime_type, mime_type, src->mime_type);
     SET_FIELD(icon, icon, src->icon);
+
+    fi->filled = src->filled;
 
     fi->mode = src->mode;
     fi->dev = src->dev;
