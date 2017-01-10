@@ -154,7 +154,6 @@ struct _FmFileInfo
 
     volatile gboolean color_loaded;
     volatile gboolean from_native_file;
-    //volatile gboolean icon_load_done;
     volatile gboolean mime_type_load_done;
 
     FmSymbol * volatile native_path;
@@ -859,7 +858,6 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
 
     fi->native_directory = src->native_directory;
     fi->from_native_file = src->from_native_file;
-    //fi->icon_load_done = src->icon_load_done;
     fi->mime_type_load_done = src->mime_type_load_done;
 
     SET_FIELD(native_path, symbol, src->native_path);
@@ -888,7 +886,6 @@ static void deferred_icon_load(FmFileInfo* fi)
 
     G_LOCK(deferred_icon_load);
 
-//    if (fi->icon || fi->icon_load_done || !fi->from_native_file)
     if (fi->icon || !fi->from_native_file)
     {
         G_UNLOCK(deferred_icon_load);
@@ -927,8 +924,6 @@ static void deferred_icon_load(FmFileInfo* fi)
 
     SET_FIELD(icon, icon, icon);
     fm_icon_unref(icon);
-
-    //fi->icon_load_done = TRUE;
 
     G_UNLOCK(deferred_icon_load);
 }
