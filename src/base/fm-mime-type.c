@@ -63,10 +63,19 @@ struct _FmMimeType
 static GHashTable *mime_hash = NULL;
 G_LOCK_DEFINE(mime_hash);
 
-static FmMimeType* directory_type = NULL;
-static FmMimeType* mountable_type = NULL;
-static FmMimeType* shortcut_type = NULL;
-static FmMimeType* desktop_entry_type = NULL;
+/* Preallocated MIME types */
+static FmMimeType * inode_directory_type = NULL;
+static FmMimeType * inode_chardevice_type = NULL;
+static FmMimeType * inode_blockdevice_type = NULL;
+static FmMimeType * inode_fifo_type = NULL;
+static FmMimeType * inode_symlink_type = NULL;
+#ifdef S_ISSOCK
+static FmMimeType * inode_socket_type = NULL;
+#endif
+static FmMimeType * application_x_desktop_type = NULL;
+static FmMimeType * mountable_type = NULL;
+static FmMimeType * shortcut_type = NULL;
+
 
 static FmMimeType* fm_mime_type_new(const char* type_name);
 
@@ -75,8 +84,16 @@ void _fm_mime_type_init()
     mime_hash = g_hash_table_new_full(g_str_hash, g_str_equal,
                                        NULL, fm_mime_type_unref);
 
-    /* since this one is frequently used, we store it to save hash table lookup. */
-    directory_type = fm_mime_type_from_name("inode/directory");
+    /* Preallocated to save hash table lookup. */
+    inode_directory_type = fm_mime_type_from_name("inode/directory");
+    inode_chardevice_type = fm_mime_type_from_name("inode/chardevice");
+    inode_blockdevice_type = fm_mime_type_from_name("inode/blockdevice");
+    inode_fifo_type = fm_mime_type_from_name("inode/fifo");
+    inode_symlink_type = fm_mime_type_from_name("inode/symlink");
+#ifdef S_ISSOCK
+    inode_socket_type = fm_mime_type_from_name("inode/socket");
+#endif
+    application_x_desktop_type = fm_mime_type_from_name("application/x-desktop");
 
     /* fake mime-types for mountable and shortcuts */
     shortcut_type = fm_mime_type_from_name("inode/x-shortcut");
@@ -84,16 +101,20 @@ void _fm_mime_type_init()
 
     mountable_type = fm_mime_type_from_name("inode/x-mountable");
     mountable_type->description = g_strdup(_("Mount Point"));
-
-    desktop_entry_type = fm_mime_type_from_name("application/x-desktop");
 }
 
 void _fm_mime_type_finalize()
 {
-    fm_mime_type_unref(directory_type);
-    fm_mime_type_unref(shortcut_type);
+    fm_mime_type_unref(inode_directory_type);
+    fm_mime_type_unref(inode_chardevice_type);
+    fm_mime_type_unref(inode_blockdevice_type);
+    fm_mime_type_unref(inode_fifo_type);
+    fm_mime_type_unref(inode_symlink_type);
+    fm_mime_type_unref(inode_socket_type);
+    fm_mime_type_unref(application_x_desktop_type);
     fm_mime_type_unref(mountable_type);
-    fm_mime_type_unref(desktop_entry_type);
+    fm_mime_type_unref(shortcut_type);
+
     g_hash_table_destroy(mime_hash);
 }
 
@@ -310,19 +331,19 @@ FmMimeType* fm_mime_type_from_native_file(const char* file_path,
         return mime_type;
     }
 
-    if(S_ISDIR(pstat->st_mode))
-        return fm_mime_type_ref(directory_type);
+    if (S_ISDIR(pstat->st_mode))
+        return fm_mime_type_ref(inode_directory_type);
     if (S_ISCHR(pstat->st_mode))
-        return fm_mime_type_from_name("inode/chardevice");
+        return fm_mime_type_ref(inode_chardevice_type);
     if (S_ISBLK(pstat->st_mode))
-        return fm_mime_type_from_name("inode/blockdevice");
+        return fm_mime_type_ref(inode_blockdevice_type);
     if (S_ISFIFO(pstat->st_mode))
-        return fm_mime_type_from_name("inode/fifo");
+        return fm_mime_type_ref(inode_fifo_type);
     if (S_ISLNK(pstat->st_mode))
-        return fm_mime_type_from_name("inode/symlink");
+        return fm_mime_type_ref(inode_symlink_type);
 #ifdef S_ISSOCK
     if (S_ISSOCK(pstat->st_mode))
-        return fm_mime_type_from_name("inode/socket");
+        return fm_mime_type_ref(inode_socket_type);
 #endif
     /* impossible */
     g_debug("Invalid stat mode: %d, %s", pstat->st_mode & S_IFMT, base_name);
@@ -380,7 +401,7 @@ FmMimeType* fm_mime_type_new(const char* type_name)
 
 FmMimeType* _fm_mime_type_get_inode_directory()
 {
-    return directory_type;
+    return inode_directory_type;
 }
 
 FmMimeType* _fm_mime_type_get_inode_x_shortcut()
@@ -395,7 +416,7 @@ FmMimeType* _fm_mime_type_get_inode_x_mountable()
 
 FmMimeType* _fm_mime_type_get_application_x_desktop()
 {
-    return desktop_entry_type;
+    return application_x_desktop_type;
 }
 
 /**
