@@ -223,8 +223,7 @@ static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
 
     path_str = fm_path_to_str(job->dir_path);
 
-    fi = fm_file_info_new();
-    fm_file_info_set_path(fi, job->dir_path);
+    fi = fm_file_info_new_from_path_unfilled(job->dir_path);
     if( _fm_file_info_job_get_info_for_native_file(fmjob, fi, path_str, NULL) )
     {
         if(! fm_file_info_is_directory(fi))
@@ -282,9 +281,8 @@ static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
                     continue;
             }
 
-            fi = fm_file_info_new();
             new_path = fm_path_new_child(job->dir_path, name);
-            fm_file_info_set_path(fi, new_path);
+            fi = fm_file_info_new_from_path_unfilled(new_path);
             fm_path_unref(new_path);
 
         _retry:

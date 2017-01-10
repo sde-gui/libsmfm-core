@@ -212,8 +212,7 @@ static gboolean fm_file_info_job_run(FmJob* fmjob)
  */
 void fm_file_info_job_add(FmFileInfoJob* job, FmPath* path)
 {
-    FmFileInfo* fi = fm_file_info_new();
-    fm_file_info_set_path(fi, path);
+    FmFileInfo* fi = fm_file_info_new_from_path_unfilled(path);
     fm_file_info_list_push_tail_noref(job->file_infos, fi);
 }
 

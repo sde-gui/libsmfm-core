@@ -287,6 +287,28 @@ FmFileInfo* fm_file_info_new ()
     return fi;
 }
 
+/*****************************************************************************/
+
+/**
+ * fm_file_info_new_from_path_unfilled:
+ *
+ * Create a new #FmFileInfo for file pointed by @path. Returned data
+ * should be freed with fm_file_info_unref() after usage.
+ *
+ * The #FmFileInfo returned is not filled with actual file metadata.
+ *
+ * Returns: (transfer full): a new FmFileInfo struct which needs to be freed with
+ * fm_file_info_unref() when it's no more needed.
+ */
+FmFileInfo * fm_file_info_new_from_path_unfilled(FmPath * path)
+{
+    FmFileInfo * fi = fm_file_info_new();
+    fm_file_info_set_path(fi, path);
+    return fi;
+}
+
+/*****************************************************************************/
+
 /**
  * fm_file_info_set_path:
  * @fi:  A FmFileInfo struct

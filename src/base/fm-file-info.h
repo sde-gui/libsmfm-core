@@ -64,6 +64,7 @@ void fm_log_memory_usage_for_file_info(void);
 /*****************************************************************************/
 
 FmFileInfo * fm_file_info_new();
+FmFileInfo * fm_file_info_new_from_path_unfilled(FmPath * path);
 
 FmFileInfo * fm_file_info_new_from_gfileinfo(FmPath * path, GFileInfo * inf);
 FmFileInfo * fm_file_info_new_from_native_file(FmPath * path, const char * path_str, GError ** err);
