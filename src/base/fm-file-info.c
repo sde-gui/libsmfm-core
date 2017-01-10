@@ -52,6 +52,13 @@
 #include "fm-utils.h"
 #include "fm-highlighter.h"
 
+/*****************************************************************************/
+
+static gboolean _fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GError** err);
+static void _fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf);
+
+/*****************************************************************************/
+
 #define COLLATE_USING_DISPLAY_NAME    ((FmSymbol *) -1)
 
 static FmIcon* icon_locked_folder = NULL;
@@ -151,6 +158,8 @@ struct _FmFileInfo
     volatile gboolean mime_type_load_done;
 
     FmSymbol * volatile native_path;
+
+    volatile int filled;
 
     /*<private>*/
     volatile int n_ref;
@@ -301,9 +310,42 @@ void fm_file_info_set_path(FmFileInfo* fi, FmPath* path)
  * Get file info of the specified native file and store it in
  * the FmFileInfo struct.
  *
+ * This function is not thread-safe. You should not call it on a FmFileInfo
+ * struct that is accessible from another thread. You also should not call any
+ * of fm_file_info_set_from_* functions more than once for each FmFileInfo struct.
+ *
  * Returns: TRUE if no error happens.
  */
-gboolean fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GError** err)
+gboolean fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path_str, GError** err)
+{
+    /*
+        We are trying to detect and report a misuse of the API.
+        If the misuse is detected, we avoid a possible race condition.
+        However, there is an intentional race condition in calling fm_file_info_is_filled(),
+        for performance reason. So not every misuse is detected.
+    */
+    /* FIXME: should we fully protect it with a mutex? */
+    if (fm_file_info_is_filled(fi))
+    {
+        g_warning("%s is called more than once", __FUNCTION__);
+        fi->filled = TRUE;
+        FmFileInfo * fi_src = fm_file_info_new_from_native_file(
+            fm_file_info_get_path(fi), path_str, err);
+        if (fi_src)
+        {
+            fm_file_info_update(fi, fi_src);
+            fm_file_info_unref(fi_src);
+            return TRUE;
+        }
+        return FALSE;
+    }
+    else
+    {
+        return _fm_file_info_set_from_native_file(fi, path_str, err);
+    }
+}
+
+static gboolean _fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GError** err)
 {
     struct stat st;
     char *dname;
@@ -426,8 +468,37 @@ gboolean fm_file_info_set_from_native_file(FmFileInfo* fi, const char* path, GEr
  *
  * Get file info from the GFileInfo object and store it in
  * the FmFileInfo struct.
+ *
+ * This function is not thread-safe. You should not call it on a FmFileInfo
+ * struct that is accessible from another thread. You also should not call any
+ * of fm_file_info_set_from_* functions more than once for each FmFileInfo struct.
  */
 void fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
+{
+    /*
+        We are trying to detect and report a misuse of the API.
+        If the misuse is detected, we avoid a possible race condition.
+        However, there is an intentional race condition in calling fm_file_info_is_filled(),
+        for performance reason. So not every misuse is detected.
+    */
+    /* FIXME: should we fully protect it with a mutex? */
+    if (fm_file_info_is_filled(fi))
+    {
+        g_warning("%s is called more than once", __FUNCTION__);
+        fi->filled = TRUE;
+        FmFileInfo * fi_src = fm_file_info_new_from_gfileinfo(
+            fm_file_info_get_path(fi), inf);
+        g_assert(fi_src != NULL);
+        fm_file_info_update(fi, fi_src);
+        fm_file_info_unref(fi_src);
+    }
+    else
+    {
+        _fm_file_info_set_from_gfileinfo(fi, inf);
+    }
+}
+
+static void _fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
 {
     const char *tmp, *uri;
     GIcon* gicon;
@@ -592,6 +663,13 @@ void fm_file_info_set_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
 
     SET_SYMBOL(target, target);
     g_free(target);
+}
+
+/*****************************************************************************/
+
+gboolean fm_file_info_is_filled(FmFileInfo * fi)
+{
+    return fi && fi->filled;
 }
 
 /*****************************************************************************/
