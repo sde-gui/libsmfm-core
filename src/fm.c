@@ -145,3 +145,36 @@ void fm_finalize(void)
     g_object_unref(fm_config);
     fm_config = NULL;
 }
+
+guint fm_version_major(void)
+{
+    return FM_VERSION_MAJOR;
+}
+
+guint fm_version_minor(void)
+{
+    return FM_VERSION_MINOR;
+}
+
+guint fm_version_micro(void)
+{
+    return FM_VERSION_MICRO;
+}
+
+const char *
+fm_check_version(guint required_major,
+                 guint required_minor,
+                 guint required_micro)
+{
+    if (required_major > fm_version_major())
+        return PACKAGE_NAME " version too old (major mismatch)";
+    if (required_major < fm_version_major())
+        return PACKAGE_NAME " version too new (major mismatch)";
+    if (required_minor > fm_version_minor())
+        return PACKAGE_NAME " version too old (minor mismatch)";
+
+    if (required_minor == fm_version_minor() && required_micro == fm_version_micro())
+        return PACKAGE_NAME " version too old (micro mismatch)";
+
+    return NULL;
+}
