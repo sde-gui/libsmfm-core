@@ -6,7 +6,7 @@ AM_CPPFLAGS = \
 	-I$(srcdir)/.. \
 	-I$(srcdir)/../basekit \
 	-I$(srcdir)/../base \
-	-I$(srcdir)/../actions \
+	-I$(srcdir)/../extra \
 	-I$(srcdir)/../job \
 	-I$(abs_builddir)/.. \
 	-I$(abs_builddir)/../base \

@@ -14,7 +14,7 @@ AM_CPPFLAGS = \
 	-I$(srcdir) \
 	-I$(srcdir)/basekit \
 	-I$(srcdir)/base \
-	-I$(srcdir)/actions \
+	-I$(srcdir)/extra \
 	-I$(srcdir)/job \
 	-I$(abs_builddir) \
 	-I$(abs_builddir)/base \
@@ -65,17 +65,13 @@ base_SOURCES = \
 	base/fm-utils.c \
 	base/fm-file-launcher.c \
 	base/fm-icon.c \
-	base/fm-bookmarks.c \
-	base/fm-nav-history.c \
 	base/fm-monitor.c \
 	base/fm-dummy-monitor.c \
-	base/fm-archiver.c \
 	base/fm-app-info.c \
 	base/fm-thumbnailer.c \
 	base/fm-thumbnail-loader.c \
 	base/fm-file.c \
 	base/fm-terminal.c \
-	base/fm-templates.c \
 	base/fm-marshal.c \
 	vfs/fm-vfs-menu.c \
 	vfs/fm-vfs-search.c \
@@ -93,11 +89,19 @@ job_SOURCES = \
 	job/fm-file-ops-job-change-attr.c \
 	$(NULL)
 
+extra_SOURCES = \
+	extra/fm-bookmarks.c \
+	extra/fm-nav-history.c \
+	extra/fm-archiver.c \
+	extra/fm-templates.c \
+	$(NULL)
+
 libsmfm_core_SOURCES = \
 	fm.c \
 	$(glib_compat_SOURCES) \
 	$(base_SOURCES) \
 	$(job_SOURCES) \
+	$(extra_SOURCES) \
 	$(udisks_SOURCES) \
 	$(NULL)
 
@@ -118,16 +122,12 @@ libsmfminclude_HEADERS = \
 	base/fm-utils.h \
 	base/fm-file-launcher.h \
 	base/fm-icon.h \
-	base/fm-bookmarks.h \
-	base/fm-nav-history.h \
 	base/fm-monitor.h \
 	base/fm-dummy-monitor.h \
-	base/fm-archiver.h \
 	base/fm-app-info.h \
 	base/fm-thumbnailer.h \
 	base/fm-file.h \
 	base/fm-terminal.h \
-	base/fm-templates.h \
 	base/fm-thumbnail-loader.h \
 	base/fm-marshal.h \
 	job/fm-job.h \
@@ -139,6 +139,10 @@ libsmfminclude_HEADERS = \
 	job/fm-file-ops-job-xfer.h \
 	job/fm-file-ops-job-delete.h \
 	job/fm-file-ops-job-change-attr.h \
+	extra/fm-archiver.h \
+	extra/fm-templates.h \
+	extra/fm-bookmarks.h \
+	extra/fm-nav-history.h \
 	$(NULL)
 
 pkginclude_HEADERS = \
