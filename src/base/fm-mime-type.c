@@ -145,6 +145,7 @@ FmMimeType* fm_mime_type_from_file_name(const char* ufile_name)
 
 #define HAS_PREFIX(buf, prefix) (memcmp(buf, prefix, sizeof(prefix) - 1) == 0)
 
+static
 const char * _fast_content_type_guess_script(const char * base_name, const guchar * buf, guint len, struct stat * st)
 {
     //const char * _buf = (const char *) buf;
@@ -216,6 +217,7 @@ const char * _fast_content_type_guess_script(const char * base_name, const gucha
     return result;
 }
 
+static
 gchar * _fast_content_type_guess(const char * base_name, const guchar * buf, guint len, struct stat * st)
 {
     const char * result = NULL;
