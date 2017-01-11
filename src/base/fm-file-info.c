@@ -588,14 +588,14 @@ static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
             if(fi->mode)
                 break;
         /* if it's a special file but it doesn't have UNIX mode, compose a fake one. */
-            if(strcmp(tmp, "inode/chardevice")==0)
+            if (g_strcmp0(tmp, "inode/chardevice")==0)
                 fi->mode |= S_IFCHR;
-            else if(strcmp(tmp, "inode/blockdevice")==0)
+            else if (g_strcmp0(tmp, "inode/blockdevice")==0)
                 fi->mode |= S_IFBLK;
-            else if(strcmp(tmp, "inode/fifo")==0)
+            else if (g_strcmp0(tmp, "inode/fifo")==0)
                 fi->mode |= S_IFIFO;
         #ifdef S_IFSOCK
-            else if(strcmp(tmp, "inode/socket")==0)
+            else if (g_strcmp0(tmp, "inode/socket")==0)
                 fi->mode |= S_IFSOCK;
         #endif
             break;
