@@ -17,6 +17,7 @@ if [ "$AM_INSTALLED_VERSION" != "1.11" \
 	exit 1
 fi
 
+mkdir -p m4
 
 if [ "x${ACLOCAL_DIR}" != "x" ]; then
     ACLOCAL_ARG=-I ${ACLOCAL_DIR}
