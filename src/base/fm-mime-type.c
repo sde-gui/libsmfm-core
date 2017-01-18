@@ -267,7 +267,7 @@ gchar * _guess_content_for_regular_file(const char* file_path, const char* base_
 
         type2 = _fast_content_type_guess(base_name, (guchar*)buf, len, pstat);
         if (!type2)
-            type2 = g_content_type_guess(NULL, (guchar*)buf, len, NULL);
+            type2 = g_content_type_guess(base_name, (guchar*)buf, len, NULL);
 
         close(fd);
     }
