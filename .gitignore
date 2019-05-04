@@ -4,19 +4,17 @@ Makefile
 *.o
 *.lo
 *.la
-
-config.*
-configure
-depcomp
+/build-aux
+/config.h
+/config.h.in
+/config.log
+/config.status
+/configure
 *.pc
 *m4
 autom4te.cache
 stamp-*
 libtool
-ltmain.sh
-missing
-install-sh
-compile
 *.stamp
 gtk-doc.make
 
