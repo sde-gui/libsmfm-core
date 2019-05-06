@@ -5,6 +5,7 @@ AC_PREREQ([2.63])
 AC_INIT([libsmfm], [1.2.0-alpha1], [http://])
 AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign -Wno-portability subdir-objects])
+m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES])
 AC_CONFIG_MACRO_DIR(m4)
 AC_CONFIG_HEADERS([config.h])
 
