@@ -30,7 +30,7 @@
 G_BEGIN_DECLS
 
 /* interface table */
-FmFileInitTable _fm_vfs_search_init_table;
+extern FmFileInitTable _fm_vfs_search_init_table;
 
 G_END_DECLS
 

@@ -26,6 +26,6 @@
 #include "fm-file.h"
 
 /* interface table */
-FmFileInitTable _fm_vfs_menu_init_table;
+extern FmFileInitTable _fm_vfs_menu_init_table;
 
 #endif /* _FM_VFS_MENU_H_ */
