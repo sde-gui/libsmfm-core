@@ -491,7 +491,7 @@ FmPath* fm_path_new_relative(FmPath* parent, const char* rel)
             }
         }
     }
-    else /* this is actaully a full path */
+    else /* this is actually a full path */
         path = fm_path_new_for_str(rel);
     return path;
 }
