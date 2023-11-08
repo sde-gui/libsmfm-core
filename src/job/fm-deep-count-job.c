@@ -249,7 +249,7 @@ _retry_query_info:
     descend = TRUE;
 
     ++job->count;
-    job->total_size += g_file_info_get_size(inf);
+    job->total_size += g_file_info_get_attribute_uint64(inf, G_FILE_ATTRIBUTE_STANDARD_SIZE);
     job->total_ondisk_size += g_file_info_get_attribute_uint64(inf, G_FILE_ATTRIBUTE_STANDARD_ALLOCATED_SIZE);
 
     /* prepare for moving across different devices */

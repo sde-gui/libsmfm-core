@@ -552,9 +552,13 @@ static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
         SET_SYMBOL(disp_name, tmp);
     }
 
-    fi->size = g_file_info_get_size(inf);
+    if (g_file_info_has_attribute(inf, G_FILE_ATTRIBUTE_STANDARD_SIZE))
+        fi->size = g_file_info_get_size(inf);
+    else
+        fi->size = 0;
 
-    tmp = g_file_info_get_content_type(inf);
+    if (g_file_info_has_attribute(inf, G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE))
+        tmp = g_file_info_get_content_type(inf);
     if (tmp)
         mime_type = fm_mime_type_from_name(tmp);
 
@@ -684,8 +688,8 @@ static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
 
     fi->mtime = g_file_info_get_attribute_uint64(inf, G_FILE_ATTRIBUTE_TIME_MODIFIED);
     fi->atime = g_file_info_get_attribute_uint64(inf, G_FILE_ATTRIBUTE_TIME_ACCESS);
-    fi->hidden = g_file_info_get_is_hidden(inf);
-    fi->backup = g_file_info_get_is_backup(inf);
+    fi->hidden = g_file_info_get_attribute_boolean(inf, G_FILE_ATTRIBUTE_STANDARD_IS_HIDDEN);
+    fi->backup = g_file_info_get_attribute_boolean(inf, G_FILE_ATTRIBUTE_STANDARD_IS_BACKUP);
 
     SET_FIELD(mime_type, mime_type, mime_type);
     fm_mime_type_unref(mime_type);
