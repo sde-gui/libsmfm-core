@@ -325,14 +325,9 @@ FmPath* _fm_path_new_child_len(FmPath* parent, const char* basename, int name_le
         if(basename[0] == '.' && (name_len == 1 || (name_len == 2 && basename[1] == '.')))
         {
             if(name_len == 1) /* . */
-                return parent ? fm_path_ref(parent) : NULL;
+                return fm_path_ref(parent);
             else /* .. */
-            {
-                if(parent)
-                    return parent->parent ? fm_path_ref(parent->parent) : fm_path_ref(parent);
-                else
-                    return NULL;
-            }
+                return parent->parent ? fm_path_ref(parent->parent) : fm_path_ref(parent);
         }
     }
     else /* this basename is root of the fs (no parent), it can be "/" or something like "ftp://user@host/" */
@@ -349,7 +344,7 @@ FmPath* _fm_path_new_child_len(FmPath* parent, const char* basename, int name_le
         --name_len;
 
     if(name_len == 0)
-        return parent ? fm_path_ref(parent) : NULL;
+        return fm_path_ref(parent);
 
     if(dont_escape)
     {
