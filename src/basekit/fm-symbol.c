@@ -34,7 +34,7 @@
 struct _FmSymbol
 {
     gint n_ref;
-    int value_size;
+    int value_size; /* int is intentional in order to reduce memory footprint on 64-bit platforms. */
     char value[1];
 };
 
