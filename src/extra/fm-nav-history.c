@@ -265,15 +265,15 @@ static inline void cut_history(FmNavHistory* nh, guint num)
 
             if (remove)
             {
-                FmNavHistoryItem* item = (FmNavHistoryItem *) g_queue_pop_nth(&nh->items, index);
-                fm_nav_history_item_free(item);
+                FmNavHistoryItem* item_for_removal = (FmNavHistoryItem *) g_queue_pop_nth(&nh->items, index);
+                fm_nav_history_item_free(item_for_removal);
                 goto repeat;
             }
 
             if (nh->remove_parent && prev_item && fm_path_equal(prev_item->path, fm_path_get_parent(item->path)))
             {
-                FmNavHistoryItem* item = (FmNavHistoryItem *) g_queue_pop_nth(&nh->items, prev_item_index);
-                fm_nav_history_item_free(item);
+                FmNavHistoryItem* item_for_removal = (FmNavHistoryItem *) g_queue_pop_nth(&nh->items, prev_item_index);
+                fm_nav_history_item_free(item_for_removal);
                 goto repeat;
             }
             prev_item = item;
