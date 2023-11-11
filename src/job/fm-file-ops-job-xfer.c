@@ -337,18 +337,17 @@ _retry_enum_children:
         {
             char* src_path = g_file_get_path(src);
             struct stat src_st;
-            int r;
-            r = lstat(src_path, &src_st);
+            int lstat_result = lstat(src_path, &src_st);
             g_free(src_path);
-            if(r == 0)
+            if(lstat_result == 0)
             {
                 /* Handle FIFO on native file systems. */
                 if(S_ISFIFO(src_st.st_mode))
                 {
                     char* dest_path = g_file_get_path(dest);
-                    int r = mkfifo(dest_path, src_st.st_mode);
+                    int mkfifo_result = mkfifo(dest_path, src_st.st_mode);
                     g_free(dest_path);
-                    if( r == 0)
+                    if(mkfifo_result == 0)
                     {
                         ret = TRUE;
                         break;
