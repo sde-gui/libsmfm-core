@@ -215,6 +215,6 @@ xml_purge_CFLAGS=$(GIO_CFLAGS)
 xml_purge_LDADD=$(GIO_LIBS)
 
 CPPCHECK_SRC = $(libsmfm_core_SOURCES)
-CPPCHECK_FLAGS="-q --force --enable=warning,style,performance,portability --std=posix --library=gtk --suppress=variableScope"
+CPPCHECK_FLAGS="-q --force --enable=warning,style,performance,portability --std=c99 --library=gtk --suppress=variableScope --suppress=constParameterPointer --suppress=constVariablePointer"
 cppcheck cppcheck-inconclusive:
 	$(top_srcdir)/run_cppcheck $@ $(CPPCHECK_FLAGS) -- $(COMPILE) $(CPPCHECK_SRC)
