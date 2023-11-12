@@ -177,7 +177,7 @@ char* fm_thumbnailer_command_for_uri(FmThumbnailer* thumbnailer, const char* uri
                 case '\0':
                     break;
                 case 's':
-                    g_string_append_printf(cmd_line, "%d", size);
+                    g_string_append_printf(cmd_line, "%u", size);
                     break;
                 case 'i':
                 {
