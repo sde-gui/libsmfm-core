@@ -469,8 +469,8 @@ static void parse_search_uri(FmVfsSearchEnumerator* priv, const char* uri_str)
             while(*params)
             {
                 /* parameters are in name=value pairs */
-                const char* name = params;
-                const char* value = strchr(name, '=');
+                char* name = params;
+                char* value = strchr(name, '=');
                 char* sep;
                 char *ptr1, *ptr2;
 
