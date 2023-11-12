@@ -61,8 +61,8 @@ G_DEFINE_TYPE(FmDirListJob, fm_dir_list_job, FM_TYPE_JOB);
 
 static int signals[N_SIGNALS];
 
-static gboolean fm_dir_list_job_run(FmJob *job);
-static void fm_dir_list_job_finished(FmJob* job);
+static gboolean fm_dir_list_job_run(FmJob *fmjob);
+static void fm_dir_list_job_finished(FmJob* fmjob);
 
 static gboolean emit_found_files(gpointer user_data);
 
@@ -488,18 +488,18 @@ do_abort:
 static gboolean fm_dir_list_job_run(FmJob* fmjob)
 {
     gboolean ret;
-    FmDirListJob* job = FM_DIR_LIST_JOB(fmjob);
-    fm_return_val_if_fail(job->dir_path != NULL, FALSE);
-    if(fm_path_is_native(job->dir_path)) /* if this is a native file on real file system */
-        ret = fm_dir_list_job_run_posix(job);
+    FmDirListJob* dirlist_job = FM_DIR_LIST_JOB(fmjob);
+    fm_return_val_if_fail(dirlist_job->dir_path != NULL, FALSE);
+    if(fm_path_is_native(dirlist_job->dir_path)) /* if this is a native file on real file system */
+        ret = fm_dir_list_job_run_posix(dirlist_job);
     else /* this is a virtual path or remote file system path */
-        ret = fm_dir_list_job_run_gio(job);
+        ret = fm_dir_list_job_run_gio(dirlist_job);
     return ret;
 }
 
-static void fm_dir_list_job_finished(FmJob* job)
+static void fm_dir_list_job_finished(FmJob* fmjob)
 {
-    FmDirListJob* dirlist_job = FM_DIR_LIST_JOB(job);
+    FmDirListJob* dirlist_job = FM_DIR_LIST_JOB(fmjob);
     FmJobClass* job_class = FM_JOB_CLASS(fm_dir_list_job_parent_class);
 
     if(dirlist_job->emit_files_found)
@@ -511,7 +511,7 @@ static void fm_dir_list_job_finished(FmJob* job)
         }
     }
     if(job_class->finished)
-        job_class->finished(job);
+        job_class->finished(fmjob);
 }
 
 #if 0
