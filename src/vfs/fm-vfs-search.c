@@ -469,8 +469,8 @@ static void parse_search_uri(FmVfsSearchEnumerator* priv, const char* uri_str)
             while(*params)
             {
                 /* parameters are in name=value pairs */
-                char* name = params;
-                char* value = strchr(name, '=');
+                const char* name = params;
+                const char* value = strchr(name, '=');
                 char* sep;
                 char *ptr1, *ptr2;
 
@@ -955,8 +955,8 @@ static guint _fm_vfs_search_hash(GFile *file)
 
 static gboolean _fm_vfs_search_equal(GFile *file1, GFile *file2)
 {
-    char *path1 = FM_SEARCH_VFILE(file1)->path;
-    char *path2 = FM_SEARCH_VFILE(file2)->path;
+    const char *path1 = FM_SEARCH_VFILE(file1)->path;
+    const char *path2 = FM_SEARCH_VFILE(file2)->path;
 
     return g_str_equal(path1, path2);
 }

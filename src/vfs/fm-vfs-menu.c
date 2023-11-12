@@ -442,8 +442,8 @@ static guint _fm_vfs_menu_hash(GFile *file)
 
 static gboolean _fm_vfs_menu_equal(GFile *file1, GFile *file2)
 {
-    char *path1 = FM_MENU_VFILE(file1)->path;
-    char *path2 = FM_MENU_VFILE(file2)->path;
+    const char *path1 = FM_MENU_VFILE(file1)->path;
+    const char *path2 = FM_MENU_VFILE(file2)->path;
 
     return g_strcmp0(path1, path2) == 0;
 }
