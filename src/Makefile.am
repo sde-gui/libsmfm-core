@@ -208,12 +208,6 @@ CLEANFILES = \
 	base/fm-marshal.c \
 	$(NULL)
 
-# Little program to optimize size of xml files
-noinst_PROGRAMS=xml-purge
-xml_purge_SOURCES=xml-purge.c
-xml_purge_CFLAGS=$(GIO_CFLAGS)
-xml_purge_LDADD=$(GIO_LIBS)
-
 CPPCHECK_SRC = $(libsmfm_core_SOURCES)
 CPPCHECK_FLAGS="-q --force --enable=warning,style,performance,portability --std=c99 --library=gtk --suppress=variableScope --suppress=constParameterPointer --suppress=constVariablePointer"
 cppcheck cppcheck-inconclusive:

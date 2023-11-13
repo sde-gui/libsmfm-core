@@ -101,6 +101,7 @@ This is the first public release. The version numbering follows the original sou
  * Add support of automake 1.15.
  * Build with `--disable-static` by default.
  * glib2 version requirements increased from 2.22 to 2.32.
+ * Delete `xml-purge.c`.
  * Add make targets `cppcheck` and `cppcheck-inconclusive` to run Cppcheck static analysis tool.
 
 ## libsmfm-gtk changes
