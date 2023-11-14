@@ -345,8 +345,7 @@ static void load_thumbnailers()
 // TODO: Unload all thumbnailers
 static void unload_thumbnailers()
 {
-	g_list_foreach(all_thumbnailers, (GFunc)fm_thumbnailer_free, NULL);
-	g_list_free(all_thumbnailers);
+	g_list_free_full(all_thumbnailers, (GDestroyNotify) fm_thumbnailer_free);
 	all_thumbnailers = NULL;
 }
 

@@ -40,16 +40,14 @@ void fm_list_unref(FmList * list)
 {
     if (g_atomic_int_dec_and_test(&list->n_ref))
     {
-        g_queue_foreach((GQueue *) list, (GFunc) list->funcs->item_unref, NULL);
-        g_queue_clear((GQueue *) list);
+        g_queue_clear_full((GQueue *) list, (GDestroyNotify) list->funcs->item_unref);
         g_slice_free(FmList, list);
 	}
 }
 
 void fm_list_clear(FmList* list)
 {
-    g_queue_foreach((GQueue *) list, (GFunc) list->funcs->item_unref, NULL);
-    g_queue_clear((GQueue *) list);
+    g_queue_clear_full((GQueue *) list, (GDestroyNotify) list->funcs->item_unref);
 }
 
 void fm_list_remove(FmList * list, gpointer data)

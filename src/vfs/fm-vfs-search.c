@@ -187,8 +187,7 @@ static void _fm_vfs_search_enumerator_dispose(GObject *object)
 
     if(priv->target_folders)
     {
-        g_slist_foreach(priv->target_folders, (GFunc)g_object_unref, NULL);
-        g_slist_free(priv->target_folders);
+        g_slist_free_full(priv->target_folders, (GDestroyNotify) g_object_unref);
         priv->target_folders = NULL;
     }
 

@@ -76,8 +76,7 @@ static void fm_nav_history_finalize(GObject *object)
     fm_return_if_fail(FM_IS_NAV_HISTORY(object));
 
     self = FM_NAV_HISTORY(object);
-    g_queue_foreach(&self->items, (GFunc)fm_nav_history_item_free, NULL);
-    g_queue_clear(&self->items);
+    g_queue_clear_full(&self->items, (GDestroyNotify) fm_nav_history_item_free);
 
     G_OBJECT_CLASS(fm_nav_history_parent_class)->finalize(object);
 }
@@ -365,8 +364,7 @@ void fm_nav_history_jump(FmNavHistory* nh, GList* l, int old_scroll_pos)
 void fm_nav_history_clear(FmNavHistory* nh)
 {
     fm_return_if_fail(nh != NULL && FM_IS_NAV_HISTORY(nh));
-    g_queue_foreach(&nh->items, (GFunc)fm_nav_history_item_free, NULL);
-    g_queue_clear(&nh->items);
+    g_queue_clear_full(&nh->items, (GDestroyNotify) fm_nav_history_item_free);
     nh->cur = NULL;
     nh->n_cur = 0;
 }

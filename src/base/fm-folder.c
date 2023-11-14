@@ -493,8 +493,7 @@ static gboolean on_idle(FmFolder* folder)
             fm_file_info_list_delete_link_nounref(folder->files , l);
         }
         g_signal_emit(folder, signals[FILES_REMOVED], 0, folder->files_to_del);
-        g_slist_foreach(folder->files_to_del, (GFunc)fm_file_info_unref, NULL);
-        g_slist_free(folder->files_to_del);
+        g_slist_free_full(folder->files_to_del, (GDestroyNotify) fm_file_info_unref);
         folder->files_to_del = NULL;
 
         g_signal_emit(folder, signals[CONTENT_CHANGED], 0);
@@ -857,14 +856,12 @@ static void fm_folder_dispose(GObject *object)
         folder->idle_handler = 0;
         if(folder->files_to_add)
         {
-            g_slist_foreach(folder->files_to_add, (GFunc)g_free, NULL);
-            g_slist_free(folder->files_to_add);
+            g_slist_free_full(folder->files_to_add, g_free);
             folder->files_to_add = NULL;
         }
         if(folder->files_to_update)
         {
-            g_slist_foreach(folder->files_to_update, (GFunc)g_free, NULL);
-            g_slist_free(folder->files_to_update);
+            g_slist_free_full(folder->files_to_update, g_free);
             folder->files_to_update = NULL;
         }
         if(folder->files_to_del)

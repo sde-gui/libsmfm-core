@@ -97,8 +97,7 @@ static void fm_bookmarks_finalize(GObject *object)
         idle_handler = 0;
     }
 
-    g_list_foreach(self->items, (GFunc)fm_bookmark_item_unref, NULL);
-    g_list_free(self->items);
+    g_list_free_full(self->items, (GDestroyNotify) fm_bookmark_item_unref);
 
     g_object_unref(self->mon);
 
@@ -117,8 +116,7 @@ static void on_changed( GFileMonitor* mon, GFile* gf, GFile* other,
 
     G_LOCK(bookmarks);
     /* reload bookmarks */
-    g_list_foreach(bookmarks->items, (GFunc)fm_bookmark_item_unref, NULL);
-    g_list_free(bookmarks->items);
+    g_list_free_full(bookmarks->items, (GDestroyNotify) fm_bookmark_item_unref);
 
     fpath = get_bookmarks_file();
     bookmarks->items = load_bookmarks(fpath);

@@ -131,8 +131,7 @@ static gboolean launch_program(FmArchiver* archiver, GAppLaunchContext* ctx, con
             uris = g_list_prepend(uris, fm_path_to_uri(path));
         }
         fm_app_info_launch_uris(app, uris, ctx, NULL);
-        g_list_foreach(uris, (GFunc)g_free, NULL);
-        g_list_free(uris);
+        g_list_free_full(uris, g_free);
         g_object_unref(app);
     }
     g_free(_cmd);
@@ -299,8 +298,7 @@ void _fm_archiver_init()
 
 void _fm_archiver_finalize()
 {
-    g_list_foreach(archivers, (GFunc)fm_archiver_free, NULL);
-    g_list_free(archivers);
+    g_list_free_full(archivers, (GDestroyNotify) fm_archiver_free);
     archivers = NULL;
     default_archiver = NULL;
 }

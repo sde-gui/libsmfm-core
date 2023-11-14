@@ -154,8 +154,7 @@ gboolean fm_launch_desktop_entry(GAppLaunchContext* ctx, const char* file_or_id,
 
     if(_uris)
     {
-        g_list_foreach(_uris, (GFunc)g_free, NULL);
-        g_list_free(_uris);
+        g_list_free_full(_uris, g_free);
     }
 
     return ret;

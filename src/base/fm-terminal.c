@@ -216,8 +216,7 @@ void _fm_terminal_finalize(void)
     /* cancel monitor of config */
     g_signal_handlers_disconnect_by_func(fm_config, on_terminal_changed, NULL);
     /* free the data */
-    g_slist_foreach(terminals, (GFunc)g_object_unref, NULL);
-    g_slist_free(terminals);
+    g_slist_free_full(terminals, (GDestroyNotify) g_object_unref);
     terminals = NULL;
     if(default_terminal)
         g_object_unref(default_terminal);

@@ -384,8 +384,7 @@ gboolean fm_app_info_launch_uris(GAppInfo *appinfo, GList *uris,
     gfiles = g_list_reverse(gfiles);
     ret = fm_app_info_launch(appinfo, gfiles, launch_context, error);
 
-    g_list_foreach(gfiles, (GFunc)g_object_unref, NULL);
-    g_list_free(gfiles);
+    g_list_free_full(gfiles, (GDestroyNotify) g_object_unref);
     return ret;
 }
 

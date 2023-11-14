@@ -464,6 +464,12 @@ static FmTemplate *_fm_template_update(FmTemplate *templ)
     return new_templ;
 }
 
+/* Wrapper to make GCC happy about -Wcast-function-type */
+static void _fm_template_update_foreach_wrapper(FmTemplate *templ, gpointer unused)
+{
+    _fm_template_update(templ);
+}
+
 /* add file into FmTemplate */
 /* requires lock held */
 static void _fm_template_insert_sorted(FmTemplate *templ, FmTemplateFile *file)
@@ -729,7 +735,7 @@ static void on_once_type_changed(FmConfig *cfg, gpointer unused)
     }
     g_list_free(old_list);
     /* update all templates now */
-    g_list_foreach(templates, (GFunc)_fm_template_update, NULL);
+    g_list_foreach(templates, (GFunc)_fm_template_update_foreach_wrapper, NULL);
     G_UNLOCK(templates);
 }
 
@@ -833,8 +839,7 @@ void _fm_templates_finalize(void)
         }
         g_slice_free(FmTemplateDir, dir);
     }
-    g_list_foreach(templates, (GFunc)g_object_unref, NULL);
-    g_list_free(templates);
+    g_list_free_full(templates, (GDestroyNotify) g_object_unref);
     templates = NULL;
 }
 
