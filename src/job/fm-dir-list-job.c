@@ -35,6 +35,7 @@
 #endif
 
 #define _BSD_SOURCE
+#define _DEFAULT_SOURCE
 
 #include <dirent.h>
 #include <errno.h>
