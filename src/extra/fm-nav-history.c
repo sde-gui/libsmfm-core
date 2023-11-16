@@ -247,7 +247,7 @@ static inline void cut_history(FmNavHistory* nh, guint num)
 {
     if ((!nh->allow_duplicates || nh->remove_parent) && num > 0)
     {
-        FmNavHistoryItem * selected_item = (FmNavHistoryItem *) nh->cur->data;
+        FmNavHistoryItem * selected_item = nh->cur ? (FmNavHistoryItem *) nh->cur->data : NULL;
         const GList * l;
         int index, prev_item_index;
         FmNavHistoryItem * prev_item;
@@ -258,9 +258,14 @@ static inline void cut_history(FmNavHistory* nh, guint num)
             if (selected_item == item)
                 continue;
 
-            gboolean remove = (
-                (!nh->allow_duplicates && fm_path_equal(selected_item->path, item->path)) ||
-                (nh->remove_parent && fm_path_equal(item->path, fm_path_get_parent(selected_item->path))));
+            gboolean remove = FALSE;
+            if (selected_item)
+            {
+                remove = (
+                    (!nh->allow_duplicates && fm_path_equal(selected_item->path, item->path)) ||
+                    (nh->remove_parent && fm_path_equal(item->path, fm_path_get_parent(selected_item->path)))
+                );
+            }
 
             if (remove)
             {
