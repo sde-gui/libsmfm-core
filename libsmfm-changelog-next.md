@@ -77,6 +77,7 @@ This is the first public release. The version numbering follows the original sou
  * `fm-file-launcher.c`: Fix handling of shortcuts in `fm_launch_files()`.
  * `fm-job.c`: protect modification of `thread_pool` with a lock.
  * `fm-job.c`: `fm_job_emit_error()`: abort a job without calling signal handler if `err == NULL`. Signal handlers expect `err` is always valid.
+ * `fm-vfs-search.c`: Fix null pointer dereference on parsing malformed search URI.
  * Fix criticals about unset GIO attributes produced by GLib >= 2.77.
 
 **Experimental features:**

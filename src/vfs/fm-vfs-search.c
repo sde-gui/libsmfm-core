@@ -473,12 +473,17 @@ static void parse_search_uri(FmVfsSearchEnumerator* priv, const char* uri_str)
                 char* sep;
                 char *ptr1, *ptr2;
 
-                if(value)
+                if(!value)
                 {
-                    *value = '\0';
-                    ++value;
-                    params = value;
+                    /* param without value */
+                    /* FIXME: report parse error */
+                    break;
                 }
+
+                *value = '\0'; /* replace '=' with 0 */
+                ++value;
+                params = value;
+
                 ptr1 = ptr2 = params;
                 while((sep = strchr(params, '&')) != NULL)
                 /* delimeter of parameters is & */
