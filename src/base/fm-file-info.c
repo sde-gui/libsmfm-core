@@ -112,9 +112,18 @@ So as far as a caller folds a reference to FmFileInfo, it can be sure any pointe
 
 /*****************************************************************************/
 
+/*
+    Glib2 Atomic Operations reference:
+    "While atomic has a volatile qualifier, this is a historical artifact and
+    the pointer passed to it should not be volatile."
+*/
+#define volatile_ptr
+
+/*****************************************************************************/
+
 struct _FmFileInfo
 {
-    FmPath * volatile path; /* path of the file */
+    FmPath * volatile_ptr path; /* path of the file */
 
     volatile mode_t mode;
     volatile gboolean native_directory; /* set when it is a native directory or a symlink to a directory */
@@ -132,20 +141,20 @@ struct _FmFileInfo
     volatile gulong blksize;
     volatile goffset blocks;
 
-    FmSymbol * volatile disp_name;  /* displayed name (in UTF-8) */
+    FmSymbol * volatile_ptr disp_name;  /* displayed name (in UTF-8) */
 
     /* FIXME: caching the collate key can greatly speed up sorting.
      *        However, memory usage is greatly increased!.
      *        Is there a better alternative solution?
      */
-    FmSymbol * volatile collate_key_casefold; /* used to sort files by name */
-    FmSymbol * volatile collate_key_nocasefold; /* the same but case-sensitive */
-    FmSymbol * volatile disp_size;  /* displayed human-readable file size */
-    FmSymbol * volatile disp_mtime; /* displayed last modification time */
-    FmMimeType * volatile mime_type;
-    FmIcon * volatile icon;
+    FmSymbol * volatile_ptr collate_key_casefold; /* used to sort files by name */
+    FmSymbol * volatile_ptr collate_key_nocasefold; /* the same but case-sensitive */
+    FmSymbol * volatile_ptr disp_size;  /* displayed human-readable file size */
+    FmSymbol * volatile_ptr disp_mtime; /* displayed last modification time */
+    FmMimeType * volatile_ptr mime_type;
+    FmIcon * volatile_ptr icon;
 
-    FmSymbol * volatile target; /* target of shortcut or mountable. */
+    FmSymbol * volatile_ptr target; /* target of shortcut or mountable. */
 
     volatile unsigned long color;
 
@@ -157,7 +166,7 @@ struct _FmFileInfo
     volatile gboolean from_native_file;
     volatile gboolean mime_type_load_done;
 
-    FmSymbol * volatile native_path;
+    FmSymbol * volatile_ptr native_path;
 
     volatile int filled;
 
@@ -222,7 +231,7 @@ do { \
 
 
 #define DEFINE_GET_VALUE(Type, type) \
-static inline Fm##Type * _get_value_##type(Fm##Type * volatile * ref)\
+static inline Fm##Type * _get_value_##type(Fm##Type * volatile_ptr * ref)\
 {\
     return (Fm##Type *) g_atomic_pointer_get(ref);\
 }
