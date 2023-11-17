@@ -90,6 +90,7 @@ goffset       fm_file_info_get_blocks(FmFileInfo * fi);
 mode_t        fm_file_info_get_mode(FmFileInfo * fi);
 time_t        fm_file_info_get_mtime(FmFileInfo * fi);
 time_t        fm_file_info_get_atime(FmFileInfo * fi);
+time_t        fm_file_info_get_ctime(FmFileInfo *fi);
 FmIcon *      fm_file_info_get_icon(FmFileInfo * fi);
 uid_t         fm_file_info_get_uid(FmFileInfo * fi);
 gid_t         fm_file_info_get_gid(FmFileInfo * fi);

@@ -137,6 +137,7 @@ struct _FmFileInfo
     volatile goffset size;
     time_t mtime;
     time_t atime;
+    time_t ctime;
 
     volatile gulong blksize;
     volatile goffset blocks;
@@ -440,6 +441,7 @@ static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* 
     fi->mode = st.st_mode;
     fi->mtime = st.st_mtime;
     fi->atime = st.st_atime;
+    fi->ctime = st.st_ctime;
     fi->size = st.st_size;
     fi->dev = st.st_dev;
     fi->uid = st.st_uid;
@@ -700,6 +702,7 @@ static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
 
     fi->mtime = g_file_info_get_attribute_uint64(inf, G_FILE_ATTRIBUTE_TIME_MODIFIED);
     fi->atime = g_file_info_get_attribute_uint64(inf, G_FILE_ATTRIBUTE_TIME_ACCESS);
+    fi->ctime = g_file_info_get_attribute_uint64(inf, G_FILE_ATTRIBUTE_TIME_CHANGED);
     fi->hidden = g_file_info_get_attribute_boolean(inf, G_FILE_ATTRIBUTE_STANDARD_IS_HIDDEN);
     fi->backup = g_file_info_get_attribute_boolean(inf, G_FILE_ATTRIBUTE_STANDARD_IS_BACKUP);
 
@@ -870,6 +873,7 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
     fi->size = src->size;
     fi->mtime = src->mtime;
     fi->atime = src->atime;
+    fi->ctime = src->ctime;
 
     fi->blksize = src->blksize;
     fi->blocks = src->blocks;
@@ -1582,6 +1586,21 @@ time_t fm_file_info_get_atime(FmFileInfo* fi)
     fm_return_val_if_fail(fi, 0);
 
     return fi->atime;
+}
+
+/**
+ * fm_file_info_get_ctime
+ * @fi: a file info to inspect
+ *
+ * Retrieves time when access right were changed last time for file @fi.
+ *
+ * Returns: file access change time.
+ *
+ * Since: 1.2.0
+ */
+time_t fm_file_info_get_ctime(FmFileInfo *fi)
+{
+    return fi->ctime;
 }
 
 /**
