@@ -1600,6 +1600,8 @@ time_t fm_file_info_get_atime(FmFileInfo* fi)
  */
 time_t fm_file_info_get_ctime(FmFileInfo *fi)
 {
+    fm_return_val_if_fail(fi, 0);
+
     return fi->ctime;
 }
 
