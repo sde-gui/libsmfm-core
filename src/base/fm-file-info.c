@@ -665,6 +665,7 @@ static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
                 mime_type = fm_mime_type_from_file_name(target);
         }
         /* continue with absent mime type */
+        /* fall through */
     default: /* G_FILE_TYPE_UNKNOWN G_FILE_TYPE_REGULAR G_FILE_TYPE_SPECIAL */
         if (!mime_type)
         {
