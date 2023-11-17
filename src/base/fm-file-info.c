@@ -1576,7 +1576,7 @@ time_t fm_file_info_get_mtime(FmFileInfo* fi)
 }
 
 /**
- * fm_file_info_get_mtime:
+ * fm_file_info_get_atime:
  * @fi:  A FmFileInfo struct
  * 
  * Returns: file access time.
