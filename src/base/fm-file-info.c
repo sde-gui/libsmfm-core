@@ -254,8 +254,10 @@ int file_info_total;
 void fm_log_memory_usage_for_file_info(void)
 {
     int total = g_atomic_int_get(&file_info_total);
-    g_log(G_LOG_DOMAIN, G_LOG_LEVEL_INFO, "memory usage: FmFileInfo: %d bytes * %d items = %lld KiB",
-        sizeof(FmFileInfo), total, sizeof(FmFileInfo) * (long long) total / 1024);
+    long long struct_size = sizeof(FmFileInfo);
+    long long total_kb = struct_size * (long long) total / 1024;
+    g_log(G_LOG_DOMAIN, G_LOG_LEVEL_INFO, "memory usage: FmFileInfo: %lld bytes * %d items = %lld KiB",
+        struct_size, total, total_kb);
 }
 
 /*****************************************************************************/
