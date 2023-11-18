@@ -180,6 +180,7 @@ static gboolean _fm_launch_executable_file(GAppLaunchContext* ctx, FmFileInfo* f
     case FM_FILE_LAUNCHER_EXEC_IN_TERMINAL:
         flags |= G_APP_INFO_CREATE_NEEDS_TERMINAL;
         /* NOTE: no break here */
+        /* fall through */
     case FM_FILE_LAUNCHER_EXEC:
     {
         /* filename may contain spaces. Fix #3143296 */
