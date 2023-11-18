@@ -276,6 +276,24 @@ static GFileInfo *_fm_vfs_menu_enumerator_next_file(GFileEnumerator *enumerator,
     return init.result;
 }
 
+#if MENU_CACHE_CHECK_VERSION(0, 4, 0)
+/*
+    menu_cache_item_unref() declared as returning gboolean which produces the
+    following warning:
+
+vfs/fm-vfs-menu.c:290:39: warning: cast between incompatible function types
+    from 'gboolean (*)(MenuCacheItem *)' {aka 'int (*)(MenuCacheItem *)'}
+    to 'void (*)(void *)' [-Wcast-function-type]
+290 |         g_slist_free_full(enu->child, (GDestroyNotify)menu_cache_item_unref);
+
+    Using this wrapper to prevent it.
+*/
+static void wrapper_menu_cache_item_unref(MenuCacheItem *mi)
+{
+    menu_cache_item_unref(mi);
+}
+#endif
+
 static gboolean _fm_vfs_menu_enumerator_close(GFileEnumerator *enumerator,
                                               GCancellable *cancellable,
                                               GError **error)
@@ -287,7 +305,7 @@ static gboolean _fm_vfs_menu_enumerator_close(GFileEnumerator *enumerator,
         menu_cache_unref(enu->mc);
         enu->mc = NULL;
 #if MENU_CACHE_CHECK_VERSION(0, 4, 0)
-        g_slist_free_full(enu->child, (GDestroyNotify)menu_cache_item_unref);
+        g_slist_free_full(enu->child, (GDestroyNotify)wrapper_menu_cache_item_unref);
 #endif
         enu->child = NULL;
     }
