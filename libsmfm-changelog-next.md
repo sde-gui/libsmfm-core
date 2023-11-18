@@ -42,11 +42,11 @@ This is the first public release. The version numbering follows the original sou
 
  * Add functions `fm_version_major()`, `fm_version_minor()`, `fm_version_micro()`, `fm_check_version()`.
  * FmNavHistory: `fm_nav_history_chdir()` now returns `FALSE` if the path is same as in the current history item; and `TRUE` otherwise. Previously this function was declared as returning void.
- * FmFileInfo: Rename `fm_file_info_is_dir()` to `fm_file_info_is_directory()`.
  * FmFileInfo: Add:
    * `fm_file_info_get_ctime()`
    * `fm_file_info_new_from_native_file()`
    * `fm_file_info_new_from_path_unfilled()`
+   * `fm_file_info_is_directory()` as a synonym for `fm_file_info_is_dir()`
  * FmFileInfo: Rename:
    * `fm_file_info_set_from_gfileinfo()` to `fm_file_info_fill_from_gfileinfo()`
    * `fm_file_info_set_from_native_file()` to `fm_file_info_fill_from_native_file()`

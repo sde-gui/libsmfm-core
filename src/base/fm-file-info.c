@@ -1187,10 +1187,29 @@ gboolean fm_file_info_is_native(FmFileInfo* fi)
 }
 
 /**
+ * fm_file_info_is_dir:
+ * @fi:  a #FmFileInfo struct
+ *
+ * Checks where the file is a directory or a link to a directory.
+ * This is a synonym of fm_file_info_is_directory().
+ *
+ * Returns: TRUE if the file is a directory or a link to a directory.
+ */
+gboolean fm_file_info_is_dir(FmFileInfo* fi)
+{
+    return fm_file_info_is_directory(fi);
+}
+
+/**
  * fm_file_info_is_directory:
  * @fi:  a #FmFileInfo struct
  *
+ * Checks where the file is a directory or a link to a directory.
+ * This is a synonym of fm_file_info_is_dir().
+ *
  * Returns: TRUE if the file is a directory or a link to a directory.
+ *
+ * Since: 1.2.0
  */
 gboolean fm_file_info_is_directory(FmFileInfo* fi)
 {

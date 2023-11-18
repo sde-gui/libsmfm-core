@@ -103,6 +103,7 @@ gboolean      fm_file_info_is_native(FmFileInfo * fi);
 
 FmMimeType *  fm_file_info_get_mime_type(FmFileInfo * fi);
 
+gboolean      fm_file_info_is_dir(FmFileInfo * fi);
 gboolean      fm_file_info_is_directory(FmFileInfo * fi);
 gboolean      fm_file_info_is_symlink(FmFileInfo * fi);
 gboolean      fm_file_info_is_shortcut(FmFileInfo * fi);

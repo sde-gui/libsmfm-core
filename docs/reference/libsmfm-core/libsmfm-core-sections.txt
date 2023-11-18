@@ -200,6 +200,7 @@ fm_file_info_get_uid
 fm_file_info_is_accessible
 fm_file_info_is_desktop_entry
 fm_file_info_is_dir
+fm_file_info_is_directory
 fm_file_info_is_executable_type
 fm_file_info_is_hidden
 fm_file_info_is_image
