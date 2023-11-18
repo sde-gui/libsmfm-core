@@ -30,8 +30,7 @@
 #include "fm-file-info-deferred-load-worker.h"
 #include "fm-utils.h"
 
-gboolean fm_file_info_only_one_ref(FmFileInfo* fi);
-gboolean fm_file_info_icon_loaded(FmFileInfo* fi);
+gboolean _fm_file_info_has_single_ref(FmFileInfo* fi);
 
 static GMutex incomming_list_mutex;
 static GSList * incomming_list = NULL;
@@ -87,7 +86,7 @@ static gpointer worker_thread_func(gpointer data)
             FmFileInfo * fi = list_item->data;
             g_slist_free_1(list_item);
 
-            if (fi && !fm_file_info_only_one_ref(fi) && !fm_file_info_icon_loaded(fi) && !stop)
+            if (fi && !_fm_file_info_has_single_ref(fi) && !fm_file_info_icon_loaded(fi) && !stop)
             {
                 fm_file_info_get_mime_type(fi);
                 fm_file_info_get_icon(fi);

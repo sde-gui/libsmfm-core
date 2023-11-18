@@ -833,13 +833,13 @@ void fm_file_info_unref(FmFileInfo* fi)
     }
 }
 
-/*****************************************************************************/
-
-/* To use from fm-file-info-deferred-load.c */
-gboolean fm_file_info_only_one_ref(FmFileInfo* fi)
+/* To be used from fm-file-info-deferred-load.c */
+gboolean _fm_file_info_has_single_ref(FmFileInfo* fi)
 {
     return g_atomic_int_get(&fi->n_ref) == 1;
 }
+
+/*****************************************************************************/
 
 /**
  * fm_file_info_update:
@@ -1024,7 +1024,6 @@ gboolean fm_file_info_icon_loaded(FmFileInfo* fi)
 
     return GET_FIELD(icon, icon) != NULL;
 }
-
 
 /**
  * fm_file_info_get_path:
