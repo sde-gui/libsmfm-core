@@ -44,6 +44,7 @@ This is the first public release. The version numbering follows the original sou
  * FmNavHistory: `fm_nav_history_chdir()` now returns `FALSE` if the path is same as in the current history item; and `TRUE` otherwise. Previously this function was declared as returning void.
  * FmFileInfo: Rename `fm_file_info_is_dir()` to `fm_file_info_is_directory()`.
  * FmFileInfo: Add:
+   * `fm_file_info_get_ctime()`
    * `fm_file_info_new_from_native_file()`
    * `fm_file_info_new_from_path_unfilled()`
  * FmFileInfo: Rename:

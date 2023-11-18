@@ -811,7 +811,7 @@ FmFileInfo* fm_file_info_ref(FmFileInfo* fi)
 
 /**
  * fm_file_info_unref:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  *
  * Decrease reference count of the FmFileInfo struct.
  * When the last reference to the struct is released,
@@ -843,8 +843,8 @@ gboolean fm_file_info_only_one_ref(FmFileInfo* fi)
 
 /**
  * fm_file_info_update:
- * @fi:  A FmFileInfo struct
- * @src: another FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
+ * @src: another #FmFileInfo struct
  * 
  * Update the content of @fi by copying file info
  * stored in @src to @fi.
@@ -1001,11 +1001,11 @@ static void deferred_mime_type_load(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_icon:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  *
  * Get the icon used to show the file in the file manager.
  *
- * Returns: a FmIcon struct. The returned FmIcon struct is
+ * Returns: a #FmIcon struct. The returned FmIcon struct is
  * owned by FmFileInfo and should not be freed.
  * If you need to keep it, use fm_icon_ref() to obtain a 
  * reference.
@@ -1028,11 +1028,11 @@ gboolean fm_file_info_icon_loaded(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_path:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  *
  * Get the path of the file
  * 
- * Returns: a FmPath struct. The returned FmPath struct is
+ * Returns: a #FmPath struct. The returned FmPath struct is
  * owned by FmFileInfo and should not be freed.
  * If you need to keep it, use fm_path_ref() to obtain a 
  * reference.
@@ -1046,7 +1046,7 @@ FmPath* fm_file_info_get_path(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_name:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  *
  * Get the base name of the file in filesystem encoding.
  *
@@ -1062,14 +1062,14 @@ const char* fm_file_info_get_name(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_disp_name:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  *
  * Get the display name used to show the file in the file 
  * manager UI. The display name is guaranteed to be UTF-8
  * and may be different from the real file name on the 
  * filesystem.
  *
- * Returns: a const strin owned by FmFileInfo which should
+ * Returns: a const string owned by FmFileInfo which should
  * not be freed.
  */
 /* Get displayed name encoded in UTF-8 */
@@ -1081,7 +1081,9 @@ const char* fm_file_info_get_disp_name(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_size:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
+ *
+ * Retrieves file size for file @fi.
  *
  * Returns: the size of the file in bytes.
  */
@@ -1094,7 +1096,7 @@ goffset fm_file_info_get_size(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_disp_size:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  *
  * Get the size of the file as a human-readable string.
  * It's convinient for show the file size to the user.
@@ -1120,7 +1122,9 @@ const char * fm_file_info_get_disp_size(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_blocks
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
+ *
+ * Retrieves file block count of the underlying file system for file @fi.
  *
  * Returns: how many filesystem blocks used by the file.
  */
@@ -1133,13 +1137,13 @@ goffset fm_file_info_get_blocks(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_mime_type:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  *
  * Get the mime-type of the file.
  *
- * Returns: a FmMimeType struct owned by FmFileInfo which
- * should not be freed.
- * If you need to keep it, use fm_mime_type_ref() to obtain a 
+ * Returns: a #FmMimeType struct. The returned FmMimeType struct is
+ * owned by FmFileInfo and should not be freed.
+ * If you need to keep it, use fm_mime_type_ref() to obtain a
  * reference.
  */
 FmMimeType* fm_file_info_get_mime_type(FmFileInfo* fi)
@@ -1152,7 +1156,7 @@ FmMimeType* fm_file_info_get_mime_type(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_mode:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  *
  * Get the mode of the file. For detail about the meaning of
  * mode, see manpage of stat() and the st_mode struct field.
@@ -1167,8 +1171,8 @@ mode_t fm_file_info_get_mode(FmFileInfo* fi)
 }
 
 /**
- * fm_file_info_get_is_native:
- * @fi:  A FmFileInfo struct
+ * fm_file_info_is_native:
+ * @fi:  a #FmFileInfo struct
  *
  * Check if the file is a native UNIX file.
  * 
@@ -1185,7 +1189,7 @@ gboolean fm_file_info_is_native(FmFileInfo* fi)
 
 /**
  * fm_file_info_is_directory:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  *
  * Returns: TRUE if the file is a directory or a link to a directory.
  */
@@ -1207,14 +1211,14 @@ gboolean fm_file_info_is_directory(FmFileInfo* fi)
 }
 
 /**
- * fm_file_info_get_is_symlink:
- * @fi:  A FmFileInfo struct
+ * fm_file_info_is_symlink:
+ * @fi:  a #FmFileInfo struct
  *
  * Check if the file is a symlink. Note that for symlinks,
  * all infos stored in FmFileInfo are actually the info of
  * their targets.
  * The only two places you can tell that is a symlink are:
- * 1. fm_file_info_get_is_symlink()
+ * 1. fm_file_info_is_symlink()
  * 2. fm_file_info_get_target() which returns the target
  * of the symlink.
  * 
@@ -1228,14 +1232,16 @@ gboolean fm_file_info_is_symlink(FmFileInfo* fi)
 }
 
 /**
- * fm_file_info_get_is_shortcut:
- * @fi:  A FmFileInfo struct
+ * fm_file_info_is_shortcut:
+ * @fi:  a #FmFileInfo struct
  *
- * Returns: TRUE if the file is a shortcut.
+ * Checks whether the file is a shortcut.
  * For a shortcut, read the value of fm_file_info_get_target()
  * to get the destination the shortut points to.
  * An example of shortcut type FmFileInfo is file info of
  * files in menu://applications/
+ *
+ * Returns: TRUE if the file is a shortcut.
  */
 gboolean fm_file_info_is_shortcut(FmFileInfo* fi)
 {
@@ -1244,6 +1250,14 @@ gboolean fm_file_info_is_shortcut(FmFileInfo* fi)
     return fm_file_info_get_mime_type(fi) == _fm_mime_type_get_inode_x_shortcut();
 }
 
+/**
+ * fm_file_info_is_mountable:
+ * @fi:  a #FmFileInfo struct
+ *
+ * Checks whether the file is of type inode/x-mountable.
+ *
+ * Returns: TRUE if the file is of type inode/x-mountable.
+ */
 gboolean fm_file_info_is_mountable(FmFileInfo* fi)
 {
     fm_return_val_if_fail(fi, FALSE);
@@ -1252,10 +1266,12 @@ gboolean fm_file_info_is_mountable(FmFileInfo* fi)
 }
 
 /**
- * fm_file_info_get_is_image:
- * @fi:  A FmFileInfo struct
+ * fm_file_info_is_image:
+ * @fi:  a #FmFileInfo struct
  *
- * Returns: TRUE if the file is a image file (*.jpg, *.png, ...).
+ * Checks whether file is of "image/*" mime type.
+ *
+ * Returns: TRUE if the file is a image file.
  */
 gboolean fm_file_info_is_image(FmFileInfo* fi)
 {
@@ -1271,11 +1287,14 @@ gboolean fm_file_info_is_image(FmFileInfo* fi)
 }
 
 /**
- * fm_file_info_get_is_text:
- * @fi:  A FmFileInfo struct
+ * fm_file_info_is_text:
+ * @fi:  a #FmFileInfo struct
+ *
+ * Checks whether file is of text/plain mime type.
  *
  * Returns: TRUE if the file is a plain text file.
  */
+/* FIXME: should we check only for "text/" part, similar to fm_file_info_is_image() */
 gboolean fm_file_info_is_text(FmFileInfo* fi)
 {
     fm_return_val_if_fail(fi, FALSE);
@@ -1286,8 +1305,10 @@ gboolean fm_file_info_is_text(FmFileInfo* fi)
 }
 
 /**
- * fm_file_info_get_is_desktop_entry:
- * @fi:  A FmFileInfo struct
+ * fm_file_info_is_desktop_entry:
+ * @fi:  a #FmFileInfo struct
+ *
+ * Checks whether file is a desktop entry file.
  *
  * Returns: TRUE if the file is a desktop entry file.
  */
@@ -1308,8 +1329,10 @@ gboolean fm_file_info_is_desktop_entry(FmFileInfo* fi)
 }
 
 /**
- * fm_file_info_get_is_unknown_type:
- * @fi:  A FmFileInfo struct
+ * fm_file_info_is_unknown_type:
+ * @fi:  a #FmFileInfo struct
+ *
+ * Checks whether file mime type cannot be recognized.
  *
  * Returns: TRUE if the mime type of the file cannot be
  * recognized.
@@ -1322,8 +1345,8 @@ gboolean fm_file_info_is_unknown_type(FmFileInfo* fi)
 }
 
 /**
- * fm_file_info_get_is_executable_type:
- * @fi:  A FmFileInfo struct
+ * fm_file_info_is_executable_type:
+ * @fi:  a #FmFileInfo struct
  *
  * Note that the function only check if the file seems
  * to be an executable file. It does not check if the
@@ -1365,7 +1388,7 @@ gboolean fm_file_info_is_executable_type(FmFileInfo* fi)
 
 /**
  * fm_file_info_is_accessible
- * @fi: a file info descriptor
+ * @fi: a #FmFileInfo struct
  *
  * Checks if the user has read access to file or directory @fi.
  *
@@ -1381,8 +1404,8 @@ gboolean fm_file_info_is_accessible(FmFileInfo* fi)
 }
 
 /**
- * fm_file_info_get_is_hidden:
- * @fi:  A FmFileInfo struct
+ * fm_file_info_is_hidden:
+ * @fi:  a #FmFileInfo struct
  *
  * Files treated as hidden files are filenames with dot prefix
  * or ~ suffix.
@@ -1399,8 +1422,10 @@ gboolean fm_file_info_is_hidden(FmFileInfo* fi)
 }
 
 /**
- * fm_file_info_get_can_thumbnail:
- * @fi:  A FmFileInfo struct
+ * fm_file_info_can_thumbnail:
+ * @fi:  a #FmFileInfo struct
+ *
+ * Checks whether it makes sense to try generating file thumbnail.
  *
  * Returns: TRUE if the the file manager can try to 
  * generate a thumbnail for the file.
@@ -1427,7 +1452,7 @@ gboolean fm_file_info_can_thumbnail(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_collate_key:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  *
  * Get the collate key used for locale-dependent
  * filename sorting. The keys of different files 
@@ -1481,6 +1506,7 @@ const char * fm_file_info_get_collate_key_nocasefold(FmFileInfo* fi)
 {
     fm_return_val_if_fail(fi, 0);
 
+    /* create a collate key on demand, if we don't have one */
     FAST_UPDATE(!fi->collate_key_nocasefold,
     {
         const char * disp_name = fm_file_info_get_disp_name(fi);
@@ -1502,7 +1528,7 @@ const char * fm_file_info_get_collate_key_nocasefold(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_target:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  *
  * Get the target of a symlink or a shortcut.
  * 
@@ -1519,7 +1545,7 @@ const char * fm_file_info_get_target(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_desc:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  * 
  * Get a human-readable description for the file.
  * 
@@ -1536,7 +1562,7 @@ const char * fm_file_info_get_desc(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_disp_mtime:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  * 
  * Get a human-readable string for showing file modification
  * time in the UI.
@@ -1564,8 +1590,10 @@ const char * fm_file_info_get_disp_mtime(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_mtime:
- * @fi:  A FmFileInfo struct
- * 
+ * @fi:  a #FmFileInfo struct
+ *
+ * Retrieves file modification time for file @fi.
+ *
  * Returns: file modification time.
  */
 time_t fm_file_info_get_mtime(FmFileInfo* fi)
@@ -1577,7 +1605,9 @@ time_t fm_file_info_get_mtime(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_atime:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
+ *
+ * Retrieves file access time for file @fi.
  * 
  * Returns: file access time.
  */
@@ -1589,12 +1619,12 @@ time_t fm_file_info_get_atime(FmFileInfo* fi)
 }
 
 /**
- * fm_file_info_get_ctime
- * @fi: a file info to inspect
+ * fm_file_info_get_ctime:
+ * @fi: a #FmFileInfo struct
  *
- * Retrieves time when access right were changed last time for file @fi.
+ * Retrieves file status change time for file @fi. (time of last change to the inode)
  *
- * Returns: file access change time.
+ * Returns: file status change time.
  *
  * Since: 1.2.0
  */
@@ -1607,8 +1637,10 @@ time_t fm_file_info_get_ctime(FmFileInfo *fi)
 
 /**
  * fm_file_info_get_uid:
- * @fi:  A FmFileInfo struct
- * 
+ * @fi:  a #FmFileInfo struct
+ *
+ * Retrieves user id (uid) of the file owner for file @fi.
+ *
  * Returns: user id (uid) of the file owner.
  */
 uid_t fm_file_info_get_uid(FmFileInfo* fi)
@@ -1620,8 +1652,10 @@ uid_t fm_file_info_get_uid(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_gid:
- * @fi:  A FmFileInfo struct
- * 
+ * @fi:  a #FmFileInfo struct
+ *
+ * Retrieves group id (gid) of the file owner for file @fi.
+ *
  * Returns: group id (gid) of the file owner.
  */
 gid_t fm_file_info_get_gid(FmFileInfo* fi)
@@ -1634,9 +1668,9 @@ gid_t fm_file_info_get_gid(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_fs_id:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  * 
- * Get the filesystem id string
+ * Get the filesystem id stringfm_file_info_is_mountable
  * This is only applicable when the file is on a remote
  * filesystem. e.g. fm_file_info_is_native() returns FALSE.
  * 
@@ -1652,7 +1686,7 @@ const char * fm_file_info_get_fs_id(FmFileInfo* fi)
 
 /**
  * fm_file_info_get_dev:
- * @fi:  A FmFileInfo struct
+ * @fi:  a #FmFileInfo struct
  * 
  * Get the filesystem device id (POSIX dev_t)
  * This is only applicable when the file is native.
