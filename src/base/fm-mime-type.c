@@ -143,6 +143,24 @@ FmMimeType* fm_mime_type_from_file_name(const char* ufile_name)
 
 /*****************************************************************************/
 
+/*
+
+shared-mime-info type names for scripts are quite inconsistent:
+
+* sh scripts: `application/x-shellscript`
+* ruby scripts: `application/x-ruby`
+* python scripts: `text/x-python`
+* perl scripts: `application/x-perl` and alias `text/x-perl`
+* awk scripts: `application/x-awk`
+* fish scripts: `application/x-fishscript` and alias `text/x-fish`
+* lua scripts: `text/x-lua`
+* tcl scripts: `text/x-tcl`
+
+TODO: Ideally, we should check mime types returned by g_content_type_guess() and make use of the same ones.
+
+TODO: There should be way to disable fast path completely in the settings and always use g_content_type_guess().
+*/
+
 #define HAS_PREFIX(buf, prefix) (memcmp(buf, prefix, sizeof(prefix) - 1) == 0)
 
 static
@@ -159,7 +177,7 @@ const char * _fast_content_type_guess_script(const char * base_name, const gucha
 
     if (HAS_PREFIX(buf, "/bin/sh\n") || HAS_PREFIX(buf, "/bin/bash\n"))
     {
-        result = "text/x-shellscript";
+        result = "application/x-shellscript";
     }
     else
     {
@@ -188,7 +206,7 @@ const char * _fast_content_type_guess_script(const char * base_name, const gucha
             else if (HAS_PREFIX(buf + offset, "ruby"))
             {
                 offset += sizeof("ruby") - 1;
-                r = "text/x-ruby";
+                r = "application/x-ruby";
             }
         }
 
