@@ -74,6 +74,8 @@ gboolean fm_run_in_default_main_context(GSourceFunc func, gpointer data);
 
 const char *fm_get_home_dir(void);
 
+GList* fm_get_mime_types_for_file_info_list(FmFileInfoList* files);
+
 void fm_log_memory_usage(void);
 
 #define fm_return_val_if_fail(expr, val)\

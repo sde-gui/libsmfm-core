@@ -491,6 +491,39 @@ const char *fm_get_home_dir(void)
     return homedir;
 }
 
+/**
+ * fm_get_mime_types_for_file_info_list
+ *
+ * Retrieves list of #FmMimeType's for #FmFileInfoList with duplicates removed.
+ *
+ * Returns: a GList of #FmMimeType's. The returned #FmMimeType's are
+ * owned by #FmFileInfo's contained in #FmFileInfoList. If you need to keep them,
+ * use fm_mime_type_ref() to obtain a reference.
+ * The GList nodes should be freed by caller when no longer needed.
+ *
+ * Since: 1.2.0
+ */
+GList* fm_get_mime_types_for_file_info_list(FmFileInfoList* files)
+{
+    GList* mime_types = NULL;
+    for(GList* files_iter = fm_file_info_list_peek_head_link(files); files_iter; files_iter = files_iter->next)
+    {
+        FmFileInfo* fi = files_iter->data;
+        FmMimeType* mime_type = fm_file_info_get_mime_type(fi);
+        if(mime_type == NULL || !fm_file_info_is_native(fi))
+            continue;
+
+        GList* mime_types_iter;
+        for(mime_types_iter = mime_types; mime_types_iter; mime_types_iter = mime_types_iter->next)
+            if(mime_types_iter->data == mime_type)
+                break;
+        if(mime_types_iter) /* already added */
+            continue;
+
+        mime_types = g_list_prepend(mime_types, fm_mime_type_ref(mime_type));
+    }
+    return mime_types;
+}
 
 void fm_log_memory_usage(void)
 {
