@@ -19,7 +19,7 @@ This is the first public release. The version numbering follows the original sou
    * Calculating the text label metrics may be a CPU-bound bootleneck on low-end or embedded hardware, or when dealing with hundreds of thousands of items - even on middle-end machines. Folder view relayout logic is now able to switch to the rough positioning of items, and then perform precise positioning in the background. This code path is activated automatically depending on the time spent in the item layout code.
    * Layout cache is implemented for FmCellRendererText items.
  * A number of improvements and fixes in File Properties dialog.
- * Various bugfixes file search engine and UI.
+ * Various bugfixes in file search engine and UI.
  * Porting to GTK3 is no longer a goal. Being a part of SDE project, libsmfm primarily targets GTK2. GTK3 support code is still partially in the tree, but not even tested for building. It may be removed in the future versions. At the moment it is not entirely clear whether SDE will be ported to GTK3.
 
 
@@ -95,7 +95,6 @@ This is the first public release. The version numbering follows the original sou
  * Add `libsmfm.conf` option `[hacks]exo_icon_view_pixbuf_hack`.
  * Add `libsmfm.conf` option `[hacks]exo_icon_draw_rectangle_around_selected_item`.
  * Add `libsmfm.conf` option `[ui]highlight_file_names`.
- * Add `libsmfm.conf` option `[ui]highlight_file_names`.
 
 **Building:**
  * Fix build with `-j`.
@@ -135,7 +134,7 @@ This is the first public release. The version numbering follows the original sou
    * If file name and display name differ, show both.
    * Display file icon and file name in the dialog title.
    * Allow editing associations for "inode/directory" from GUI. If `inode/directory` associated to a wrong application, various 3rd party applications can be affected (even struuman-desktop is affected), and there is absolutely no way to fix the things from GUI, since we have the appropriate controls disabled in the Properties dialog. So we do allow setting file associations for any mime types, including folders.
-   * Fixed incorrect selection of default application "Open with" combo box. `fm_app_chooser_combo_box_setup()` now explicitly calls `g_app_info_get_default_for_type()` and doesn't confuse "default" and "last used" application for a mime type.
+   * Fixed incorrect selection of default application in "Open with" combo box. `fm_app_chooser_combo_box_setup()` now explicitly calls `g_app_info_get_default_for_type()` and doesn't confuse "default" and "last used" application for a given mime type.
  * FmFolderView: Changed hotkey bindings:
    * `<Menu>` or `<Shift>F10` - open context menu for selected files.
    * `<Ctrl><Menu>` or `<Ctrl><F10>` - open context menu for the current folder.
