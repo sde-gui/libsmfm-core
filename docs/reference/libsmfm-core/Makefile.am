@@ -33,7 +33,7 @@ SCANGOBJ_OPTIONS=
 # e.g. SCAN_OPTIONS=--deprecated-guards="GTK_DISABLE_DEPRECATED"
 # http://developer.gnome.org/gtk-doc-manual/unstable/metafiles_types.html.en
 # using --rebuild-types to re-generate type list automatically.
-SCAN_OPTIONS=--rebuild-types --deprecated-guards=FM_DISABLE_DEPRECATED
+SCAN_OPTIONS=--rebuild-types --rebuild-sections --deprecated-guards=FM_DISABLE_DEPRECATED
 
 # Extra options to supply to gtkdoc-mkdb.
 # e.g. MKDB_OPTIONS=--sgml-mode --output-format=xml
@@ -56,11 +56,16 @@ FIXXREF_OPTIONS=
 HFILE_GLOB= \
 	$(top_srcdir)/src/*.h \
 	$(top_srcdir)/src/base/*.h \
+	$(top_srcdir)/src/basekit/*.h \
+	$(top_srcdir)/src/extra/*.h \
 	$(top_srcdir)/src/job/*.h \
 	$(NULL)
 
-CFILE_GLOB=$(top_srcdir)/src/*.c \
+CFILE_GLOB= \
+	$(top_srcdir)/src/*.c \
 	$(top_srcdir)/src/base/*.c \
+	$(top_srcdir)/src/basekit/*.c \
+	$(top_srcdir)/src/extra/*.c \
 	$(top_srcdir)/src/job/*.c \
 	$(NULL)
 

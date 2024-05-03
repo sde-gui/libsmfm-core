@@ -24,38 +24,50 @@ missing in gtk+/glib. It's originally developed for use in PCManFM, but
 it's carefully designed to be desktop environment-independent and can be
 used to develop other file manager-related tools as well.
     </para>
+    <chapter id="libfm-basekit">
+      <title>Auxiliary Data Types</title>
+      <xi:include href="xml/fm-list.xml"/>
+      <xi:include href="xml/fm-symbol.xml"/>
+    </chapter>
     <chapter id="libfm-core">
-      <title>Libfm Core Reference.</title>
+      <title>Libfm Core Data Types and Functions</title>
       <xi:include href="xml/fm.xml"/>
-      <xi:include href="xml/fm-app-info.xml"/>
-      <xi:include href="xml/fm-archiver.xml"/>
-      <xi:include href="xml/fm-bookmarks.xml"/>
       <xi:include href="xml/fm-config.xml"/>
       <xi:include href="xml/fm-dummy-monitor.xml"/>
       <xi:include href="xml/fm-file.xml"/>
       <xi:include href="xml/fm-file-info.xml"/>
-      <xi:include href="xml/fm-file-launcher.xml"/>
+      <xi:include href="xml/fm-file-info-list.xml"/>
       <xi:include href="xml/fm-folder.xml"/>
       <xi:include href="xml/fm-icon.xml"/>
-      <xi:include href="xml/fm-list.xml"/>
       <xi:include href="xml/fm-mime-type.xml"/>
       <xi:include href="xml/fm-monitor.xml"/>
-      <xi:include href="xml/fm-nav-history.xml"/>
       <xi:include href="xml/fm-path.xml"/>
-      <xi:include href="xml/fm-templates.xml"/>
-      <xi:include href="xml/fm-terminal.xml"/>
+      <xi:include href="xml/fm-path-list.xml"/>
       <xi:include href="xml/fm-thumbnail-loader.xml"/>
       <xi:include href="xml/fm-thumbnailer.xml"/>
       <xi:include href="xml/fm-utils.xml"/>
     </chapter>
+    <chapter id="libfm-launcher">
+      <title>Launching application for native paths and URIs</title>
+      <xi:include href="xml/fm-app-info.xml"/>
+      <xi:include href="xml/fm-file-launcher.xml"/>
+      <xi:include href="xml/fm-terminal.xml"/>
+    </chapter>
     <chapter id="libfm-jobs">
-      <title>Libfm Jobs.</title>
+      <title>Libfm Jobs</title>
+      <xi:include href="xml/fm-job.xml"/>
       <xi:include href="xml/fm-deep-count-job.xml"/>
       <xi:include href="xml/fm-dir-list-job.xml"/>
       <xi:include href="xml/fm-file-info-job.xml"/>
       <xi:include href="xml/fm-file-ops-job.xml"/>
-      <xi:include href="xml/fm-job.xml"/>
       <xi:include href="xml/fm-simple-job.xml"/>
+    </chapter>
+    <chapter id="libfm-extra">
+      <title>Libfm Extra Features</title>
+      <xi:include href="xml/fm-archiver.xml"/>
+      <xi:include href="xml/fm-bookmarks.xml"/>
+      <xi:include href="xml/fm-nav-history.xml"/>
+      <xi:include href="xml/fm-templates.xml"/>
     </chapter>
   </part>
   <part id="object-tree">
