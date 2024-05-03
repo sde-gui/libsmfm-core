@@ -106,7 +106,7 @@ The problem is that any pointer returned by fm_file_info_get_*() can become inva
 if fm_file_info_update() is called in another thread.
 
 The easiest way to address this is to place all the pointers into bucket and do not free them until FmFileInfo remains alive.
-So as far as a caller folds a reference to FmFileInfo, it can be sure any pointer returned from fm_file_info_get_*() is valid.
+So as far as a caller holds a reference to FmFileInfo, it can be sure any pointer returned from fm_file_info_get_*() is valid.
 
 */
 
@@ -796,7 +796,7 @@ FmFileInfo* fm_file_info_new_from_native_file(FmPath* path, const char* path_str
 
 /**
  * fm_file_info_ref:
- * @fi:  A FmFileInfo struct
+ * @fi: a FmFileInfo struct
  *
  * Increase reference count of the FmFileInfo struct.
  *
