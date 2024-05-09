@@ -50,6 +50,7 @@ This is the first public release. The version numbering follows the original sou
    * `fm_file_info_new_from_native_file()`
    * `fm_file_info_new_from_path_unfilled()`
    * `fm_file_info_is_directory()` as a synonym for `fm_file_info_is_dir()`
+   * `fm_file_info_is_backup()`
  * FmFileInfo: Rename:
    * `fm_file_info_set_from_gfileinfo()` to `fm_file_info_fill_from_gfileinfo()`
    * `fm_file_info_set_from_native_file()` to `fm_file_info_fill_from_native_file()`
@@ -59,7 +60,7 @@ This is the first public release. The version numbering follows the original sou
  * Move `fm_path_list_*` functions from `fm-path.[hc]` to a separate set of files `fm-path-list.[hc]`.
  * FmList: Add functions `fm_list_push_head_uniq()` and `fm_list_push_tail_uniq()`.
  * FmList: Add field `item_compare` to `FmListFuncs`.
- * Add new class FmSymbol for constant refcounted strings with optimized comparator.
+ * Add new class FmSymbol for immutable refcounted strings with optimized comparator.
  * FmIcon can now be loaded with FmThumbnailLoader.
  * Add support of reporting status for FmJob and FmFolder.
  * FmFolder: emit `content-changed` from the handler of job's `files-found` signal.
