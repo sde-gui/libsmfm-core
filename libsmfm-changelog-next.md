@@ -97,6 +97,7 @@ This is the first public release. The version numbering follows the original sou
  * Add `libsmfm.conf` option `[hacks]exo_icon_view_pixbuf_hack`.
  * Add `libsmfm.conf` option `[hacks]exo_icon_draw_rectangle_around_selected_item`.
  * Add `libsmfm.conf` option `[ui]highlight_file_names`.
+ * Add `libsmfm.conf` option `[ui]app_list_smart_grouping`.
 
 **Building:**
  * Fix build with `-j`.
@@ -151,7 +152,9 @@ This is the first public release. The version numbering follows the original sou
  * More user friendly file delete confirmation dialog
    * Display the selected file name or number of multiple selected files in the dialog.
    * Display the message that permanent deletion cannot be undone.
- * FmFileMenu: Display "Rename" in a separate section, not in the one where "Add Bookmark" and addtional menu items are located.
+ * FmFileMenu:
+   * Display "Rename" in a separate section, not in the one where "Add Bookmark" and addtional menu items are located.
+   * Applications listed in "Open With" menu can now be "smart grouped" when `[ui]app_list_smart_grouping` is enabled.
 
 **Bugfixes and stability improvements:**
 

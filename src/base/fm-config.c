@@ -129,6 +129,7 @@ static void fm_config_init(FmConfig *self)
     self->only_user_templates = FM_CONFIG_DEFAULT_ONLY_USER_TEMPLATES;
     self->template_run_app = FM_CONFIG_DEFAULT_TEMPLATE_RUN_APP;
     self->template_type_once = FM_CONFIG_DEFAULT_TEMPL_TYPE_ONCE;
+    self->app_list_smart_grouping = FM_CONFIG_DEFAULT_APP_LIST_SMART_GROUPING;
     self->places_home = FM_CONFIG_DEFAULT_PLACES_HOME;
     self->places_desktop = FM_CONFIG_DEFAULT_PLACES_DESKTOP;
     self->places_root = FM_CONFIG_DEFAULT_PLACES_ROOT;
@@ -219,6 +220,7 @@ void fm_config_load_from_key_file(FmConfig* cfg, GKeyFile* kf)
     fm_key_file_get_bool(kf, "ui", "show_thumbnail", &cfg->show_thumbnail);
     fm_key_file_get_bool(kf, "ui", "shadow_hidden", &cfg->shadow_hidden);
     fm_key_file_get_bool(kf, "ui", "highlight_file_names", &cfg->highlight_file_names);
+    fm_key_file_get_bool(kf, "ui", "app_list_smart_grouping", &cfg->app_list_smart_grouping);
 
     fm_key_file_get_bool(kf, "places", "places_home", &cfg->places_home);
     fm_key_file_get_bool(kf, "places", "places_desktop", &cfg->places_desktop);
@@ -348,6 +350,7 @@ void fm_config_save(FmConfig* cfg, const char* name)
             fprintf(f, "show_thumbnail=%d\n", cfg->show_thumbnail);
             fprintf(f, "shadow_hidden=%d\n", cfg->shadow_hidden);
             fprintf(f, "highlight_file_names=%d\n", cfg->highlight_file_names);
+            fprintf(f, "app_list_smart_grouping=%d\n", cfg->app_list_smart_grouping);
             fputs("\n[places]\n", f);
             fprintf(f, "places_home=%d\n", cfg->places_home);
             fprintf(f, "places_desktop=%d\n", cfg->places_desktop);

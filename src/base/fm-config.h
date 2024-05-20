@@ -63,6 +63,7 @@ typedef struct _FmConfigClass       FmConfigClass;
 #define     FM_CONFIG_DEFAULT_TEMPLATE_RUN_APP  FALSE
 #define     FM_CONFIG_DEFAULT_TEMPL_TYPE_ONCE   FALSE
 #define     FM_CONFIG_DEFAULT_SHADOW_HIDDEN     FALSE
+#define     FM_CONFIG_DEFAULT_APP_LIST_SMART_GROUPING FALSE
 
 #define     FM_CONFIG_DEFAULT_PLACES_HOME       TRUE
 #define     FM_CONFIG_DEFAULT_PLACES_DESKTOP    TRUE
@@ -147,6 +148,7 @@ struct _FmConfig
     gboolean no_child_non_expandable;
     gboolean show_full_names;
     gboolean shadow_hidden;
+    gboolean app_list_smart_grouping;
 
     gboolean places_home;
     gboolean places_desktop;
