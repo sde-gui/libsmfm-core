@@ -57,6 +57,7 @@
 #include "fm-nav-history.h"
 #include "fm-path.h"
 #include "fm-path-list.h"
+#include "fm-simple-job.h"
 #include "fm-templates.h"
 #include "fm-terminal.h"
 #include "fm-thumbnailer.h"
