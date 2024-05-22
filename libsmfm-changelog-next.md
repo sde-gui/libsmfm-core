@@ -173,6 +173,7 @@ This is the first public release. The version numbering follows the original sou
 **API changes:**
 
  * `fm-file-menu.h`: Add function `fm_get_gtk_file_menu_for_string()`.
+ * Add header `fm-app-utils.h` with function: `fm_app_utils_get_app_categories()`.
  * FmFolderView: Add functions:
    * `fm_folder_view_show_popup()`
    * `fm_folder_view_show_popup_for_selected_files()`
