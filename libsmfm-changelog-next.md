@@ -138,6 +138,7 @@ This is the first public release. The version numbering follows the original sou
    * Display file icon and file name in the dialog title.
    * Allow editing associations for "inode/directory" from GUI. If `inode/directory` associated to a wrong application, various 3rd party applications can be affected (even struuman-desktop is affected), and there is absolutely no way to fix the things from GUI, since we have the appropriate controls disabled in the Properties dialog. So we do allow setting file associations for any mime types, including folders.
    * Fixed incorrect selection of default application in "Open with" combo box. `fm_app_chooser_combo_box_setup()` now explicitly calls `g_app_info_get_default_for_type()` and doesn't confuse "default" and "last used" application for a given mime type.
+   * Indicate that folder total size calculation is still in progress by prepending "..." to the displayed size value.
  * FmFolderView: Changed hotkey bindings:
    * `<Menu>` or `<Shift>F10` - open context menu for selected files.
    * `<Ctrl><Menu>` or `<Ctrl><F10>` - open context menu for the current folder.
