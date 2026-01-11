@@ -851,6 +851,9 @@ gboolean _fm_file_info_has_single_ref(FmFileInfo* fi)
  */
 void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
 {
+    fm_return_if_fail(fi != NULL);
+    fm_return_if_fail(src != NULL);
+
     if (fi == src)
         return;
 
