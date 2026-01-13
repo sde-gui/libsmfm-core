@@ -1172,27 +1172,40 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
     G_LOCK(deferred_mime_type_load);
     G_LOCK(deferred_fast_update);
 
+#define COPY_FIELD(field) do { fi->field = src->field ; } while (0)
+
+    COPY_FIELD(mode);
+    COPY_FIELD(native_directory);
+    COPY_FIELD(native_regular_file);
+    COPY_FIELD(fs_id);
+    COPY_FIELD(dev);
+    COPY_FIELD(uid);
+    COPY_FIELD(gid);
+    COPY_FIELD(size);
+    COPY_FIELD(mtime);
+    COPY_FIELD(atime);
+    COPY_FIELD(ctime);
+    COPY_FIELD(blksize);
+    COPY_FIELD(blocks);
+    COPY_FIELD(color);
+    COPY_FIELD(accessible);
+    COPY_FIELD(hidden);
+    COPY_FIELD(backup);
+    COPY_FIELD(color_loaded);
+    COPY_FIELD(from_native_file);
+    COPY_FIELD(mime_type_load_done);
+    COPY_FIELD(filled);
+
+#undef COPY_FIELD
+
     SET_FIELD(path, path, src->path);
     SET_FIELD(mime_type, mime_type, src->mime_type);
     SET_FIELD(icon, icon, src->icon);
-
-    fi->filled = src->filled;
-
-    fi->mode = src->mode;
-    fi->dev = src->dev;
-    fi->fs_id = src->fs_id;
-
-    fi->uid = src->uid;
-    fi->gid = src->gid;
-    fi->size = src->size;
-    fi->mtime = src->mtime;
-    fi->atime = src->atime;
-    fi->ctime = src->ctime;
-
-    fi->blksize = src->blksize;
-    fi->blocks = src->blocks;
-
     SET_FIELD(disp_name, symbol, src->disp_name);
+    SET_FIELD(disp_size, symbol, src->disp_size);
+    SET_FIELD(disp_mtime, symbol, src->disp_mtime);
+    SET_FIELD(native_path, symbol, src->native_path);
+    SET_FIELD(target, symbol, src->target);
 
     if (src->collate_key_casefold  == COLLATE_USING_DISPLAY_NAME)
         fi->collate_key_casefold = COLLATE_USING_DISPLAY_NAME;
@@ -1203,16 +1216,6 @@ void fm_file_info_update(FmFileInfo* fi, FmFileInfo* src)
         fi->collate_key_nocasefold = COLLATE_USING_DISPLAY_NAME;
     else
         SET_FIELD(collate_key_nocasefold, symbol, src->collate_key_nocasefold);
-
-    SET_FIELD(disp_size, symbol, src->disp_size);
-    SET_FIELD(disp_mtime, symbol, src->disp_mtime);
-
-    fi->native_directory = src->native_directory;
-    fi->native_regular_file = src->native_regular_file;
-    fi->from_native_file = src->from_native_file;
-    fi->mime_type_load_done = src->mime_type_load_done;
-
-    SET_FIELD(native_path, symbol, src->native_path);
 
     G_UNLOCK(deferred_fast_update);
     G_UNLOCK(deferred_mime_type_load);
