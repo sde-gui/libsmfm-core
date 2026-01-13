@@ -701,6 +701,8 @@ static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* 
         fi->backup = (!S_ISDIR(st.st_mode) && g_str_has_suffix(basename, "~"));
     }
 
+    g_atomic_int_set(&fi->filled, 1);
+
     return TRUE;
 }
 
@@ -919,6 +921,8 @@ static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
 
     SET_SYMBOL(target, target);
     g_free(target);
+
+    g_atomic_int_set(&fi->filled, 1);
 }
 
 /*****************************************************************************/
@@ -999,7 +1003,7 @@ gboolean fm_file_info_fill(FmFileInfo* fi, GCancellable* cancellable, GError** e
 
 gboolean fm_file_info_is_filled(FmFileInfo * fi)
 {
-    return fi && fi->filled;
+    return fi && g_atomic_int_get(&fi->filled);
 }
 
 /*****************************************************************************/
