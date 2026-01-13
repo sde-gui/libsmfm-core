@@ -3,6 +3,7 @@
  *
  *      Copyright 2009 - 2012 Hong Jen Yee (PCMan) <pcman.tw@gmail.com>
  *      Copyright 2012 Andriy Grytsenko (LStranger) <andrej@rep.kiev.ua>
+ *      Copyright 2014-2026 Vadim Ushakov <wandrien.dev@gmail.com>
  *
  *      This program is free software; you can redistribute it and/or modify
  *      it under the terms of the GNU General Public License as published by
@@ -27,7 +28,226 @@
  *
  * @include: libfm/fm.h
  *
+ * #FmFileInfo stores cached information about a file system object addressed by
+ * a #FmPath.
+ *
+ * The object can exist in two logical states:
+ * * <emphasis>Unfilled</emphasis> — created, but not yet populated with data.
+ * * <emphasis>Filled</emphasis> — populated with metadata obtained from the file system
+ *   and/or other sources (e.g. #GFileInfo).
+ *
+ * ## Creating an unfilled object
+ *
+ * You can create an unfilled #FmFileInfo with:
+ * * #fm_file_info_new()
+ * * #fm_file_info_new_from_path_unfilled()
+ *
+ * ## Filling an existing object
+ *
+ * An unfilled object can be populated using one of the following functions:
+ * * #fm_file_info_fill()
+ * * #fm_file_info_fill_from_native_file()
+ * * #fm_file_info_fill_from_gfileinfo()
+ *
+ * ## Creating and filling in one step
+ *
+ * Convenience constructors are provided to create and fill an object in a single call:
+ * * #fm_file_info_new_from_path()
+ * * #fm_file_info_new_from_native_file()
+ * * #fm_file_info_new_from_gfileinfo()
+ *
+ * These functions are thin wrappers around the corresponding fm_file_info_fill*()
+ * routines.
+ *
+ * ## Thread-safety and reentrancy
+ * <anchor id="fm-file-info-thread-safety"/>
+ *
+ * Concurrent calls to fm_file_info_fill*() for the same #FmFileInfo instance from
+ * multiple threads are not allowed. The resulting object state is undefined.
+ *
+ * Currently, calling any fm_file_info_fill*() more than once on the same
+ * instance (even from a single thread) emits a warning:
+ * |[
+ * g_warning ("%s is called more than once", __FUNCTION__);
+ * ]|
+ * This behavior may change in the future.
+ *
+ * ## Updating an already filled object
+ *
+ * To refresh an already filled #FmFileInfo, do not refill it in-place. Instead:
+ * 1. Create and fill a new #FmFileInfo.
+ * 2. Call fm_file_info_update(old_info, new_info) to copy the visible state from
+ *    @new_info into @old_info.
+ *
+ * %fm_file_info_update() is guaranteed to leave the updated object in a consistent
+ * state. It can be safely used in multi-threaded code for any combination of
+ * @old_info and @new_info.
+ *
+ * After fm_file_info_update(), the state visible to client code through getters in
+ * @old_info matches @new_info exactly. If @new_info is unfilled, @old_info becomes
+ * unfilled as well.
+ *
+ * ## Synchronization when reading from other threads
+ *
+ * If one thread modifies an instance (fills or updates it) while another thread reads
+ * it via getter functions, you must serialize those operations using appropriate
+ * inter-thread synchronization.
+ *
+ * Reading fields "in the middle" of an update may return a mix of values from
+ * different object states (before/after the update) or otherwise undefined data.
+ *
+ * There is one important guarantee: getters that return pointers (for example,
+ * fm_file_info_get_name(), fm_file_info_get_collate_key(), fm_file_info_get_icon(),
+ * etc.) always return either a valid pointer or %NULL (if the field has not been
+ * populated yet).
+ *
+ * Pointers returned by such getters remain valid as long as the #FmFileInfo instance
+ * is alive (i.e. while its reference count is non-zero). When fm_file_info_update()
+ * replaces a pointer-valued field, the previous value is kept internally and is only
+ * freed when the #FmFileInfo instance is destroyed.
+ *
+ * ## Deferred I/O (lazy loading)
+ *
+ * Depending on application settings and internal implementation details, some
+ * metadata that requires additional I/O may be deferred. In the current
+ * implementation this applies to the MIME type and the icon.
+ *
+ * Such operations may be queued and performed asynchronously in a background thread.
+ * This is transparent to client code, except for one side effect: calling
+ * fm_file_info_get_mime_type() or fm_file_info_get_icon() may block if the deferred
+ * load has not completed yet.
+ *
+ * The deferred-load status can be queried with:
+ * * #fm_file_info_is_mime_type_ready() (FIXME: not implemented)
+ * * #fm_file_info_is_icon_ready() (FIXME: not implemented)
+ *
+ * If these functions return %TRUE, the corresponding getter will not perform I/O
+ * (unless the object is concurrently modified in another thread between the check
+ * and the getter call).
+ *
+ * FIXME: fm_file_info_update() doesn't check for deferred operations and doesn't
+ * reschedule them for the updated instance.
+ *
+ * ## Potentially blocking calls
+ *
+ * The following functions may block the current thread:
+ * * #fm_file_info_fill() — performs file system I/O
+ * * #fm_file_info_fill_from_native_file() — performs file system I/O
+ * * #fm_file_info_fill_from_gfileinfo() — reads from an already-populated
+ *   #GFileInfo, but additional filesystem I/O may still occur
+ * * #fm_file_info_new_from_path() — same considerations as fm_file_info_fill()
+ * * #fm_file_info_new_from_native_file() — same considerations as
+ *   fm_file_info_fill_from_native_file()
+ * * #fm_file_info_new_from_gfileinfo() — same considerations as
+ *   fm_file_info_fill_from_gfileinfo()
+ * * #fm_file_info_get_mime_type() — may perform deferred I/O
+ * * #fm_file_info_get_icon() — may perform deferred I/O
+ * * #fm_file_info_update() — may block awaiting deferred I/O
+ *
+ * The list above is not exhaustive. While most getters do not perform I/O,
+ * some may still block indirectly (for instance, by internally
+ * calling fm_file_info_get_mime_type()).
+ *
+ * The exact I/O behavior of getters is currently considered an implementation detail.
+ *
+ * General Principle: #FmFileInfo is designed to minimize latency in
+ * the GUI thread by performing significant I/O operations in parallel.
+ * However, strictly guaranteeing zero I/O in the GUI thread is not a primary design goal.
+ *
+ * ## Deferred computation
+ *
+ * #FmFileInfo also defers potentially CPU-intensive computations until they are
+ * actually needed. For example, the collate key is computed on first access via
+ * fm_file_info_get_collate_key(), not during fill. Similar lazy evaluation may apply
+ * to other fields.
  */
+
+/*****************************************************************************/
+
+/* FIXME: 2026-01: Fix issues identified during code review
+
+The following issues were found while updating the documentation:
+
+1.
+fm_file_info_update() does not check for pending deferred MIME type and icon loading operations.
+The exact impact is unclear. Depending on FmFolder implementation details (which have not been analyzed),
+this may lead to either visual glitches or suboptimal renderer performance (redundant work performed on the GUI thread).
+
+2.
+fm_file_info_icon_loaded() is called both from the deferred loading thread and from FmFolder code.
+We need to verify if caller expectations align regarding WHAT the function is supposed to check
+(and whether that corresponds to what it ACTUALLY checks).
+
+This interface must be clearly specified in the documentation.
+
+The name fm_file_info_icon_loaded() is poor. It is likely worth renaming it and
+introducing a second function:
+ * fm_file_info_is_mime_type_ready()
+ * fm_file_info_is_icon_ready()
+
+3.
+The deferred loading thread implicitly assumes that if the icon is loaded, the MIME type is already loaded as well.
+However, this is a private implementation detail that is not guaranteed.
+Both should be explicitly checked and loaded.
+
+4.
+Suspicious logic detected; this is almost certainly a bug.
+The strcmp() condition appears to be inverted:
+
+    return S_ISLNK(fi->mode) &&
+           fm_file_info_get_mime_type(fi) &&
+           (strcmp(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), "inode/directory"));
+*/
+
+/*****************************************************************************/
+
+/* IMPLEMENTATION NOTES */
+
+/*
+
+## Deferred Evaluation and Locking Strategy
+
+Evaluation of certain FmFileInfo fields is deferred until they are explicitly
+accessed. To prevent race conditions during these lazy calculations, we use
+global locks.
+
+While using global locks instead of per-object locks limits the concurrency level,
+it significantly simplifies the implementation.
+
+The locks are:
+ * deferred_icon_load:      Protects icon loading (potentially slow I/O).
+ * deferred_mime_type_load: Protects MIME type detection (potentially slow I/O).
+ * deferred_fast_update:    Protects CPU-bound evaluations (e.g. collate key calculation).
+
+To avoid deadlocks, the following locking order must be observed:
+ deferred_icon_load -> deferred_mime_type_load -> deferred_fast_update
+
+TODO: Implement proper per-instance locking.
+*/
+
+/*
+## Mutable State and Pointer Validity
+
+FmFileInfo instances are mutable. The fm_file_info_update(dest, src) function
+allows copying the state from a source object into a destination object (e.g.,
+used by FmFolder to refresh items when the underlying file system changes).
+
+The Challenge:
+Pointers returned by fm_file_info_get_*() accessors could become invalid (dangling)
+at any moment if fm_file_info_update() is called concurrently in another thread.
+
+The Solution:
+To ensure thread safety, we use a "bucket" (allocation pool) strategy. When fields
+are overwritten during an update, the old pointers are not immediately freed.
+Instead, they are retained in the bucket and only freed when the FmFileInfo
+instance itself is finalized.
+
+Guarantee:
+As long as the caller holds a reference to the FmFileInfo instance, any pointer
+returned by its getters is guaranteed to remain valid.
+*/
+
+/*****************************************************************************/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -66,20 +286,6 @@ static FmIcon* icon_locked_folder = NULL;
 
 /*****************************************************************************/
 
-/*
-
-Evaluation of some fields of FmFileInfo deferred until the value actually needed.
-When doing these deferred evaluations we acquire a lock to prevent race condition:
-deferred_icon_load - lock for icon loading
-deferred_mime_type_load - lock for mime type loading
-deferred_fast_update - lock for any other evaluations that are "fast" by nature (i.e. not doing IO)
-
-These locks are global, not per-object. That limits concurency level, but is much easier in implementation.
-
-Locking order: icon-> mime_type -> fast
-
-*/
-
 G_LOCK_DEFINE_STATIC(deferred_icon_load);
 G_LOCK_DEFINE_STATIC(deferred_mime_type_load);
 G_LOCK_DEFINE_STATIC(deferred_fast_update);
@@ -94,22 +300,6 @@ if (G_UNLIKELY(check))\
     }\
     G_UNLOCK(deferred_fast_update);\
 }
-
-/*****************************************************************************/
-
-/*
-
-FmFileInfo does not remain constant during its lifetime.
-API fm_file_info_update(f1, f2) can be used to copy content of f2 into f1.
-Implementation of FmFolder uses that API to update its items when underlying files updated.
-
-The problem is that any pointer returned by fm_file_info_get_*() can become invalid at any moment,
-if fm_file_info_update() is called in another thread.
-
-The easiest way to address this is to place all the pointers into bucket and do not free them until FmFileInfo remains alive.
-So as far as a caller holds a reference to FmFileInfo, it can be sure any pointer returned from fm_file_info_get_*() is valid.
-
-*/
 
 /*****************************************************************************/
 
@@ -336,15 +526,17 @@ void fm_file_info_set_path(FmFileInfo* fi, FmPath* path)
 /**
  * fm_file_info_fill_from_native_file:
  * @fi:  A FmFileInfo struct
- * @path:  full path of the file
- * @error: a GError** to retrive errors
+ * @path_str:  absolute path to the file
+ * @error: (allow-none) (out): return location for an error or NULL
  *
- * Get file info of the specified native file and store it in
- * the #FmFileInfo struct.
+ * Fills the #FmFileInfo fields with information about the file at the specified path.
  *
- * This function is not thread-safe. You should not call it on a #FmFileInfo
- * struct that is accessible from another thread. You also should not call any
- * of fm_file_info_fill_from_* functions more than once for each #FmFileInfo struct.
+ * Note that this function does not update the path stored in @fi.
+ * Use fm_file_info_set_path() to set the path explicitly.
+ *
+ * This function is not thread-safe.
+ * See <link linkend="fm-file-info-thread-safety">Thread-safety and reentrancy</link>
+ * in #FmFileInfo for thread-safety notes.
  *
  * Returns: TRUE if no error happens.
  *
@@ -517,12 +709,15 @@ static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* 
  * @fi:  A FmFileInfo struct
  * @inf: a GFileInfo object
  *
- * Get file info from the GFileInfo object and store it in
- * the FmFileInfo struct.
+ * Fills the #FmFileInfo fields with information about the file specified by
+ * a #GFileInfo instance.
  *
- * This function is not thread-safe. You should not call it on a #FmFileInfo
- * struct that is accessible from another thread. You also should not call any
- * of fm_file_info_fill_from_* functions more than once for each #FmFileInfo struct.
+ * Note that this function does not update the path stored in @fi.
+ * Use fm_file_info_set_path() to set the path explicitly.
+ *
+ * This function is not thread-safe.
+ * See <link linkend="fm-file-info-thread-safety">Thread-safety and reentrancy</link>
+ * in #FmFileInfo for thread-safety notes.
  *
  * Since: 1.2.0
  */
@@ -729,14 +924,16 @@ static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
  * fm_file_info_fill:
  * @fi:  A FmFileInfo struct
  * @cancellable: (nullable): optional cancellable object
- * @error: return location for an error
+ * @error: (allow-none) (out): return location for an error or NULL
  *
- * Get file info of the file specified by the path field and store it in
- * the #FmFileInfo struct.
+ * Fills the #FmFileInfo fields with information about the file specified by
+ * the path stored in @fi.
  *
- * This function is not thread-safe. You should not call it on a #FmFileInfo
- * struct that is accessible from another thread. You also should not call any
- * of fm_file_info_fill_from_* functions more than once for each #FmFileInfo struct.
+ * The path field should be properly set before calling this function.
+ *
+ * This function is not thread-safe.
+ * See <link linkend="fm-file-info-thread-safety">Thread-safety and reentrancy</link>
+ * in #FmFileInfo for thread-safety notes.
  *
  * Returns: TRUE if no error happens.
  *
@@ -850,12 +1047,12 @@ FmFileInfo* fm_file_info_new_from_gfileinfo(FmPath* path, GFileInfo* inf)
 
 /**
  * fm_file_info_new_from_native_file
- * @path: (allow-none): path descriptor
- * @path_str (allow-none): full path to the file
- * @error: (allow-none) (out): pointer to receive error
+ * @path: (nullable): path descriptor
+ * @path_str: (nullable): absolute path to the file
+ * @error: (allow-none) (out): return location for an error or NULL
  *
- * Create a new #FmFileInfo for file pointed by @path. Returned data
- * should be freed with fm_file_info_unref() after usage.
+ * Create a new #FmFileInfo for file pointed by @path or @path_str.
+ * Returned data should be freed with fm_file_info_unref() after usage.
  *
  * Either @path or @path_str must not be %NULL.
  *
@@ -928,7 +1125,6 @@ void fm_file_info_unref(FmFileInfo* fi)
     /* g_debug("unref file info: %d", fi->n_ref); */
     if (g_atomic_int_dec_and_test(&fi->n_ref))
     {
-        //fm_file_info_clear(fi);
         fm_list_unref(fi->path_bucket);
         fm_list_unref(fi->mime_type_bucket);
         fm_list_unref(fi->icon_bucket);
@@ -1486,7 +1682,6 @@ gboolean fm_file_info_is_unknown_type(FmFileInfo* fi)
  * such as shell script, python script, perl script, or
  * binary executable file.
  */
-/* full path of the file is required by this function */
 gboolean fm_file_info_is_executable_type(FmFileInfo* fi)
 {
     fm_return_val_if_fail(fi, FALSE);
