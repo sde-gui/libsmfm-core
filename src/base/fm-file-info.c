@@ -189,14 +189,6 @@ introducing a second function:
 The deferred loading thread implicitly assumes that if the icon is loaded, the MIME type is already loaded as well.
 However, this is a private implementation detail that is not guaranteed.
 Both should be explicitly checked and loaded.
-
-4.
-Suspicious logic detected; this is almost certainly a bug.
-The strcmp() condition appears to be inverted:
-
-    return S_ISLNK(fi->mode) &&
-           fm_file_info_get_mime_type(fi) &&
-           (strcmp(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), "inode/directory"));
 */
 
 /*****************************************************************************/
@@ -1543,7 +1535,7 @@ gboolean fm_file_info_is_directory(FmFileInfo* fi)
 
     return S_ISLNK(fi->mode) &&
            fm_file_info_get_mime_type(fi) &&
-           (strcmp(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), "inode/directory"));
+           (strcmp(fm_mime_type_get_type(fm_file_info_get_mime_type(fi)), "inode/directory") == 0);
 }
 
 /**
