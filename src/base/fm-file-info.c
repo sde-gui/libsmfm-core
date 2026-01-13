@@ -797,6 +797,30 @@ gboolean fm_file_info_is_filled(FmFileInfo * fi)
 /*****************************************************************************/
 
 /**
+ * fm_file_info_new_from_path:
+ * @path:  FmPath of a file
+ * @inf: a GFileInfo object
+ *
+ * Create a new FmFileInfo for file pointed by @path.
+ *
+ * Returns: (transfer full): A new FmFileInfo struct which should be freed with
+ * fm_file_info_unref() when no longer needed, or %NULL on error.
+ *
+ * Since: 1.2.0
+ */
+FmFileInfo * fm_file_info_new_from_path(FmPath * path, GCancellable * cancellable, GError ** error)
+{
+    FmFileInfo* fi = fm_file_info_new();
+    fm_file_info_set_path(fi, path);
+    if (!fm_file_info_fill(fi, cancellable, error))
+    {
+        fm_file_info_unref(fi);
+        fi = NULL;
+    }
+    return fi;
+}
+
+/**
  * fm_file_info_new_from_gfileinfo:
  * @path:  FmPath of a file
  * @inf: a GFileInfo object
@@ -804,7 +828,7 @@ gboolean fm_file_info_is_filled(FmFileInfo * fi)
  * Create a new FmFileInfo for file pointed by @path based on
  * information stored in the GFileInfo object.
  *
- * Returns: A new FmFileInfo struct which should be freed with
+ * Returns: (transfer full): A new FmFileInfo struct which should be freed with
  * fm_file_info_unref() when no longer needed.
  */
 FmFileInfo* fm_file_info_new_from_gfileinfo(FmPath* path, GFileInfo* inf)

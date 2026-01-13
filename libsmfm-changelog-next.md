@@ -49,6 +49,7 @@ This is the first public release. The version numbering follows the original sou
    * `fm_file_info_fill()`
    * `fm_file_info_get_ctime()`
    * `fm_file_info_new_from_native_file()`
+   * `fm_file_info_new_from_path()`
    * `fm_file_info_new_from_path_unfilled()`
    * `fm_file_info_is_directory()` as a synonym for `fm_file_info_is_dir()`
    * `fm_file_info_is_backup()`

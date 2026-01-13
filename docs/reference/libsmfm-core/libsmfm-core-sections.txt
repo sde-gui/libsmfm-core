@@ -179,6 +179,7 @@ FILE_INFO_DEFAULT_COLOR
 fm_log_memory_usage_for_file_info
 fm_file_info_new
 fm_file_info_new_from_path_unfilled
+fm_file_info_new_from_path
 fm_file_info_new_from_gfileinfo
 fm_file_info_new_from_native_file
 fm_file_info_fill
