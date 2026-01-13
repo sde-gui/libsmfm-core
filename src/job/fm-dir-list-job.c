@@ -42,7 +42,6 @@
 #include <string.h>
 
 #include "fm-dir-list-job.h"
-#include "fm-file-info-job.h"
 #include "fm-mime-type.h"
 #include "fm-file-info.h"
 #include "fm-utils.h"
@@ -200,6 +199,27 @@ static DIR * opendir_with_error(const char * path, GError ** error)
     return dir;
 }
 
+static inline gboolean
+_fm_dir_list_job_get_info_for_native_file(FmJob* job, FmFileInfo* fi, const char* path, GError** err)
+{
+    if( ! fm_job_is_cancelled(job) )
+        return fm_file_info_fill_from_native_file(fi, path, err);
+    return TRUE;
+}
+
+static inline gboolean
+_fm_dir_list_job_get_info_for_gfile(FmJob* job, FmFileInfo* fi, GFile* gf, GError** err)
+{
+    GFileInfo* inf;
+    inf = g_file_query_info(gf, _fm_get_default_gfile_info_query_attributes(), (GFileQueryInfoFlags)0, fm_job_get_cancellable(job), err);
+    if( !inf )
+        return FALSE;
+    fm_file_info_fill_from_gfileinfo(fi, inf);
+    g_object_unref(inf);
+
+    return TRUE;
+}
+
 #if defined _DIRENT_HAVE_D_TYPE || defined HAVE_STRUCT_DIRENT_D_TYPE
 #define DIRENT_MIGHT_BE_SYMLINK(d) \
     ((d)->d_type == DT_UNKNOWN || (d)->d_type == DT_LNK)
@@ -225,7 +245,7 @@ static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
     path_str = fm_path_to_str(job->dir_path);
 
     fi = fm_file_info_new_from_path_unfilled(job->dir_path);
-    if( _fm_file_info_job_get_info_for_native_file(fmjob, fi, path_str, NULL) )
+    if( _fm_dir_list_job_get_info_for_native_file(fmjob, fi, path_str, NULL) )
     {
         if(! fm_file_info_is_directory(fi))
         {
@@ -287,7 +307,7 @@ static gboolean fm_dir_list_job_run_posix(FmDirListJob* job)
             fm_path_unref(new_path);
 
         _retry:
-            if( _fm_file_info_job_get_info_for_native_file(fmjob, fi, fpath->str, &err) )
+            if( _fm_dir_list_job_get_info_for_native_file(fmjob, fi, fpath->str, &err) )
                 fm_dir_list_job_add_found_file(job, fi);
             else /* failed! */
             {
@@ -352,7 +372,7 @@ static gboolean fm_dir_list_job_run_gio(FmDirListJob* job)
     }
     else
     {
-        query = gfile_info_query_attribs;
+        query = _fm_get_default_gfile_info_query_attributes();
     }
 
     GFile * dir_gf = NULL;
@@ -392,7 +412,10 @@ _retry: ;
 
     dir_gf = fm_path_to_gfile(job->dir_path);
 
-    dir_ginfo = g_file_query_info(dir_gf, gfile_info_query_attribs, 0, fm_job_get_cancellable(fmjob), &err);
+    dir_ginfo = g_file_query_info(dir_gf,
+        _fm_get_default_gfile_info_query_attributes(), 0,
+        fm_job_get_cancellable(fmjob), &err
+    );
     if (!dir_ginfo)
     {
         FmJobErrorAction action = fm_job_emit_error(fmjob, err, FM_JOB_ERROR_MODERATE);

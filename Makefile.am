@@ -40,3 +40,5 @@ DISTCHECK_CONFIGURE_FLAGS=--enable-gtk-doc
 
 cppcheck cppcheck-inconclusive:
 	make -C src $@
+
+ACLOCAL_AMFLAGS =  -I m4

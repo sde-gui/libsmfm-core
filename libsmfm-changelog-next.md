@@ -46,6 +46,7 @@ This is the first public release. The version numbering follows the original sou
  * Add function: `fm_get_mime_types_for_file_info_list()`.
  * FmNavHistory: `fm_nav_history_chdir()` now returns `FALSE` if the path is same as in the current history item; and `TRUE` otherwise. Previously this function was declared as returning void.
  * FmFileInfo: Add:
+   * `fm_file_info_fill()`
    * `fm_file_info_get_ctime()`
    * `fm_file_info_new_from_native_file()`
    * `fm_file_info_new_from_path_unfilled()`

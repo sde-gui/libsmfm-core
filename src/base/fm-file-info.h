@@ -53,10 +53,11 @@ FmFileInfo * fm_file_info_new();
 FmFileInfo * fm_file_info_new_from_path_unfilled(FmPath * path);
 
 FmFileInfo * fm_file_info_new_from_gfileinfo(FmPath * path, GFileInfo * inf);
-FmFileInfo * fm_file_info_new_from_native_file(FmPath * path, const char * path_str, GError ** err);
+FmFileInfo * fm_file_info_new_from_native_file(FmPath * path, const char * path_str, GError ** error);
 
+gboolean     fm_file_info_fill(FmFileInfo * fi, GCancellable * cancellable, GError ** error);
 void         fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf);
-gboolean     fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path_str, GError** err);
+gboolean     fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path_str, GError** error);
 
 void         fm_file_info_set_path(FmFileInfo * fi, FmPath * path);
 
@@ -126,6 +127,10 @@ const char *  fm_file_info_get_collate_key_nocasefold(FmFileInfo * fi);
 gboolean      fm_file_info_can_thumbnail(FmFileInfo * fi);
 
 unsigned long fm_file_info_get_color(FmFileInfo * fi);
+
+/*****************************************************************************/
+
+const char * _fm_get_default_gfile_info_query_attributes(void);
 
 /*****************************************************************************/
 

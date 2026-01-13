@@ -78,6 +78,7 @@ FM_CONFIG_DEFAULT_ONLY_USER_TEMPLATES
 FM_CONFIG_DEFAULT_TEMPLATE_RUN_APP
 FM_CONFIG_DEFAULT_TEMPL_TYPE_ONCE
 FM_CONFIG_DEFAULT_SHADOW_HIDDEN
+FM_CONFIG_DEFAULT_APP_LIST_SMART_GROUPING
 FM_CONFIG_DEFAULT_PLACES_HOME
 FM_CONFIG_DEFAULT_PLACES_DESKTOP
 FM_CONFIG_DEFAULT_PLACES_ROOT
@@ -180,6 +181,7 @@ fm_file_info_new
 fm_file_info_new_from_path_unfilled
 fm_file_info_new_from_gfileinfo
 fm_file_info_new_from_native_file
+fm_file_info_fill
 fm_file_info_fill_from_gfileinfo
 fm_file_info_fill_from_native_file
 fm_file_info_set_path
@@ -218,6 +220,7 @@ fm_file_info_is_text
 fm_file_info_is_desktop_entry
 fm_file_info_is_unknown_type
 fm_file_info_is_hidden
+fm_file_info_is_backup
 fm_file_info_is_executable_type
 fm_file_info_is_accessible
 fm_file_info_get_target

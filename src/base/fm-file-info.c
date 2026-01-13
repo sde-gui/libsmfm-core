@@ -40,6 +40,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include <stddef.h> /* unreachable(), since C23 */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -54,7 +55,7 @@
 
 /*****************************************************************************/
 
-static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path, GError** err);
+static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path, GError** error);
 static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf);
 
 /*****************************************************************************/
@@ -334,7 +335,7 @@ void fm_file_info_set_path(FmFileInfo* fi, FmPath* path)
  * fm_file_info_fill_from_native_file:
  * @fi:  A FmFileInfo struct
  * @path:  full path of the file
- * @err: a GError** to retrive errors
+ * @error: a GError** to retrive errors
  *
  * Get file info of the specified native file and store it in
  * the #FmFileInfo struct.
@@ -345,7 +346,7 @@ void fm_file_info_set_path(FmFileInfo* fi, FmPath* path)
  *
  * Returns: TRUE if no error happens.
  */
-gboolean fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path_str, GError** err)
+gboolean fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path_str, GError** error)
 {
     /*
         We are trying to detect and report a misuse of the API.
@@ -358,7 +359,7 @@ gboolean fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path_str
     {
         g_warning("%s is called more than once", __FUNCTION__);
         FmFileInfo * fi_src = fm_file_info_new_from_native_file(
-            fm_file_info_get_path(fi), path_str, err);
+            fm_file_info_get_path(fi), path_str, error);
         if (fi_src)
         {
             fm_file_info_update(fi, fi_src);
@@ -369,7 +370,7 @@ gboolean fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path_str
     }
     else
     {
-        return _fm_file_info_fill_from_native_file(fi, path_str, err);
+        return _fm_file_info_fill_from_native_file(fi, path_str, error);
     }
 }
 
@@ -423,13 +424,13 @@ end:
     g_key_file_free(kf);
 }
 
-static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path, GError** err)
+static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path, GError** error)
 {
     struct stat st;
 
     if (lstat(path, &st) != 0)
     {
-        g_set_error(err, G_IO_ERROR, g_io_error_from_errno(errno),
+        g_set_error(error, G_IO_ERROR, g_io_error_from_errno(errno),
                     "%s: %s", path, g_strerror(errno));
         return FALSE;
     }
@@ -718,6 +719,76 @@ static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
 
 /*****************************************************************************/
 
+/**
+ * fm_file_info_fill:
+ * @fi:  A FmFileInfo struct
+ * @cancellable: (nullable): optional cancellable object
+ * @error: return location for an error
+ *
+ * Get file info of the file specified by the path field and store it in
+ * the #FmFileInfo struct.
+ *
+ * This function is not thread-safe. You should not call it on a #FmFileInfo
+ * struct that is accessible from another thread. You also should not call any
+ * of fm_file_info_fill_from_* functions more than once for each #FmFileInfo struct.
+ *
+ * Returns: TRUE if no error happens.
+ */
+gboolean fm_file_info_fill(FmFileInfo* fi, GCancellable* cancellable, GError** error)
+{
+    if (g_cancellable_set_error_if_cancelled(cancellable, error))
+        return FALSE;
+
+    if (fi == NULL)
+    {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                            "FmFileInfo object cannot be NULL");
+        return FALSE;
+    }
+
+    FmPath * path = fm_file_info_get_path(fi);
+
+    if (path == NULL)
+    {
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                            "FmFileInfo has no path");
+        return FALSE;
+    }
+
+    if (fm_path_is_native(path))
+    {
+        char * path_str = fm_path_to_str(path);
+        g_assert(path_str);
+        gboolean result = fm_file_info_fill_from_native_file(fi, path_str, error);
+        g_free(path_str);
+        return result;
+    }
+    else
+    {
+        GFile * gf = fm_path_to_gfile(path);
+        g_assert(gf);
+        GFileInfo * ginf = g_file_query_info(gf,
+            _fm_get_default_gfile_info_query_attributes(), (GFileQueryInfoFlags)0,
+            cancellable, error
+        );
+        if (!ginf)
+        {
+            g_object_unref(gf);
+            return FALSE;
+        }
+        fm_file_info_fill_from_gfileinfo(fi, ginf); /* never fails */
+        g_object_unref(ginf);
+        g_object_unref(gf);
+        return TRUE;
+    }
+#ifdef unreachable
+    unreachable();
+#endif
+    g_assert(FALSE);
+}
+
+/*****************************************************************************/
+
 gboolean fm_file_info_is_filled(FmFileInfo * fi)
 {
     return fi && fi->filled;
@@ -749,7 +820,7 @@ FmFileInfo* fm_file_info_new_from_gfileinfo(FmPath* path, GFileInfo* inf)
  * fm_file_info_new_from_native_file
  * @path: (allow-none): path descriptor
  * @path_str (allow-none): full path to the file
- * @err: (allow-none) (out): pointer to receive error
+ * @error: (allow-none) (out): pointer to receive error
  *
  * Create a new #FmFileInfo for file pointed by @path. Returned data
  * should be freed with fm_file_info_unref() after usage.
@@ -759,11 +830,11 @@ FmFileInfo* fm_file_info_new_from_gfileinfo(FmPath* path, GFileInfo* inf)
  * Returns: (transfer full): new file info or %NULL in case of error.
  *
  */
-FmFileInfo* fm_file_info_new_from_native_file(FmPath* path, const char* path_str, GError** err)
+FmFileInfo* fm_file_info_new_from_native_file(FmPath* path, const char* path_str, GError** error)
 {
     if (!path && !path_str)
     {
-        /* FIXME: set err */
+        /* FIXME: set error */
         return NULL;
     }
 
@@ -781,7 +852,7 @@ FmFileInfo* fm_file_info_new_from_native_file(FmPath* path, const char* path_str
 
     fm_file_info_set_path(fi, path);
 
-    if (!fm_file_info_fill_from_native_file(fi, path_str, err))
+    if (!fm_file_info_fill_from_native_file(fi, path_str, error))
     {
         fm_file_info_unref(fi);
         fi = NULL;
@@ -1752,3 +1823,10 @@ unsigned long fm_file_info_get_color(FmFileInfo* fi)
     return fi->color;
 }
 
+static const char default_gfile_info_query_attributes[] =
+    "standard::*,unix::*,time::*,access::*,id::filesystem";
+
+const char * _fm_get_default_gfile_info_query_attributes(void)
+{
+    return default_gfile_info_query_attributes;
+}

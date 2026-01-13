@@ -43,8 +43,6 @@
 static void fm_file_info_job_dispose              (GObject *object);
 static gboolean fm_file_info_job_run(FmJob* fmjob);
 
-const char gfile_info_query_attribs[]="standard::*,unix::*,time::*,access::*,id::filesystem";
-
 G_DEFINE_TYPE(FmFileInfoJob, fm_file_info_job, FM_TYPE_JOB);
 
 static void fm_file_info_job_class_init(FmFileInfoJobClass *klass)
@@ -122,13 +120,13 @@ static gboolean fm_file_info_job_run(FmJob* fmjob)
 {
     GList* l;
     FmFileInfoJob* job = (FmFileInfoJob*)fmjob;
-    GError* err = NULL;
 
     if(job->file_infos == NULL)
         return FALSE;
 
     for(l = fm_file_info_list_peek_head_link(job->file_infos); !fm_job_is_cancelled(fmjob) && l;)
     {
+        GError* error = NULL;
         FmFileInfo* fi = (FmFileInfo*)l->data;
         GList* next = l->next;
         FmPath* path = fm_file_info_get_path(fi);
@@ -137,63 +135,78 @@ static gboolean fm_file_info_job_run(FmJob* fmjob)
             fm_path_unref(job->current);
         job->current = fm_path_ref(path);
 
-        if(fm_path_is_native(path))
+        gboolean result = fm_file_info_fill(fi, fm_job_get_cancellable(fmjob), &error);
+        if (!result)
         {
-            char* path_str = fm_path_to_str(path);
-            if(!_fm_file_info_job_get_info_for_native_file(fmjob, fi, path_str, &err))
+            if (g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
             {
-                FmJobErrorAction act = fm_job_emit_error(fmjob, err, FM_JOB_ERROR_MILD);
-                g_error_free(err);
-                err = NULL;
-                if(act == FM_JOB_RETRY)
-                {
-                    g_free(path_str);
-                    continue; /* retry */
-                }
-
-                fm_file_info_list_delete_link(job->file_infos, l); /* also calls unref */
+                /*
+                    Removing the item from file_infos here would make the list content depend
+                    on the exact timing of the job cancellation:
+                    - If cancelled while the job thread was outside fm_file_info_fill(),
+                        the item stays.
+                    - If cancelled while inside fm_file_info_fill(),
+                        the item is removed.
+                    To avoid this inconsistency, we keep the item in the list.
+                */
+                g_error_free(error);
+                break;
             }
-            g_free(path_str);
-        }
-        else
-        {
-            GFile* gf;
-
-            gf = fm_path_to_gfile(path);
-            if(!_fm_file_info_job_get_info_for_gfile(fmjob, fi, gf, &err))
+            else if (g_error_matches(error, G_IO_ERROR, G_IO_ERROR_NOT_MOUNTED))
             {
-              if(err->domain == G_IO_ERROR && err->code == G_IO_ERROR_NOT_MOUNTED)
-              {
-                GFileInfo *inf;
+                /*
+                    TODO: Explain this logic.
+                    2026-01 - Preserved this snippet and the original comment
+                    as-is while refactoring the legacy implementation.
+                    We need to investigate under which circumstances the
+                    G_IO_ERROR_NOT_MOUNTED error occurs and why returning
+                    a dummy value is required.
+                */
                 /* location by link isn't mounted; unfortunately we cannot
                    launch a target if we don't know what kind of target we
-                   have; lets make a simplest directory-kind GFIleInfo */
-                /* FIXME: this may be dirty a bit */
-                g_error_free(err);
-                err = NULL;
-                inf = g_file_info_new();
-                g_file_info_set_file_type(inf, G_FILE_TYPE_DIRECTORY);
-                g_file_info_set_name(inf, fm_path_get_basename(path));
-                g_file_info_set_display_name(inf, fm_path_get_basename(path));
-                fm_file_info_fill_from_gfileinfo(fi, inf);
-                g_object_unref(inf);
-              }
-              else
-              {
-                FmJobErrorAction act = fm_job_emit_error(fmjob, err, FM_JOB_ERROR_MILD);
-                g_error_free(err);
-                err = NULL;
-                if(act == FM_JOB_RETRY)
-                {
-                    g_object_unref(gf);
-                    continue; /* retry */
-                }
+                   have; let's make a dummy directory-kind GFileInfo */
+                g_error_free(error);
+                error = NULL;
+                GFileInfo *ginf = g_file_info_new();
+                g_file_info_set_file_type(ginf, G_FILE_TYPE_DIRECTORY);
+                g_file_info_set_name(ginf, fm_path_get_basename(path));
+                g_file_info_set_display_name(ginf, fm_path_get_basename(path));
+                fm_file_info_fill_from_gfileinfo(fi, ginf);
+                g_object_unref(ginf);
 
-                fm_file_info_list_delete_link(job->file_infos, l); /* also calls unref */
-              }
+                result = TRUE;
             }
-            g_object_unref(gf);
+            else
+            {
+                /* fm_job_emit_error() allows error to be NULL,
+                forcing an immediate FM_JOB_ABORT. */
+                FmJobErrorAction action = fm_job_emit_error(fmjob, error, FM_JOB_ERROR_MILD);
+                if (error)
+                {
+                    g_error_free(error);
+                    error = NULL;
+                }
+                else
+                {
+                    /* fm_file_info_fill() violates its contract,
+                    so make this catchable with G_DEBUG */
+                    g_critical("%s: error is unexpectedly NULL", __FUNCTION__);
+                }
+                /*
+                    fm_job_emit_error() forces job to be cancelled on FM_JOB_ABORT.
+                    To be in line with FM_JOB_CONTINUE logic, we do not check for
+                    FM_JOB_ABORT here.
+                    That means the failed item is going to be removed below,
+                    and next we break the loop on checking fm_job_is_cancelled().
+                */
+                if (action == FM_JOB_RETRY)
+                    continue;
+            }
         }
+
+        if (!result) /* remove failed items from the list */
+            fm_file_info_list_delete_link(job->file_infos, l); /* also calls unref */
+
         l = next;
     }
     return TRUE;

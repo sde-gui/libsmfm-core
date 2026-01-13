@@ -86,32 +86,6 @@ void fm_file_info_job_add_gfile(FmFileInfoJob* job, GFile* gf);
 /* This API should only be called in error handler */
 FmPath* fm_file_info_job_get_current(FmFileInfoJob* job);
 
-#ifndef __GTK_DOC_IGNORE__
-/* useful inline routines for FmJob classes */
-static inline gboolean
-_fm_file_info_job_get_info_for_native_file(FmJob* job, FmFileInfo* fi, const char* path, GError** err)
-{
-    if( ! fm_job_is_cancelled(job) )
-        return fm_file_info_fill_from_native_file(fi, path, err);
-    return TRUE;
-}
-
-extern const char gfile_info_query_attribs[];
-
-static inline gboolean
-_fm_file_info_job_get_info_for_gfile(FmJob* job, FmFileInfo* fi, GFile* gf, GError** err)
-{
-    GFileInfo* inf;
-    inf = g_file_query_info(gf, gfile_info_query_attribs, (GFileQueryInfoFlags)0, fm_job_get_cancellable(job), err);
-    if( !inf )
-        return FALSE;
-    fm_file_info_fill_from_gfileinfo(fi, inf);
-    g_object_unref(inf);
-
-    return TRUE;
-}
-#endif /* __GTK_DOC_IGNORE__ */
-
 G_END_DECLS
 
 #endif /* __FM_FILE_INFO_JOB_H__ */
