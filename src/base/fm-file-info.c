@@ -1230,9 +1230,6 @@ void fm_file_info_set_color(FmFileInfo* fi, unsigned long color)
 
 static void deferred_icon_load(FmFileInfo* fi)
 {
-    if (G_LIKELY(fi->icon))
-        return;
-
     G_LOCK(deferred_icon_load);
 
     if (fi->icon || !fi->from_native_file)
@@ -1282,9 +1279,6 @@ static void deferred_icon_load(FmFileInfo* fi)
 
 static void deferred_mime_type_load(FmFileInfo* fi)
 {
-    if (G_LIKELY(fi->mime_type))
-        return;
-
     G_LOCK(deferred_mime_type_load);
 
     if (fi->mime_type || fi->mime_type_load_done || !fi->from_native_file)
@@ -1325,6 +1319,9 @@ FmIcon* fm_file_info_get_icon(FmFileInfo* fi)
 {
     fm_return_val_if_fail(fi, 0);
 
+    FmIcon * icon = GET_FIELD(icon, icon);
+    if (G_LIKELY(icon))
+        return icon;
     deferred_icon_load(fi);
     return GET_FIELD(icon, icon);
 }
@@ -1459,6 +1456,9 @@ FmMimeType* fm_file_info_get_mime_type(FmFileInfo* fi)
 {
     fm_return_val_if_fail(fi, 0);
 
+    FmMimeType * mime_type = GET_FIELD(mime_type, mime_type);
+    if (G_LIKELY(mime_type))
+        return mime_type;
     deferred_mime_type_load(fi);
     return GET_FIELD(mime_type, mime_type);
 }
