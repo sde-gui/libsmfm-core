@@ -867,7 +867,8 @@ FmFileInfo* fm_file_info_new_from_native_file(FmPath* path, const char* path_str
 {
     if (!path && !path_str)
     {
-        /* FIXME: set error */
+        g_set_error_literal(error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                            "path is NULL");
         return NULL;
     }
 
