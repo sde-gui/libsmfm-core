@@ -307,6 +307,8 @@ FmFileInfo* fm_file_info_new ()
  *
  * Returns: (transfer full): a new FmFileInfo struct which needs to be freed with
  * fm_file_info_unref() when it's no more needed.
+ *
+ * Since: 1.2.0
  */
 FmFileInfo * fm_file_info_new_from_path_unfilled(FmPath * path)
 {
@@ -345,6 +347,8 @@ void fm_file_info_set_path(FmFileInfo* fi, FmPath* path)
  * of fm_file_info_fill_from_* functions more than once for each #FmFileInfo struct.
  *
  * Returns: TRUE if no error happens.
+ *
+ * Since: 1.2.0
  */
 gboolean fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* path_str, GError** error)
 {
@@ -519,6 +523,8 @@ static gboolean _fm_file_info_fill_from_native_file(FmFileInfo* fi, const char* 
  * This function is not thread-safe. You should not call it on a #FmFileInfo
  * struct that is accessible from another thread. You also should not call any
  * of fm_file_info_fill_from_* functions more than once for each #FmFileInfo struct.
+ *
+ * Since: 1.2.0
  */
 void fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
 {
@@ -733,6 +739,8 @@ static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
  * of fm_file_info_fill_from_* functions more than once for each #FmFileInfo struct.
  *
  * Returns: TRUE if no error happens.
+ *
+ * Since: 1.2.0
  */
 gboolean fm_file_info_fill(FmFileInfo* fi, GCancellable* cancellable, GError** error)
 {
@@ -853,6 +861,7 @@ FmFileInfo* fm_file_info_new_from_gfileinfo(FmPath* path, GFileInfo* inf)
  *
  * Returns: (transfer full): new file info or %NULL in case of error.
  *
+ * Since: 1.2.0
  */
 FmFileInfo* fm_file_info_new_from_native_file(FmPath* path, const char* path_str, GError** error)
 {
@@ -1291,6 +1300,8 @@ gboolean fm_file_info_is_native(FmFileInfo* fi)
  * This is a synonym of fm_file_info_is_directory().
  *
  * Returns: TRUE if the file is a directory or a link to a directory.
+ *
+ * Since: 1.2.0
  */
 gboolean fm_file_info_is_dir(FmFileInfo* fi)
 {
@@ -1545,6 +1556,8 @@ gboolean fm_file_info_is_hidden(FmFileInfo* fi)
  * Checks whether file is a backup file.
  *
  * Returns: %TRUE if the file is a backup file.
+ *
+ * Since: 1.2.0
  */
 gboolean fm_file_info_is_backup(FmFileInfo* fi)
 {
