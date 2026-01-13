@@ -140,6 +140,6 @@ const char * _fm_get_default_gfile_info_query_attributes(void);
 
 G_END_DECLS
 
-#endif
-
 #include "fm-file-info-list.h"
+
+#endif

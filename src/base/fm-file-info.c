@@ -747,24 +747,24 @@ void fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
 
 static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
 {
-    const char *tmp, *uri;
     GIcon* gicon;
     GFileType type;
 
     FmMimeType * mime_type = NULL;
     FmIcon * icon = NULL;
     char * target = NULL;
+    const char * content_type = NULL;
 
     fm_return_if_fail(fi);
     fm_return_if_fail(fi->path);
 
     fi->from_native_file = FALSE;
 
-    /* if display name is the same as its name, just use it. */
-    tmp = g_file_info_get_display_name(inf);
-    if (g_strcmp0(tmp, fm_path_get_basename(fi->path)) != 0)
+    /* if display name is the same as basename, just use it. */
+    const char * display_name = g_file_info_get_display_name(inf);
+    if (g_strcmp0(display_name, fm_path_get_basename(fi->path)) != 0)
     {
-        SET_SYMBOL(disp_name, tmp);
+        SET_SYMBOL(disp_name, display_name);
     }
 
     if (g_file_info_has_attribute(inf, G_FILE_ATTRIBUTE_STANDARD_SIZE))
@@ -773,9 +773,9 @@ static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
         fi->size = 0;
 
     if (g_file_info_has_attribute(inf, G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE))
-        tmp = g_file_info_get_content_type(inf);
-    if (tmp)
-        mime_type = fm_mime_type_from_name(tmp);
+        content_type = g_file_info_get_content_type(inf);
+    if (content_type)
+        mime_type = fm_mime_type_from_name(content_type);
 
     fi->mode = g_file_info_get_attribute_uint32(inf, G_FILE_ATTRIBUTE_UNIX_MODE);
 
@@ -806,15 +806,17 @@ static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
         case G_FILE_TYPE_SPECIAL:
             if(fi->mode)
                 break;
-        /* if it's a special file but it doesn't have UNIX mode, compose a fake one. */
-            if (g_strcmp0(tmp, "inode/chardevice")==0)
+            /* if it's a special file but it doesn't have UNIX mode, compose a fake one. */
+            if (content_type == NULL) /* prevent dereferencing NULL */
+                { /* pass */ }
+            else if (strcmp(content_type, "inode/chardevice") == 0)
                 fi->mode |= S_IFCHR;
-            else if (g_strcmp0(tmp, "inode/blockdevice")==0)
+            else if (strcmp(content_type, "inode/blockdevice") == 0)
                 fi->mode |= S_IFBLK;
-            else if (g_strcmp0(tmp, "inode/fifo")==0)
+            else if (strcmp(content_type, "inode/fifo") == 0)
                 fi->mode |= S_IFIFO;
         #ifdef S_IFSOCK
-            else if (g_strcmp0(tmp, "inode/socket")==0)
+            else if (strcmp(content_type, "inode/socket") == 0)
                 fi->mode |= S_IFSOCK;
         #endif
             break;
@@ -829,6 +831,7 @@ static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
         /* assume it's accessible */
         fi->accessible = TRUE;
 
+    const char * uri;
     switch(type)
     {
     case G_FILE_TYPE_MOUNTABLE:
@@ -882,7 +885,7 @@ static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
     gicon = g_file_info_get_icon(inf);
     if (gicon)
         icon = fm_icon_from_gicon(gicon);
-        /* g_object_unref(gicon); this is not needed since
+        /* g_object_unref(gicon) is not needed since
          * g_file_info_get_icon didn't increase ref_count.
          * the object returned by g_file_info_get_icon is
          * owned by GFileInfo. */
@@ -898,8 +901,8 @@ static void _fm_file_info_fill_from_gfileinfo(FmFileInfo* fi, GFileInfo* inf)
     }
     else
     {
-        tmp = g_file_info_get_attribute_string(inf, G_FILE_ATTRIBUTE_ID_FILESYSTEM);
-        fi->fs_id = g_intern_string(tmp);
+        const char * fs_id = g_file_info_get_attribute_string(inf, G_FILE_ATTRIBUTE_ID_FILESYSTEM);
+        fi->fs_id = g_intern_string(fs_id);
     }
 
     fi->mtime = g_file_info_get_attribute_uint64(inf, G_FILE_ATTRIBUTE_TIME_MODIFIED);
