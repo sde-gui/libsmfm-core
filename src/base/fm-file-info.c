@@ -1079,7 +1079,9 @@ FmFileInfo* fm_file_info_new_from_native_file(FmPath* path, const char* path_str
     FmFileInfo* fi = fm_file_info_new();
     char * should_be_freed = NULL;
 
-    if (!path)
+    if (path)
+        path = fm_path_ref(path);
+    else
         path = fm_path_new_for_path(path_str);
 
     if (!path_str)
@@ -1097,6 +1099,7 @@ FmFileInfo* fm_file_info_new_from_native_file(FmPath* path, const char* path_str
     }
 
     g_free(should_be_freed);
+    fm_path_unref(path);
 
     return fi;
 }
